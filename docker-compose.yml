@@ -1,0 +1,56 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+    volumes:
+      - ./order-service/src:/usr/src/app/src
+
+  order-projection-service:
+    build:
+      context: ./order-projection-service
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+    volumes:
+      - ./order-projection-service/src:/usr/src/app/src
+
+  shop-bff-service:
+    build:
+      context: ./shop-bff-service
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./shop-bff-service/src:/usr/src/app/src
+
+  shop-frontend:
+    build:
+      context: ./shop-frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - shop-bff-service
+    ports:
+      - "3000:80"
+    volumes:
+      - ./shop-frontend/src:/usr/share/nginx/html:ro

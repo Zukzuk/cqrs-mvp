@@ -1,0 +1,15 @@
+{
+  "name": "cqrs-mvp",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "order-service",
+    "order-projection-service",
+    "shop-bff-service",
+    "shop-frontend"
+  ],
+  "scripts": {
+    "visualize": "node scripts/visualize.js > DIAGRAM.mmd",
+    "start:all": "docker-compose up --build"
+  }
+}

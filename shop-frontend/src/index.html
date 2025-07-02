@@ -1,39 +1,106 @@
 <!DOCTYPE html>
 <html>
-
 <head>
   <meta charset="utf-8">
-  <title>Order Demo</title>
+  <title>Live Order View & Create</title>
+  <script src="https://cdn.socket.io/4.7.1/socket.io.min.js"></script>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; }
+    label, select, input, button { margin: 0.5rem 0; display: block; }
+    button { padding: 0.5rem 1rem; }
+  </style>
 </head>
-
 <body>
-  <h1>Create Order</h1>
-  <input id="orderId" placeholder="Order ID"><input id="total" type="number" placeholder="Total">
-  <button id="createBtn">Send</button>
-  <ul id="events"></ul>
+  <h1>Order Dashboard</h1>
+
+  <!-- Order Selector & Create Form -->
+  <div>
+    <label for="orderId">Order ID:</label>
+    <select id="orderId">
+      <option value="">-- choose an order or create new --</option>
+      <option>order-123</option>
+      <option>order-456</option>
+      <option>order-789</option>
+    </select>
+
+    <label for="total">Total:</label>
+    <input type="number" id="total" placeholder="e.g. 42.50" min="0" step="0.01">
+
+    <button id="createBtn">Create / Update Order</button>
+  </div>
+
+  <h2>Current State</h2>
+  <pre id="snapshot">n/a</pre>
+
+  <h2>Updates</h2>
+  <ul id="updates"></ul>
+
   <script>
-    document.getElementById('createBtn').onclick = () => {
-      const orderId = document.getElementById('orderId').value;
-      const newTotal = document.getElementById('total').value;
-      console.log('POST')
-      fetch('http://localhost:4000/commands', {
+    const socket = io('http://localhost:4000');
+    const sel = document.getElementById('orderId');
+    const totalInput = document.getElementById('total');
+    const createBtn = document.getElementById('createBtn');
+    const snapEl = document.getElementById('snapshot');
+    const upEl   = document.getElementById('updates');
+    let currentId = '';
+
+    // Subscribe to WebSocket room on order change
+    sel.addEventListener('change', () => {
+      const id = sel.value;
+      if (!id) return;
+      currentId = id;
+      upEl.innerHTML = '';
+      socket.emit('subscribe', id);
+    });
+
+    // Handle incoming snapshot
+    socket.on('snapshot', view => {
+      if (view.orderId === currentId) {
+        snapEl.textContent = JSON.stringify(view, null, 2);
+      }
+    });
+
+    // Handle update events
+    socket.on('update', view => {
+      if (view.orderId === currentId) {
+        const li = document.createElement('li');
+        li.textContent = `Updated: total = ${view.total}`;
+        upEl.appendChild(li);
+      }
+    });
+
+    // Create/Update Order button
+    createBtn.addEventListener('click', async () => {
+      const orderId = sel.value.trim() || `order-${Date.now()}`;
+      const total = parseFloat(totalInput.value);
+      if (isNaN(total) || total <= 0) {
+        alert('Please enter a positive total.');
+        return;
+      }
+
+      // Update the selector if it was empty or new
+      if (!sel.querySelector(`option[value="${orderId}"]`)) {
+        const opt = document.createElement('option');
+        opt.value = orderId;
+        opt.textContent = orderId;
+        sel.appendChild(opt);
+      }
+      sel.value = orderId;
+      currentId = orderId;
+
+      // Send command
+      await fetch('http://localhost:4000/commands', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'CreateOrder',
-          payload: { orderId, total: +newTotal }
+          payload: { orderId, total }
         })
       });
-    };
-    const es = new EventSource('http://localhost:4000/events');
-    es.onmessage = e => {
-      console.log('SSE', e.data);
-      const ev = JSON.parse(e.data);
-      const li = document.createElement('li');
-      li.textContent = `${ev.type}: ${JSON.stringify(ev.payload)}`;
-      document.getElementById('events').appendChild(li);
-    };
+
+      // Clear total input
+      totalInput.value = '';
+    });
   </script>
 </body>
-
 </html>

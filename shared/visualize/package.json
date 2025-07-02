@@ -1,0 +1,14 @@
+{
+  "name": "visualize",
+  "version": "1.0.0",
+  "main": "mermaid.js",
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  },
+  "scripts": {
+    "visualize": "node shared/visualize/mermaid.js > DIAGRAM.mmd"
+  }
+}

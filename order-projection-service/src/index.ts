@@ -3,48 +3,38 @@ import cors from 'cors';
 import { io as Client } from 'socket.io-client';
 import { RabbitMQEventBus, IDomainEvent } from '@daveloper/eventbus';
 
-interface OrderView { orderId: string; total: number; }
+interface OrderView { orderId: string; total: number; userId: string; }
 
 (async () => {
-  // 1) Connect to BFF WebSocket namespace
-  const socket = Client('http://shop-bff-service:4000/projection');
-
-  // 2) Set up AMQP + in-memory store
-  const bus = new RabbitMQEventBus(process.env.RABBITMQ_URL!);
-  await bus.init();
-
   const store = new Map<string, OrderView>();
 
-  // 3) Subscribe to domain events
+  const socket = Client('http://localhost:4000/order_projection', { transports: ['websocket'] });
+  socket.on('connect', () => console.log('🔗 Connected to BFF /order_projection'));
+
+  const bus = new RabbitMQEventBus(process.env.RABBITMQ_URL!);
+  await bus.init
+
   await bus.subscribe(async (evt: IDomainEvent) => {
     const { type, payload } = evt;
-    if (!payload?.orderId) return;
+    if (!payload?.orderId || !payload?.userId) return;
 
-    // 3a) Commit to store
-    let view: OrderView | undefined = store.get(payload.orderId);
+    let view = store.get(payload.userId);
+
     if (type === 'OrderCreated') {
-      view = { orderId: payload.orderId, total: payload.total };
-    } else if (view && type === 'OrderUpdated') {
-      view.total = payload.total;
+      view = { orderId: payload.orderId, total: payload.total, userId: payload.userId };
+      store.set(payload.userId, view);
     } else {
       return;
     }
-    store.set(payload.orderId, view);
 
-    // 3b) Emit snapshot on first ever, then update
-    socket.emit('snapshot', view);
-    socket.emit('update', view);
+    socket.emit('order_update', view);
   }, {
     queue: 'order-projection-q',
     durable: true,
     autoDelete: false
   });
 
-  // (Optional) you can still expose an HTTP snapshot endpoint if you like
-  const app = express().use(cors());
-  app.get('/orders/:id', (req, res) => {
-    const view = store.get(req.params.id);
-    return view ? res.json(view) : res.status(404).end();
-  });
+  const app = express();
+  app.use(cors());
   app.listen(5000, () => console.log('Projection HTTP on 5000'));
 })();

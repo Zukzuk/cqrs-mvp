@@ -1,106 +1,49 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Live Order View & Create</title>
-  <script src="https://cdn.socket.io/4.7.1/socket.io.min.js"></script>
-  <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; }
-    label, select, input, button { margin: 0.5rem 0; display: block; }
-    button { padding: 0.5rem 1rem; }
-  </style>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orders Dashboard</title>
 </head>
 <body>
-  <h1>Order Dashboard</h1>
+  <h1>Your Orders</h1>
+  <ul id="orders"></ul>
 
-  <!-- Order Selector & Create Form -->
-  <div>
-    <label for="orderId">Order ID:</label>
-    <select id="orderId">
-      <option value="">-- choose an order or create new --</option>
-      <option>order-123</option>
-      <option>order-456</option>
-      <option>order-789</option>
-    </select>
-
-    <label for="total">Total:</label>
-    <input type="number" id="total" placeholder="e.g. 42.50" min="0" step="0.01">
-
-    <button id="createBtn">Create / Update Order</button>
-  </div>
-
-  <h2>Current State</h2>
-  <pre id="snapshot">n/a</pre>
-
-  <h2>Updates</h2>
-  <ul id="updates"></ul>
-
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
   <script>
-    const socket = io('http://localhost:4000');
-    const sel = document.getElementById('orderId');
-    const totalInput = document.getElementById('total');
-    const createBtn = document.getElementById('createBtn');
-    const snapEl = document.getElementById('snapshot');
-    const upEl   = document.getElementById('updates');
-    let currentId = '';
+    const socket = io('http://localhost:4000', { query: { userId: 'user123' } });
 
-    // Subscribe to WebSocket room on order change
-    sel.addEventListener('change', () => {
-      const id = sel.value;
-      if (!id) return;
-      currentId = id;
-      upEl.innerHTML = '';
-      socket.emit('subscribe', id);
-    });
+    socket.on('connect', () => console.log('Connected to BFF'));
 
-    // Handle incoming snapshot
-    socket.on('snapshot', view => {
-      if (view.orderId === currentId) {
-        snapEl.textContent = JSON.stringify(view, null, 2);
-      }
-    });
+    socket.on('orders_snapshot', (orders) => {
+      const list = document.getElementById('orders');
+      list.innerHTML = '';
 
-    // Handle update events
-    socket.on('update', view => {
-      if (view.orderId === currentId) {
+      orders.forEach(o => {
         const li = document.createElement('li');
-        li.textContent = `Updated: total = ${view.total}`;
-        upEl.appendChild(li);
-      }
-    });
-
-    // Create/Update Order button
-    createBtn.addEventListener('click', async () => {
-      const orderId = sel.value.trim() || `order-${Date.now()}`;
-      const total = parseFloat(totalInput.value);
-      if (isNaN(total) || total <= 0) {
-        alert('Please enter a positive total.');
-        return;
-      }
-
-      // Update the selector if it was empty or new
-      if (!sel.querySelector(`option[value="${orderId}"]`)) {
-        const opt = document.createElement('option');
-        opt.value = orderId;
-        opt.textContent = orderId;
-        sel.appendChild(opt);
-      }
-      sel.value = orderId;
-      currentId = orderId;
-
-      // Send command
-      await fetch('http://localhost:4000/commands', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'CreateOrder',
-          payload: { orderId, total }
-        })
+        li.id = `order-${o.id}`;
+        li.textContent = `Order #${o.id}: ${o.status}`;
+        list.appendChild(li);
       });
-
-      // Clear total input
-      totalInput.value = '';
     });
+
+    socket.on('order_update', (update) => {
+      let li = document.getElementById(`order-${update.id}`);
+
+      if (!li) {
+        li = document.createElement('li');
+        li.id = `order-${update.id}`;
+        document.getElementById('orders').appendChild(li);
+      }
+      
+      li.textContent = `Order #${update.id}: ${update.status}`;
+    });
+
+    // Send a command (example)
+    function sendCommand(cmd) {
+      socket.emit('command', { type: "CreateOrder", payload: { orderId: 123, total: 1 }});
+    }
   </script>
 </body>
 </html>

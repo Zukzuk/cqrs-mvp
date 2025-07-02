@@ -1,5 +1,8 @@
 export interface Command { type: string; payload: any; }
-export class CreateOrderCommand implements Command {
-  type = 'CreateOrder';
-  constructor(public payload: { orderId: string; total: number }) {}
+
+export class CreateOrder implements Command {
+  readonly type = 'CreateOrder';
+  constructor(public payload: { orderId: string; userId: string, total: number }) { }
 }
+
+export type AnyCommand = CreateOrder;

@@ -35,6 +35,8 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+      shop-bff-service:
+        condition: service_started
     environment:
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
     volumes:
@@ -62,6 +64,6 @@ services:
       shop-bff-service:
         condition: service_started
     ports:
-      - "3000:80"
+      - "3000:3000"
     volumes:
       - ./shop-frontend/src:/usr/share/nginx/html:ro

@@ -1,31 +1,28 @@
-import { CreateOrderCommand } from './commands';
+import { CreateOrder } from './commands';
 import { InMemoryRepository } from './repository';
 import { Order } from './orderAggregate';
 import { IEventBus } from '@daveloper/eventbus';
 
-export class CreateOrderHandler {
+export class CommandHandler {
   constructor(
     private repo: InMemoryRepository<Order>,
     private bus: IEventBus
-  ) {}
+  ) { }
 
-  async handle(cmd: CreateOrderCommand) {
-    console.log('handle', JSON.stringify(cmd.payload));
+  async handle(cmd: CreateOrder) {
+    const order = await this.repo.load(
+      cmd.payload.userId,
+      () => new Order()
+    );
 
-    // 1) apply business logic
-    const order = new Order();
-    order.create(cmd.payload.orderId, cmd.payload.total);
-
-    // 2) persist
-    await this.repo.save(order);
-
-    // 3) publish events via the IEventBus abstraction
-    console.log('uncommittedEvents', order.uncommittedEvents);
-    for (const event of order.uncommittedEvents) {
-      await this.bus.publish(event);
+    if (cmd.type === 'CreateOrder') {
+      order.create(cmd);
     }
 
-    // 4) clear
+    await this.repo.save(order);
+    for (const e of order.uncommittedEvents) {
+      await this.bus.publish(e);
+    }
     order.clearEvents();
   }
 }

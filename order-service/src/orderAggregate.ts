@@ -1,17 +1,19 @@
 import { AggregateRoot } from './aggregateRoot';
+import { CreateOrder } from './commands';
 import { OrderCreated } from './events';
 
 export class Order extends AggregateRoot {
   public id!: string;
+  public userId!: string;
   public total!: number;
-  create(orderId: string, total: number) {
-    console.log("create", orderId, total)
-    if (total <= 0) throw new Error('Total must be positive');
-    this.apply(new OrderCreated({ orderId, total }));
+
+  create(cmd: CreateOrder) {
+    this.apply({ type: 'OrderCreated', payload: { ...cmd.payload } });
   }
+
   private onOrderCreated(e: OrderCreated) {
-    console.log("onOrderCreated", e.payload);
-    this.id = e.payload.orderId; 
+    this.id = e.payload.orderId;
+    this.userId = e.payload.userId;
     this.total = e.payload.total;
   }
 }

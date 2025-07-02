@@ -7,10 +7,11 @@
     "order-projection-service",
     "shop-bff-service",
     "shop-frontend",
-    "shared/eventbus"
+    "shared/eventbus",
+    "shared/visualize"
   ],
   "scripts": {
-    "visualize": "node scripts/visualize.js > DIAGRAM.mmd",
+    "visualize": "node shared/visualize/mermaid.js > DIAGRAM.mmd",
     "start:all": "docker-compose up --build"
   }
 }

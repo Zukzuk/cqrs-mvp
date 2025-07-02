@@ -1,21 +1,24 @@
-import amqp from 'amqplib';
+import { RabbitMQEventBus } from '@daveloper/eventbus';
 import { CreateOrderHandler } from './commandHandler';
 import { InMemoryRepository } from './repository';
-import { EventBus } from './eventBus';
 import { CreateOrderCommand } from './commands';
+import { Order } from './orderAggregate';
+
 (async () => {
-  const conn = await amqp.connect(process.env.RABBITMQ_URL!);
-  const ch = await conn.createChannel();
-  await ch.assertQueue('commands');
-  const handler = new CreateOrderHandler(new InMemoryRepository(), new EventBus(ch));
-  ch.consume('commands', async msg => {
-    console.log("consume commands", msg)
-    if (msg) {
-      const cmd = JSON.parse(msg.content.toString()) as CreateOrderCommand;
-      if (cmd.type === 'CreateOrder') await handler.handle(cmd);
-      console.log("ack", msg);
-      ch.ack(msg);
+  const url = process.env.RABBITMQ_URL!;
+  const bus = new RabbitMQEventBus(url);
+  await bus.init();
+
+  // Wire up your domain handler exactly once:
+  const repo = new InMemoryRepository<Order>();
+  const handler = new CreateOrderHandler(repo, bus);
+
+  // Now consume the "commands" queue entirely through the façade:
+  await bus.consumeQueue<CreateOrderCommand>('commands', async (cmd) => {
+    if (cmd.type === 'CreateOrder') {
+      await handler.handle(cmd);
     }
   });
-  console.log('Command Service up');
+
+  console.log('Order Service up — all AMQP hidden behind EventBus');
 })();

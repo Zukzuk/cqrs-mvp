@@ -6,7 +6,8 @@
     "order-service",
     "order-projection-service",
     "shop-bff-service",
-    "shop-frontend"
+    "shop-frontend",
+    "shared/eventbus"
   ],
   "scripts": {
     "visualize": "node scripts/visualize.js > DIAGRAM.mmd",

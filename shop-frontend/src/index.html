@@ -15,6 +15,7 @@
     document.getElementById('createBtn').onclick = () => {
       const orderId = document.getElementById('orderId').value;
       const newTotal = document.getElementById('total').value;
+      console.log('POST')
       fetch('http://localhost:4000/commands', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -26,6 +27,7 @@
     };
     const es = new EventSource('http://localhost:4000/events');
     es.onmessage = e => {
+      console.log('SSE', e.data);
       const ev = JSON.parse(e.data);
       const li = document.createElement('li');
       li.textContent = `${ev.type}: ${JSON.stringify(ev.payload)}`;

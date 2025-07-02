@@ -13,6 +13,5 @@ export class InMemoryRepository<T extends AggregateRoot> {
     const id = (agg as any).id;
     if (!id) throw new Error('No id');
     this.store[id] = [...(this.store[id]||[]), ...agg.uncommittedEvents];
-    agg.clearEvents();
   }
 }

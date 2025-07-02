@@ -1,5 +1,6 @@
 import { AggregateRoot } from './aggregateRoot';
 import { OrderCreated } from './events';
+
 export class Order extends AggregateRoot {
   public id!: string;
   public total!: number;
@@ -10,6 +11,7 @@ export class Order extends AggregateRoot {
   }
   private onOrderCreated(e: OrderCreated) {
     console.log("onOrderCreated", e.payload);
-    this.id = e.payload.orderId; this.total = e.payload.total;
+    this.id = e.payload.orderId; 
+    this.total = e.payload.total;
   }
 }

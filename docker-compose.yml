@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   rabbitmq:
     image: rabbitmq:3-management
@@ -8,13 +10,19 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   order-service:
     build:
-      context: ./order-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: order-service/Dockerfile
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     environment:
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
     volumes:
@@ -22,10 +30,11 @@ services:
 
   order-projection-service:
     build:
-      context: ./order-projection-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: order-projection-service/Dockerfile
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     environment:
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
     volumes:
@@ -33,10 +42,11 @@ services:
 
   shop-bff-service:
     build:
-      context: ./shop-bff-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: shop-bff-service/Dockerfile
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     environment:
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
     ports:
@@ -49,7 +59,8 @@ services:
       context: ./shop-frontend
       dockerfile: Dockerfile
     depends_on:
-      - shop-bff-service
+      shop-bff-service:
+        condition: service_started
     ports:
       - "3000:80"
     volumes:

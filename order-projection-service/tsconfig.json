@@ -1,10 +1,19 @@
 {
   "compilerOptions": {
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@daveloper/eventbus": [
+        "../shared/eventbus/dist"
+      ]
+    },
     "target": "ES2020",
     "module": "CommonJS",
     "outDir": "dist",
     "strict": true,
     "esModuleInterop": true
   },
-  "include": ["src"]
+  "include": [
+    "src/**/*"
+  ]
 }

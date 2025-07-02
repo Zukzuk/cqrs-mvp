@@ -1,9 +1,9 @@
 import express from 'express';
 import cors from 'cors';
-import amqp from 'amqplib';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import path from 'path';
+import { RabbitMQEventBus, IDomainEvent } from '@daveloper/eventbus';
 
 (async () => {
   const app = express();
@@ -14,11 +14,9 @@ import path from 'path';
   const spec = YAML.load(path.join(__dirname, '../openapi.yaml'));
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(spec));
 
-  const conn = await amqp.connect(process.env.RABBITMQ_URL!);
-  const cmdCh = await conn.createChannel();
-  const evtCh = await conn.createChannel();
-  await cmdCh.assertQueue('commands');
-  await evtCh.assertQueue('events');
+  // 1) Initialize the EventBus (hides amqp.connect, channels, queues/exchange)
+  const bus = new RabbitMQEventBus(process.env.RABBITMQ_URL!);
+  await bus.init();
 
   /**
    * @openapi
@@ -30,7 +28,8 @@ import path from 'path';
    *         description: Accepted
    */
   app.post('/commands', async (req, res) => {
-    await cmdCh.sendToQueue('commands', Buffer.from(JSON.stringify(req.body)));
+    // 2) Send straight through the façade—no raw amqp here
+    await bus.send('commands', req.body);
     res.sendStatus(202);
   });
 
@@ -43,19 +42,29 @@ import path from 'path';
    *       200:
    *         description: Event stream
    */
-  app.get('/events', (req, res) => {
+  app.get('/events', async (req, res) => {
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
       Connection: 'keep-alive',
-      'Cache-Control': 'no-cache'
+      'Cache-Control': 'no-cache',
     });
-    evtCh.consume('events', msg => {
-      if (msg) {
-        res.write(`data: ${msg.content.toString()}`);
-        evtCh.ack(msg);
+
+    // 3) Subscribe to *all* domain events; returns an unsubscribe fn
+    const unsubscribe = await bus.subscribe(
+      async (evt: IDomainEvent) => {
+        // SSE framing: data + double newline
+        res.write(`data: ${JSON.stringify(evt)}\n\n`);
       }
+      // no type filters → receive everything
+    );
+
+    // 4) Cleanup when client disconnects
+    req.on('close', () => {
+      unsubscribe().catch(console.error);
     });
   });
 
-  app.listen(4000, () => console.log('BFF up on 4000 with Swagger UI at /api-docs'));
+  app.listen(4000, () =>
+    console.log('BFF up on 4000 with Swagger UI at /api-docs')
+  );
 })();

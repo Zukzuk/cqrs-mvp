@@ -1,5 +1,6 @@
 {
   "name": "cqrs-mvp",
+  "description": "Shop System - A CQRS ordering platform",
   "private": true,
   "version": "1.0.0",
   "workspaces": [
@@ -11,7 +12,7 @@
     "shared/visualize"
   ],
   "scripts": {
-    "visualize": "node shared/visualize/mermaid.js > DIAGRAM.mmd",
+    "visualize": "ts-node shared/visualize/src/index.ts",
     "start:all": "docker-compose up --build"
   }
 }

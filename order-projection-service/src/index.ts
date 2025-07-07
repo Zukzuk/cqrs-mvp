@@ -1,40 +1,65 @@
 import express from 'express';
-import cors from 'cors';
-import { io as Client } from 'socket.io-client';
+import http from 'http';
+import { io as Client, Socket } from 'socket.io-client';
 import { RabbitMQEventBus, IDomainEvent } from '@daveloper/eventbus';
 
-interface OrderView { orderId: string; total: number; userId: string; }
-
 (async () => {
-  const store = new Map<string, OrderView>();
+  const store = new Map<string, any[]>();
 
-  const socket = Client('http://localhost:4000/order_projection', { transports: ['websocket'] });
-  socket.on('connect', () => console.log('🔗 Connected to BFF /order_projection'));
+  const socket: Socket = Client(
+    'http://shop-bff-service:4000/order_projection',
+    {
+      transports: ['websocket'],
+      auth: { serviceToken: 'dummy-projection' }  // ← dummy service token
+    }
+  );
 
+  // Connection lifecycle
+  // socket.on('connect', () => console.log(`🟢 [socket] Connected as ${socket.id}`));
+  // socket.on('connect_error', err => console.error('❌ [socket] Connect error:', err.message));
+  // socket.on('disconnect', reason => console.warn('⚠️ [socket] Disconnected:', reason));
+
+  // Log all incoming messages
+  socket.onAny((event, payload) => {
+    // console.log(`⬅️ [socket] Received "${event}"`, payload);
+  });
+
+  // 2) Initialize the bus _correctly_
   const bus = new RabbitMQEventBus(process.env.RABBITMQ_URL!);
-  await bus.init
+  await bus.init();
+  console.log('✅ [bus] RabbitMQEventBus initialized');
 
   await bus.subscribe(async (evt: IDomainEvent) => {
-    const { type, payload } = evt;
-    if (!payload?.orderId || !payload?.userId) return;
+    console.log('📨 [bus] event', evt.type, evt.payload);
+    const { orderId, userId, total } = evt.payload;
+    if (!orderId || !userId) return;
+    const arr = store.get(userId) || [];
+    if (evt.type === 'OrderCreated') {
+      const view = { orderId, userId, total, status: 'CREATED' };
+      arr.push(view);
+      store.set(userId, arr);
+      // console.log(`🗄️ [store] user=${userId}`, arr);
 
-    let view = store.get(payload.userId);
-
-    if (type === 'OrderCreated') {
-      view = { orderId: payload.orderId, total: payload.total, userId: payload.userId };
-      store.set(payload.userId, view);
-    } else {
-      return;
+      console.log('➡️ [socket] emitting order_update', view);
+      socket.emit('order_update', view);
     }
-
-    socket.emit('order_update', view);
   }, {
     queue: 'order-projection-q',
     durable: true,
     autoDelete: false
   });
 
+  socket.on('request_snapshot', ({ userId }) => {
+    console.log('⬅️ [socket] request_snapshot for', userId);
+    const orders = store.get(userId) || [];
+    console.log('➡️ [socket] emitting orders_snapshot', { userId, orders });
+    socket.emit('orders_snapshot', { userId, orders });
+  });
+
   const app = express();
-  app.use(cors());
-  app.listen(5000, () => console.log('Projection HTTP on 5000'));
+  const server = http.createServer(app);
+  app.get('/health', (_req, res) => {
+    res.status(200).json({ status: 'ok' });
+  });
+  server.listen(5000, () => console.log('🚀 [http+pubsub] Order Projection Service listening on port 5000'));
 })();

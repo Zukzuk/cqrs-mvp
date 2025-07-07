@@ -1,49 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Orders Dashboard</title>
 </head>
+
 <body>
   <h1>Your Orders</h1>
   <ul id="orders"></ul>
+  <button onclick="createOrder()">Create Order</button>
 
   <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
   <script>
-    const socket = io('http://localhost:4000', { query: { userId: 'user123' } });
+    const auth = { userId: 'user123' };
 
-    socket.on('connect', () => console.log('Connected to BFF'));
+    const socket = io('http://localhost:4000', {
+      transports: ['websocket'],
+      auth,
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000
+    });
 
+    // Connection lifecycle
+    // socket.on('connect', () => console.log(`🟢 [socket] Connected as ${socket.id}`));
+    // socket.on('connect_error', err => console.error('❌ [socket] Connect error:', err.message));
+    // socket.on('disconnect', reason => console.warn('⚠️ [socket] Disconnected:', reason));
+
+    // Log all inbound events
+    socket.onAny((event, payload) => {
+      console.log(`⬅️ [socket] Event "${event}"`, payload);
+    });
+
+    // Handle snapshot (full list)
     socket.on('orders_snapshot', (orders) => {
+      console.log('📦 [socket] orders_snapshot received:', orders);
       const list = document.getElementById('orders');
       list.innerHTML = '';
-
-      orders.forEach(o => {
+      orders.forEach(order => {
         const li = document.createElement('li');
-        li.id = `order-${o.id}`;
-        li.textContent = `Order #${o.id}: ${o.status}`;
+        li.id = `order-${order.orderId}`;
+        li.textContent = `Order #${order.orderId}: ${order.status}`;
         list.appendChild(li);
       });
     });
 
+    // Handle incremental updates
     socket.on('order_update', (update) => {
-      let li = document.getElementById(`order-${update.id}`);
-
+      console.log('🔄 [socket] order_update received:', update);
+      let li = document.getElementById(`order-${update.orderId}`);
       if (!li) {
         li = document.createElement('li');
-        li.id = `order-${update.id}`;
+        li.id = `order-${update.orderId}`;
         document.getElementById('orders').appendChild(li);
       }
-      
-      li.textContent = `Order #${update.id}: ${update.status}`;
+      li.textContent = `Order #${update.orderId}: ${update.status}`;
     });
 
-    // Send a command (example)
-    function sendCommand(cmd) {
-      socket.emit('command', { type: "CreateOrder", payload: { orderId: 123, total: 1 }});
+    // Emit command
+    function createOrder() {
+      const cmd = { type: "CreateOrder", payload: { orderId: Date.now(), total: 1 } };
+      console.log('➡️ [socket] Emitting "command":', cmd);
+      socket.emit('command', cmd, (ack) => {
+        console.log('✅ [socket] "command" ACK:', ack);
+      });
     }
   </script>
 </body>
+
 </html>

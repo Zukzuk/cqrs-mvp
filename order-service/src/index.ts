@@ -1,4 +1,5 @@
-// src/index.ts
+import express from 'express';
+import http from 'http';
 import { RabbitMQEventBus } from '@daveloper/eventbus';
 import { InMemoryRepository } from './repository';
 import { CommandHandler } from './commandHandler';
@@ -21,5 +22,10 @@ import { Order } from './orderAggregate';
     }
   );
 
-  console.log('Order Service up – handling both CreateOrder');
+  const app = express();
+  const server = http.createServer(app);
+  app.get('/health', (_req, res) => {
+    res.status(200).json({ status: 'ok' });
+  });
+  server.listen(6000, () => console.log('🚀 [http+pubsub] Order Application Service listening on port 6000'));
 })();

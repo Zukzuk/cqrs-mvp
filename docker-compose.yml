@@ -1,9 +1,11 @@
-version: '3.8'
-
 services:
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
+    labels:
+      com.diagram.name: "Broker"
+      com.diagram.technology: "RabbitMQ"
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -21,49 +23,63 @@ services:
       context: .
       dockerfile: order-service/Dockerfile
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - rabbitmq
+    labels:
+      com.diagram.name: "Order ApplicationService"
+      com.diagram.technology: "Node.js, Eventbus"
     environment:
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-    volumes:
-      - ./order-service/src:/usr/src/app/src
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   order-projection-service:
     build:
       context: .
       dockerfile: order-projection-service/Dockerfile
     depends_on:
-      rabbitmq:
-        condition: service_healthy
-      shop-bff-service:
-        condition: service_started
+      - rabbitmq
+      - shop-bff-service
+    labels:
+      com.diagram.name: "Order ProjectionService"
+      com.diagram.technology: "Node.js, Eventbus, Socket.io-client"
     environment:
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-    volumes:
-      - ./order-projection-service/src:/usr/src/app/src
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   shop-bff-service:
     build:
       context: .
       dockerfile: shop-bff-service/Dockerfile
     depends_on:
-      rabbitmq:
-        condition: service_healthy
-    environment:
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - rabbitmq
+    labels:
+      com.diagram.name: "Shop BFF"
+      com.diagram.technology: "Node.js, Socket.io"
     ports:
       - "4000:4000"
-    volumes:
-      - ./shop-bff-service/src:/usr/src/app/src
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   shop-frontend:
     build:
       context: ./shop-frontend
       dockerfile: Dockerfile
     depends_on:
-      shop-bff-service:
-        condition: service_started
+      - shop-bff-service
+    labels:
+      com.diagram.name: "Shop Frontend"
+      com.diagram.technology: "NGINX, html/js, Socket.io.min.js"
     ports:
       - "3000:3000"
-    volumes:
-      - ./shop-frontend/src:/usr/share/nginx/html:ro

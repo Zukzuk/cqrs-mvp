@@ -30,6 +30,7 @@ services:
       com.diagram.description: "Handles incoming orders, emits order-created events to the broker"
       com.diagram.technology: "Node.js, SharedEventbus"
       com.diagram.group: "Order Domain"
+      com.diagram.depends_on.rabbitmq: "subscribe to Commands and publish Domain Events"
     depends_on:
       - rabbitmq
     ports:
@@ -52,6 +53,8 @@ services:
       com.diagram.description: "Subscribes to order events, updates read models and pushes realtime updates to shop-bff-service"
       com.diagram.technology: "Node.js, SharedEventbus, Socket.io-client"
       com.diagram.group: "Shop Frontend"
+      com.diagram.depends_on.rabbitmq: "subscribe to Domain Events"
+      com.diagram.depends_on.shop-bff-service: "listen for Queries and push Query Payloads"
     depends_on:
       - rabbitmq
       - shop-bff-service
@@ -75,6 +78,7 @@ services:
       com.diagram.description: "Backend-for-frontend: aggregates domain services and exposes WebSocket/APIs for the shop UI"
       com.diagram.technology: "Node.js, Socket.io"
       com.diagram.group: "Shop Frontend"
+      com.diagram.depends_on.rabbitmq: "publish Commands"
     depends_on:
       - rabbitmq
     ports:
@@ -97,6 +101,7 @@ services:
       com.diagram.description: "Serves the static frontend files, connects via wss to the order-bff-service and renders realtime updates"
       com.diagram.technology: "NGINX, html/js, Socket.io.min.js"
       com.diagram.group: "Shop Frontend"
+      com.diagram.depends_on.shop-bff-service: "push Commands and listen for Bulk/Update Payloads"
     depends_on:
       - shop-bff-service
     ports:

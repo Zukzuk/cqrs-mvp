@@ -5,7 +5,9 @@ services:
     container_name: rabbitmq
     labels:
       com.diagram.name: "Broker"
+      com.diagram.description: "Provides a messaging broker with management UI for routing and inspecting events"
       com.diagram.technology: "RabbitMQ"
+      com.diagram.group: "Event Platform"
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -22,11 +24,16 @@ services:
     build:
       context: .
       dockerfile: order-service/Dockerfile
-    depends_on:
-      - rabbitmq
+    container_name: order-service
     labels:
       com.diagram.name: "Order ApplicationService"
-      com.diagram.technology: "Node.js, Eventbus"
+      com.diagram.description: "Handles incoming orders, emits order-created events to the broker"
+      com.diagram.technology: "Node.js, SharedEventbus"
+      com.diagram.group: "Order Domain"
+    depends_on:
+      - rabbitmq
+    ports:
+      - "6000:6000"
     environment:
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
     healthcheck:
@@ -39,12 +46,17 @@ services:
     build:
       context: .
       dockerfile: order-projection-service/Dockerfile
+    container_name: order-projection-service
+    labels:
+      com.diagram.name: "Order ProjectionService"
+      com.diagram.description: "Subscribes to order events, updates read models and pushes realtime updates to shop-bff-service"
+      com.diagram.technology: "Node.js, SharedEventbus, Socket.io-client"
+      com.diagram.group: "Shop Frontend"
     depends_on:
       - rabbitmq
       - shop-bff-service
-    labels:
-      com.diagram.name: "Order ProjectionService"
-      com.diagram.technology: "Node.js, Eventbus, Socket.io-client"
+    ports:
+      - "5000:5000"
     environment:
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
     healthcheck:
@@ -57,11 +69,14 @@ services:
     build:
       context: .
       dockerfile: shop-bff-service/Dockerfile
-    depends_on:
-      - rabbitmq
+    container_name: shop-bff-service
     labels:
       com.diagram.name: "Shop BFF"
+      com.diagram.description: "Backend-for-frontend: aggregates domain services and exposes WebSocket/APIs for the shop UI"
       com.diagram.technology: "Node.js, Socket.io"
+      com.diagram.group: "Shop Frontend"
+    depends_on:
+      - rabbitmq
     ports:
       - "4000:4000"
     environment:
@@ -76,10 +91,13 @@ services:
     build:
       context: ./shop-frontend
       dockerfile: Dockerfile
-    depends_on:
-      - shop-bff-service
+    container_name: shop-frontend
     labels:
       com.diagram.name: "Shop Frontend"
+      com.diagram.description: "Serves the static frontend files, connects via wss to the order-bff-service and renders realtime updates"
       com.diagram.technology: "NGINX, html/js, Socket.io.min.js"
+      com.diagram.group: "Shop Frontend"
+    depends_on:
+      - shop-bff-service
     ports:
       - "3000:3000"

@@ -32,8 +32,10 @@ import { RabbitMQEventBus, IDomainEvent } from '@daveloper/eventbus';
   await bus.subscribe(async (evt: IDomainEvent) => {
     console.log('📨 [bus] event', evt.type, evt.payload);
     const { orderId, userId, total } = evt.payload;
+    
     if (!orderId || !userId) return;
     const arr = store.get(userId) || [];
+
     if (evt.type === 'OrderCreated') {
       const view = { orderId, userId, total, status: 'CREATED' };
       arr.push(view);

@@ -10,7 +10,6 @@ export function registerProjection(
     projectionNs: Namespace,
     io: Server
 ) {
-    // Authenticate incoming projection service connections
     projectionNs.use(serviceAuth);
 
     projectionNs.on('connection', (socket: Socket) => {
@@ -18,14 +17,12 @@ export function registerProjection(
             `🔗 [bff-socket] ProjectionService connected socket=${socket.id} svc=${socket.data.serviceId}`
         );
 
-        // Handle incoming orders_snapshot messages from the projection service
         socket.on('orders_snapshot', (view: { userId: string; orders: any[] }) => {
             console.log('⬅️ [bff-socket] recieving orders_snapshot');
             io.to(view.userId).emit('orders_snapshot', view.orders);
             console.log(`➡️ [bff-socket] sending orders_snapshot → user=${view.userId}`);
         });
 
-        // Handle individual order updates from the projection service
         socket.on('order_update', (order: { userId: string;[key: string]: any }) => {
             console.log('⬅️ [bff-socket] recieving order_update');
             io.to(order.userId).emit('order_update', order);

@@ -6,16 +6,18 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Orders Dashboard</title>
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
 </head>
 
 <body>
   <h1>Your Orders</h1>
-  <ul id="orders"></ul>
   <button onclick="createOrder()">Create Order</button>
+  <ul id="orders"></ul>
 
-  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
   <script>
-    const auth = { userId: 'user123' };
+    const params = new URLSearchParams(window.location.search);
+    const auth = { userId: params.get('userId') || 'user123'};
 
     const socket = io('http://localhost:4000', {
       transports: ['websocket'],
@@ -31,38 +33,40 @@
     socket.on('disconnect', reason => console.warn('⚠️ [web-socket] Disconnected:', reason));
 
     // Log all inbound events
+
     socket.onAny((event, payload) => {
       // console.log(`⬅️ [web-socket] Event "${event}"`, payload);
     });
 
     // Handle snapshot (full list)
     socket.on('orders_snapshot', (orders) => {
-      console.log('📦 [web-socket] recieving orders_snapshot:', orders);
+      console.log('⬅️ [web-socket] recieving orders_snapshot:', orders);
       const list = document.getElementById('orders');
       list.innerHTML = '';
       orders.forEach(order => {
         const li = document.createElement('li');
         li.id = `order-${order.orderId}`;
-        li.textContent = `Order #${order.orderId}: ${order.status}`;
+        li.textContent = `User ${order.userId} Order #${order.orderId}: ${order.status}`;
         list.appendChild(li);
       });
     });
 
     // Handle incremental updates
     socket.on('order_update', (update) => {
-      console.log('🔄 [web-socket] recieving order_update:', update);
+      console.log('⬅️ [web-socket] recieving order_update:', update);
       let li = document.getElementById(`order-${update.orderId}`);
       if (!li) {
         li = document.createElement('li');
         li.id = `order-${update.orderId}`;
         document.getElementById('orders').appendChild(li);
       }
-      li.textContent = `Order #${update.orderId}: ${update.status}`;
+      li.textContent = `User ${update.userId} Order #${update.orderId}: ${update.status}`;
     });
 
     // Emit command
+    const { v4: uuidV4 } = window.uuid;
     function createOrder() {
-      const cmd = { type: "CreateOrder", payload: { orderId: Date.now(), total: 1 } };
+      const cmd = { type: "CreateOrder", payload: { orderId: Date.now(), total: 1 }, correlationId: uuidV4() };
       console.log('➡️ [web-socket] sending command:', cmd);
       socket.emit('command', cmd, (ack) => {
         console.log('✅ [web-socket] command ACK:', ack);

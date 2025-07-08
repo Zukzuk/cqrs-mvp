@@ -27,9 +27,9 @@ export class CommandHandler {
       try {
         const ev = new OrderCreated(rawEvent.payload, cmd.correlationId); // stamp with the corrId
         await this.bus.publish(ev);
-        console.log('✅ [order-handler] Published event', ev.type);
+        console.log('✅ [order-handler] publish event', ev.type);
       } catch (err: any) {
-        console.error('❌ [order-handler] Failed to publish event', err.type, err);
+        console.error('❌ [order-handler] failed to publish event', err.type, err);
       }
     }
 

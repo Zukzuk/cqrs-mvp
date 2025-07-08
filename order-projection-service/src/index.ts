@@ -24,7 +24,6 @@ import { RabbitMQEventBus, IDomainEvent } from '@daveloper/eventbus';
     // console.log(`⬅️ [projection-socket] Received "${event}"`, payload);
   });
 
-  // 2) Initialize the bus _correctly_
   const bus = new RabbitMQEventBus(process.env.RABBITMQ_URL!);
   await bus.init();
   console.log('🟢 [projection-bus] initialized');
@@ -40,7 +39,7 @@ import { RabbitMQEventBus, IDomainEvent } from '@daveloper/eventbus';
       const view = { orderId, userId, total, status: 'CREATED' };
       arr.push(view);
       store.set(userId, arr);
-      console.log(`💾 [projection-save] user=${userId}`, arr);
+      console.log(`💾 [projection-denorm] save data for user=${userId}`, view);
 
       console.log('➡️ [projection-socket] sending order_update');
       socket.emit('order_update', view);

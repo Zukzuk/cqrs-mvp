@@ -21,7 +21,7 @@ export function registerWebClient(
         projectionNs.emit('request_snapshot', { userId })
 
         socket.on('command', async (raw, ack) => {
-            console.log('⬅️ [bff-socket] command from client:', raw)
+            console.log('⬅️ [bff-socket] recieving command from client:', raw)
             raw.payload.userId = userId
             try {
                 await bus.send('commands', raw)

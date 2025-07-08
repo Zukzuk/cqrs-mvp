@@ -17,12 +17,12 @@ import { Order } from './orderAggregate';
   await bus.consumeQueue<AnyCommand>(
     'commands',
     async (cmd) => {
-      console.log('📨 [order-bus] Received command', cmd.type, cmd.payload);
+      console.log('📨 [order-bus] recieving command', cmd.type);
       try {
         await handler.handle(cmd);
-        console.log('✅ [order-handler] Command handled successfully:', cmd.type);
+        console.log('✅ [order-handler] command successfully handled', cmd.type);
       } catch (err: any) {
-        console.error('❌ [order-handler] Command handling failed:', err);
+        console.error('❌ [order-handler] command handling failed:', err);
       }
     }
   );

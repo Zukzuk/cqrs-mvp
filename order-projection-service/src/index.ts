@@ -5,17 +5,18 @@ import { RabbitMQEventBus, IDomainEvent } from '@daveloper/eventbus';
 
 (async () => {
   const store = new Map<string, any[]>();
+  const auth = { serviceId: 'dummy-service-id-123' };
 
   const socket: Socket = Client(
     'http://shop-bff-service:4000/order_projection',
     {
       transports: ['websocket'],
-      auth: { serviceToken: 'dummy-projection' }  // ← dummy service token
+      auth,
     }
   );
 
   // Connection lifecycle
-  socket.on('connect', () => console.log(`🔗 [projection-socket] Connected to bff as ${socket.id}`));
+  // socket.on('connect', () => console.log(`🔗 [projection-socket] connecting to bff-socket=${socket.id} as serviceId=${auth.serviceId}`));
   socket.on('connect_error', err => console.error('❌ [projection-socket] Connect error:', err.message));
   socket.on('disconnect', reason => console.warn('⚠️ [projection-socket] Disconnected:', reason));
 
@@ -29,7 +30,7 @@ import { RabbitMQEventBus, IDomainEvent } from '@daveloper/eventbus';
   console.log('🟢 [projection-bus] initialized');
 
   await bus.subscribe(async (evt: IDomainEvent) => {
-    console.log('📨 [projection-bus] event', evt.type, evt.payload);
+    console.log('📨 [projection-bus] recieving event', evt.type);
     const { orderId, userId, total } = evt.payload;
     
     if (!orderId || !userId) return;

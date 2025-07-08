@@ -28,9 +28,9 @@
     });
 
     // Connection lifecycle
-    socket.on('connect', () => console.log(`🔗 [web-socket] Connected to bff as ${socket.id}`));
-    socket.on('connect_error', err => console.error('❌ [web-socket] Connect error:', err.message));
-    socket.on('disconnect', reason => console.warn('⚠️ [web-socket] Disconnected:', reason));
+    // socket.on('connect', () => console.log(`🔗 [web-socket] connecting to bff-socket=${socket.id} as userId=${auth.userId}`));
+    socket.on('connect_error', err => console.error('❌ [web-socket] connection error:', err.message));
+    socket.on('disconnect', reason => console.warn('⚠️ [web-socket] disconnected:', reason));
 
     // Log all inbound events
 

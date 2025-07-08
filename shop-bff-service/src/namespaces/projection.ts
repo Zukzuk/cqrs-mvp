@@ -14,7 +14,7 @@ export function registerProjection(
 
     projectionNs.on('connection', (socket: Socket) => {
         console.log(
-            `🔗 [bff-socket] ProjectionService connected socket=${socket.id} svc=${socket.data.serviceId}`
+            `🔗 [bff-socket] ProjectionService connected on socket=${socket.id} as serviceId=${socket.data.serviceId}`
         );
 
         socket.on('orders_snapshot', (view: { userId: string; orders: any[] }) => {

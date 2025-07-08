@@ -12,12 +12,12 @@ export function userAuth(socket: Socket, next: (err?: Error) => void) {
 }
 
 export function serviceAuth(socket: Socket, next: (err?: Error) => void) {
-    const { serviceToken } = socket.handshake.auth as { serviceToken?: string }
-    if (!serviceToken) {
-        console.error('❌ [bff-auth] Missing auth.serviceToken')
+    const { serviceId } = socket.handshake.auth as { serviceId?: string }
+    if (!serviceId) {
+        console.error('❌ [bff-auth] Missing auth.serviceId')
         return next(new Error('auth error'))
     }
-    socket.data.serviceId = serviceToken
-    console.log(`✅ [bff-auth] Accepted serviceId=${serviceToken}`)
+    socket.data.serviceId = serviceId;
+    console.log(`✅ [bff-auth] Accepted serviceId=${serviceId}`)
     next()
 }

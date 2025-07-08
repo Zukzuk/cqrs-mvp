@@ -8,8 +8,7 @@ import { exportMermaid } from './exporter';
     const { name } = await loadCompose(root);
     const dsl = buildDsl(await loadCompose(root));
     const dslFile = await writeDsl(dsl, name, root);
-    await exportMermaid(root, dslFile);
-    console.log('🎉 All SVG diagrams are ready in your diagrams folder');
+    await exportMermaid(name, root, dslFile);
   } catch (err) {
     console.error('❌ Fatal error:', err);
     process.exit(1);

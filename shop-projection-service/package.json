@@ -1,5 +1,5 @@
 {
-  "name": "order-projection-service",
+  "name": "shop-projection-service",
   "version": "1.0.0",
   "main": "dist/index.js",
   "engines": {

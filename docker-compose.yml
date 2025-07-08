@@ -45,13 +45,13 @@ services:
       timeout: 5s
       retries: 5
 
-  order-projection-service:
+  shop-projection-service:
     build:
       context: .
-      dockerfile: order-projection-service/Dockerfile
-    container_name: order-projection-service
+      dockerfile: shop-projection-service/Dockerfile
+    container_name: shop-projection-service
     labels:
-      com.diagram.name: "OrderProjectionService"
+      com.diagram.name: "ShopProjectionService"
       com.diagram.description: "Subscribes to DomainEvents, handles readDB updates, pushes Payloads to bff"
       com.diagram.technology: "Node.js, SharedEventbus, Socket.io-client"
       com.diagram.group: "Shop Frontend"

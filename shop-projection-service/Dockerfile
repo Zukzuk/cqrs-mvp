@@ -1,9 +1,9 @@
 FROM cqrs-mvp/base:latest
 
-WORKDIR /usr/src/app/order-projection-service
-COPY order-projection-service/package*.json ./
+WORKDIR /usr/src/app/shop-projection-service
+COPY shop-projection-service/package*.json ./
 RUN npm install
-COPY order-projection-service .
+COPY shop-projection-service .
 RUN npm run build
 
 ENTRYPOINT ["sh", "-c", \

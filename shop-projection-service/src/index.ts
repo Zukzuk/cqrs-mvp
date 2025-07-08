@@ -8,7 +8,7 @@ import { RabbitMQEventBus, IDomainEvent } from '@daveloper/eventbus';
   const auth = { serviceId: 'dummy-service-id-123' };
 
   const socket: Socket = Client(
-    'http://shop-bff-service:4000/order_projection',
+    'http://shop-bff-service:4000/shop_projection',
     {
       transports: ['websocket'],
       auth,
@@ -46,7 +46,7 @@ import { RabbitMQEventBus, IDomainEvent } from '@daveloper/eventbus';
       socket.emit('order_update', view);
     }
   }, {
-    queue: 'order-projection-q',
+    queue: 'shop-projection-q',
     durable: true,
     autoDelete: false
   });
@@ -63,5 +63,5 @@ import { RabbitMQEventBus, IDomainEvent } from '@daveloper/eventbus';
   app.get('/health', (_req, res) => {
     res.status(200).json({ status: 'ok' });
   });
-  server.listen(5000, () => console.log('🚀 [http+pubsub] OrderProjectionService listening on port 5000'));
+  server.listen(5000, () => console.log('🚀 [http+pubsub] ShopProjectionService listening on port 5000'));
 })();

@@ -7,7 +7,7 @@ import { registerProjection } from './namespaces/projection'
   const { io, server } = createAppServer()
   const bus = await initBus()
 
-  const projectionNs = io.of('/order_projection')
+  const projectionNs = io.of('/shop_projection')
   registerProjection(projectionNs, io)
   registerWebClient(io, bus, projectionNs)
 

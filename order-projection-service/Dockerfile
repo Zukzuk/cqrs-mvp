@@ -1,22 +1,5 @@
-FROM node:22-alpine
+FROM cqrs-mvp/base:latest
 
-# Install bash and curl
-RUN apk add --no-cache bash curl
-
-# Fetch wait-for-it script at build time and make executable
-RUN curl -fsSL \
-    https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh \
-    -o /usr/local/bin/wait-for-it \
-    && chmod +x /usr/local/bin/wait-for-it
-
-# Put us at /usr/src/app and install shared
-WORKDIR /usr/src/app
-COPY shared/eventbus ./shared/eventbus
-RUN cd shared/eventbus \
-    && npm install \
-    && npm run build
-
-# Switch to the service dir
 WORKDIR /usr/src/app/order-projection-service
 COPY order-projection-service/package*.json ./
 RUN npm install

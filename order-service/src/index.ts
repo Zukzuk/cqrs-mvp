@@ -3,7 +3,7 @@ import http from 'http';
 import { RabbitMQEventBus } from '@daveloper/eventbus';
 import { InMemoryRepository } from './repository';
 import { CommandHandler } from './commandHandler';
-import { CreateOrder } from './commands';
+import { AnyCommand } from './commands';
 import { Order } from './orderAggregate';
 
 (async () => {
@@ -13,11 +13,9 @@ import { Order } from './orderAggregate';
   const repo = new InMemoryRepository<Order>();
   const handler = new CommandHandler(repo, bus);
 
-  // Drain the commands queue
-  await bus.consumeQueue<CreateOrder>(
+  await bus.consumeQueue<AnyCommand>(
     'commands',
     async (cmd) => {
-      // cmd is just the raw { type, payload } that matches the interface
       await handler.handle(cmd);
     }
   );

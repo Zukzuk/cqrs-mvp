@@ -1,0 +1,15 @@
+FROM node:22-alpine
+
+# install bash/curl + wait-for-it
+RUN apk add --no-cache bash curl \
+    && curl -fsSL \
+    https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh \
+    -o /usr/local/bin/wait-for-it \
+    && chmod +x /usr/local/bin/wait-for-it
+
+# build shared/eventbus
+WORKDIR /usr/src/app
+COPY shared/eventbus ./shared/eventbus
+RUN cd shared/eventbus \
+    && npm install \
+    && npm run build

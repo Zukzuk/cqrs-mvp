@@ -13,6 +13,6 @@
   ],
   "scripts": {
     "visualize": "ts-node shared/visualize/src/index.ts",
-    "start:all": "docker-compose up --build"
+    "start:all": "docker build -f Dockerfile.base.nodejs -t cqrs-mvp/base:latest . && docker-compose up --build"
   }
 }

@@ -4,10 +4,10 @@ services:
     image: rabbitmq:3-management
     container_name: rabbitmq
     labels:
-      com.diagram.name: "Broker"
-      com.diagram.description: "Provides a robust messaging broker with management UI"
-      com.diagram.technology: "RabbitMQ"
-      com.diagram.group: "Event Platform"
+      structurizr.name: "Broker"
+      structurizr.description: "Provides a robust messaging broker with management UI"
+      structurizr.technology: "RabbitMQ"
+      structurizr.group: "Event Platform"
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -28,11 +28,11 @@ services:
       dockerfile: order-service/Dockerfile
     container_name: order-service
     labels:
-      com.diagram.name: "OrderApplicationService"
-      com.diagram.description: "Subscribes to Commands, validates and handles Commands, protects the DomainLogic, emits DomainEvents to the broker"
-      com.diagram.technology: "Node.js, SharedEventbus"
-      com.diagram.group: "Order Domain"
-      com.diagram.depends_on.rabbitmq: "subscribe to Commands and publish DomainEvents"
+      structurizr.name: "OrderApplicationService"
+      structurizr.description: "Subscribes to Commands, validates and handles Commands, protects the DomainLogic, emits DomainEvents to the broker"
+      structurizr.technology: "Node.js, SharedEventbus"
+      structurizr.group: "Order Domain"
+      structurizr.depends_on.rabbitmq: "subscribe to Commands and publish DomainEvents"
     depends_on:
       - rabbitmq
     ports:
@@ -51,21 +51,45 @@ services:
       dockerfile: shop-projection-service/Dockerfile
     container_name: shop-projection-service
     labels:
-      com.diagram.name: "ShopProjectionService"
-      com.diagram.description: "Subscribes to DomainEvents, handles readDB updates, pushes Payloads to bff"
-      com.diagram.technology: "Node.js, SharedEventbus, Socket.io-client"
-      com.diagram.group: "Shop Frontend"
-      com.diagram.depends_on.rabbitmq: "subscribe to DomainEvents"
-      com.diagram.depends_on.shop-bff-service: "listen for Queries and push Payloads"
+      structurizr.name: "ShopProjectionService"
+      structurizr.description: "Subscribes to DomainEvents, handles readDB updates, pushes Payloads to bff"
+      structurizr.technology: "Node.js, SharedEventbus, Socket.io-client"
+      structurizr.group: "Shop Frontend::Shop Projection"
+      structurizr.depends_on.rabbitmq: "subscribe to DomainEvents"
+      structurizr.depends_on.shop-bff-service: "listen for Queries and push Payloads"
+      structurizr.depends_on.shop-projection-db: "read and add Denormalized data"
     depends_on:
       - rabbitmq
       - shop-bff-service
+      - shop-projection-db
     ports:
       - "5000:5000"
     environment:
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - MONGO_URL=mongodb://shop-projection-db:27017
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  shop-projection-db:
+    image: mongo:7
+    container_name: shop-projection-db
+    command: ["--config", "/etc/mongo/mongo.conf"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo.conf:/etc/mongo/mongo.conf:ro
+    labels:
+      structurizr.name: "ShopProjectionDB"
+      structurizr.description: "Read DB for denormalized views"
+      structurizr.technology: "MongoDB"
+      structurizr.group: "Shop Frontend::Shop Projection"
+      structurizr.type: "database"
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -76,11 +100,11 @@ services:
       dockerfile: shop-bff-service/Dockerfile
     container_name: shop-bff-service
     labels:
-      com.diagram.name: "Shop Backend-for-frontend"
-      com.diagram.description: "Exposes and guards WebSocket/APIs, publishes Commands to the broker, sends snapshotQueries to projections, listens for Payloads from projections, forwards Payloads to web clients"
-      com.diagram.technology: "Node.js, SharedEventbus, Socket.io"
-      com.diagram.group: "Shop Frontend"
-      com.diagram.depends_on.rabbitmq: "publish Commands"
+      structurizr.name: "Shop Backend-for-frontend"
+      structurizr.description: "Exposes and guards WebSocket/APIs, publishes Commands to the broker, sends snapshotQueries to projections, listens for Payloads from projections, forwards Payloads to web clients"
+      structurizr.technology: "Node.js, SharedEventbus, Socket.io"
+      structurizr.group: "Shop Frontend"
+      structurizr.depends_on.rabbitmq: "publish Commands"
     depends_on:
       - rabbitmq
     ports:
@@ -99,12 +123,15 @@ services:
       dockerfile: Dockerfile
     container_name: shop-frontend
     labels:
-      com.diagram.name: "Shop WebClient"
-      com.diagram.description: "Serves static files, connects to bff via wss, sends Commands to bff, renders incoming Payloads"
-      com.diagram.technology: "NGINX, html/js, Socket.io.min.js"
-      com.diagram.group: "Shop Frontend"
-      com.diagram.depends_on.shop-bff-service: "push Commands and listen for Payloads"
+      structurizr.name: "Shop Nginx"
+      structurizr.description: "Serves static files, connects to bff via wss, sends Commands to bff, renders incoming Payloads"
+      structurizr.technology: "NGINX, html/js, Socket.io.min.js"
+      structurizr.group: "Shop Frontend"
+      structurizr.depends_on.shop-bff-service: "push Commands and listen for Payloads"
     depends_on:
       - shop-bff-service
     ports:
       - "3000:3000"
+
+volumes:
+  mongo_data:

@@ -2,7 +2,6 @@
 
 import { loadCompose } from './compose';
 import { buildDsl } from './dsl';
-import { exportMermaid } from './exporter';
 import { launchStructurizrUI } from './launch';
 
 (async function main() {
@@ -12,9 +11,6 @@ import { launchStructurizrUI } from './launch';
 
     const compose = await loadCompose(root);
     const dslText = buildDsl(compose);
-
-    // optional mermaid export
-    // await exportMermaid(name, root, dslText);
 
     // now launch Structurizr UI on port 7000
     launchStructurizrUI(dslText, name, 7000);

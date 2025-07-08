@@ -98,6 +98,30 @@ function renderContainer(svcKey: string, svc: ComposeService, indentLevel = 3): 
       .join('');
   }
 
+  // Special handling for webserver
+  else if (type === 'webserver') {
+    // IDs for the generated Browser and User containers
+    const browserId = `${id}_browser`;
+    const userId    = `${id}_user`;
+
+    return [`${header} {`,
+            `${indent}  tags "Web Server"`,
+            `${indent}}`,
+            '',
+            `${indent}${browserId} = container "Web SPA" "Web interface for users" "Web Browser"`,
+            '',
+            `${indent}${userId} = container "User" "End user interacting via browser" "Person" {`,
+            `${indent}  tags "Person"`,
+            `${indent}}`,
+            '',
+            `${indent}${id} -> ${browserId} "Serves"`,
+            `${indent}${userId} -> ${browserId} "Uses"`,
+            '',
+          ]
+      .map(line => line + '\n')
+      .join('');
+  }
+
   return header + '\n';
 }
 

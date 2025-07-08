@@ -100,7 +100,7 @@ services:
       dockerfile: shop-bff-service/Dockerfile
     container_name: shop-bff-service
     labels:
-      structurizr.name: "Shop Backend-for-frontend"
+      structurizr.name: "Shop BFF"
       structurizr.description: "Exposes and guards WebSocket/APIs, publishes Commands to the broker, sends snapshotQueries to projections, listens for Payloads from projections, forwards Payloads to web clients"
       structurizr.technology: "Node.js, SharedEventbus, Socket.io"
       structurizr.group: "Shop Frontend"
@@ -127,7 +127,8 @@ services:
       structurizr.description: "Serves static files, connects to bff via wss, sends Commands to bff, renders incoming Payloads"
       structurizr.technology: "NGINX, html/js, Socket.io.min.js"
       structurizr.group: "Shop Frontend"
-      structurizr.depends_on.shop-bff-service: "push Commands and listen for Payloads"
+      structurizr.depends_on.shop-bff-service: "listen for Payloads and push Queries and Commands"
+      structurizr.type: "webserver"
     depends_on:
       - shop-bff-service
     ports:

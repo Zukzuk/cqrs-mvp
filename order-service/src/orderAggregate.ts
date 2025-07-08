@@ -8,7 +8,7 @@ export class Order extends AggregateRoot {
   public total!: number;
 
   create(cmd: CreateOrder) {
-    this.apply({ type: 'OrderCreated', payload: { ...cmd.payload } });
+    this.apply({ type: 'OrderCreated', payload: { ...cmd.payload }, correlationId: 'dummy-correlation-id' });
   }
 
   private onOrderCreated(e: OrderCreated) {

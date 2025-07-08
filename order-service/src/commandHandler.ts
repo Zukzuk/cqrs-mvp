@@ -1,7 +1,8 @@
 import { CreateOrder } from './commands';
 import { InMemoryRepository } from './repository';
 import { Order } from './orderAggregate';
-import { IEventBus } from '@daveloper/eventbus';
+import { IEventBus, IDomainEvent } from '@daveloper/eventbus';
+import { OrderCreated } from './events';
 
 export class CommandHandler {
   constructor(
@@ -20,9 +21,18 @@ export class CommandHandler {
     }
 
     await this.repo.save(order);
-    for (const e of order.uncommittedEvents) {
-      await this.bus.publish(e);
+    console.log(`💾 [order-save] user=${cmd.payload.userId}`, order);
+
+    for (const rawEvent of order.uncommittedEvents as IDomainEvent[]) {
+      try {
+        const ev = new OrderCreated(rawEvent.payload, cmd.correlationId); // stamp with the corrId
+        await this.bus.publish(ev);
+        console.log('✅ [order-handler] Published event', ev.type);
+      } catch (err: any) {
+        console.error('❌ [order-handler] Failed to publish event', err.type, err);
+      }
     }
+
     order.clearEvents();
   }
 }

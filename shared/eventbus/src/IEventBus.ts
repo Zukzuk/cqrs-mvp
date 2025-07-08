@@ -1,6 +1,7 @@
 export interface IDomainEvent {
   readonly type: string;
   readonly payload: any;
+  readonly correlationId: string;
 }
 
 export interface ICommandHandler<T = any> {

@@ -15,22 +15,22 @@ import { RabbitMQEventBus, IDomainEvent } from '@daveloper/eventbus';
   );
 
   // Connection lifecycle
-  // socket.on('connect', () => console.log(`🟢 [socket] Connected as ${socket.id}`));
-  // socket.on('connect_error', err => console.error('❌ [socket] Connect error:', err.message));
-  // socket.on('disconnect', reason => console.warn('⚠️ [socket] Disconnected:', reason));
+  socket.on('connect', () => console.log(`🔗 [projection-socket] Connected to bff as ${socket.id}`));
+  socket.on('connect_error', err => console.error('❌ [projection-socket] Connect error:', err.message));
+  socket.on('disconnect', reason => console.warn('⚠️ [projection-socket] Disconnected:', reason));
 
   // Log all incoming messages
   socket.onAny((event, payload) => {
-    // console.log(`⬅️ [socket] Received "${event}"`, payload);
+    // console.log(`⬅️ [projection-socket] Received "${event}"`, payload);
   });
 
   // 2) Initialize the bus _correctly_
   const bus = new RabbitMQEventBus(process.env.RABBITMQ_URL!);
   await bus.init();
-  console.log('✅ [bus] RabbitMQEventBus initialized');
+  console.log('🟢 [projection-bus] initialized');
 
   await bus.subscribe(async (evt: IDomainEvent) => {
-    console.log('📨 [bus] event', evt.type, evt.payload);
+    console.log('📨 [projection-bus] event', evt.type, evt.payload);
     const { orderId, userId, total } = evt.payload;
     
     if (!orderId || !userId) return;
@@ -40,9 +40,9 @@ import { RabbitMQEventBus, IDomainEvent } from '@daveloper/eventbus';
       const view = { orderId, userId, total, status: 'CREATED' };
       arr.push(view);
       store.set(userId, arr);
-      // console.log(`🗄️ [store] user=${userId}`, arr);
+      console.log(`💾 [projection-save] user=${userId}`, arr);
 
-      console.log('➡️ [socket] emitting order_update', view);
+      console.log('➡️ [projection-socket] sending order_update');
       socket.emit('order_update', view);
     }
   }, {
@@ -52,9 +52,9 @@ import { RabbitMQEventBus, IDomainEvent } from '@daveloper/eventbus';
   });
 
   socket.on('request_snapshot', ({ userId }) => {
-    console.log('⬅️ [socket] request_snapshot for', userId);
+    console.log('⬅️ [projection-socket] recieving request_snapshot for', userId);
     const orders = store.get(userId) || [];
-    console.log('➡️ [socket] emitting orders_snapshot', { userId, orders });
+    console.log('➡️ [projection-socket] sending orders_snapshot', { userId, orders });
     socket.emit('orders_snapshot', { userId, orders });
   });
 
@@ -63,5 +63,5 @@ import { RabbitMQEventBus, IDomainEvent } from '@daveloper/eventbus';
   app.get('/health', (_req, res) => {
     res.status(200).json({ status: 'ok' });
   });
-  server.listen(5000, () => console.log('🚀 [http+pubsub] Order Projection Service listening on port 5000'));
+  server.listen(5000, () => console.log('🚀 [http+pubsub] OrderProjectionService listening on port 5000'));
 })();

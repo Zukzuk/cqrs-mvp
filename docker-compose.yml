@@ -11,6 +11,8 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    volumes:
+      - ./rabbitmq.conf.d:/etc/rabbitmq/conf.d/20-logging.conf:ro
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -53,7 +55,7 @@ services:
       com.diagram.description: "Subscribes to DomainEvents, handles readDB updates, pushes Payloads to bff"
       com.diagram.technology: "Node.js, SharedEventbus, Socket.io-client"
       com.diagram.group: "Shop Frontend"
-      com.diagram.depends_on.rabbitmq: "subscribe to Domain Events"
+      com.diagram.depends_on.rabbitmq: "subscribe to DomainEvents"
       com.diagram.depends_on.shop-bff-service: "listen for Queries and push Payloads"
     depends_on:
       - rabbitmq

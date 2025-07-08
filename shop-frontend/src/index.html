@@ -26,18 +26,18 @@
     });
 
     // Connection lifecycle
-    // socket.on('connect', () => console.log(`🟢 [socket] Connected as ${socket.id}`));
-    // socket.on('connect_error', err => console.error('❌ [socket] Connect error:', err.message));
-    // socket.on('disconnect', reason => console.warn('⚠️ [socket] Disconnected:', reason));
+    socket.on('connect', () => console.log(`🔗 [web-socket] Connected to bff as ${socket.id}`));
+    socket.on('connect_error', err => console.error('❌ [web-socket] Connect error:', err.message));
+    socket.on('disconnect', reason => console.warn('⚠️ [web-socket] Disconnected:', reason));
 
     // Log all inbound events
     socket.onAny((event, payload) => {
-      console.log(`⬅️ [socket] Event "${event}"`, payload);
+      // console.log(`⬅️ [web-socket] Event "${event}"`, payload);
     });
 
     // Handle snapshot (full list)
     socket.on('orders_snapshot', (orders) => {
-      console.log('📦 [socket] orders_snapshot received:', orders);
+      console.log('📦 [web-socket] recieving orders_snapshot:', orders);
       const list = document.getElementById('orders');
       list.innerHTML = '';
       orders.forEach(order => {
@@ -50,7 +50,7 @@
 
     // Handle incremental updates
     socket.on('order_update', (update) => {
-      console.log('🔄 [socket] order_update received:', update);
+      console.log('🔄 [web-socket] recieving order_update:', update);
       let li = document.getElementById(`order-${update.orderId}`);
       if (!li) {
         li = document.createElement('li');
@@ -63,11 +63,13 @@
     // Emit command
     function createOrder() {
       const cmd = { type: "CreateOrder", payload: { orderId: Date.now(), total: 1 } };
-      console.log('➡️ [socket] Emitting "command":', cmd);
+      console.log('➡️ [web-socket] sending command:', cmd);
       socket.emit('command', cmd, (ack) => {
-        console.log('✅ [socket] "command" ACK:', ack);
+        console.log('✅ [web-socket] command ACK:', ack);
       });
     }
+
+    console.log('🚀 [http+wss] WebClient running on port 3000');
   </script>
 </body>
 

@@ -36,7 +36,7 @@ import { RabbitMQEventBus, IDomainEvent } from '@daveloper/eventbus';
     const arr = store.get(userId) || [];
 
     if (evt.type === 'OrderCreated') {
-      const view = { orderId, userId, total, status: 'CREATED' };
+      const view = { orderId, userId, total, status: 'CREATED', correlationId: evt.correlationId };
       arr.push(view);
       store.set(userId, arr);
       console.log(`💾 [projection-denorm] save data for user=${userId}`, view);
@@ -53,7 +53,7 @@ import { RabbitMQEventBus, IDomainEvent } from '@daveloper/eventbus';
   socket.on('request_snapshot', ({ userId }) => {
     console.log('⬅️ [projection-socket] recieving request_snapshot for', userId);
     const orders = store.get(userId) || [];
-    console.log('➡️ [projection-socket] sending orders_snapshot', { userId, orders });
+    console.log('➡️ [projection-socket] sending orders_snapshot');
     socket.emit('orders_snapshot', { userId, orders });
   });
 

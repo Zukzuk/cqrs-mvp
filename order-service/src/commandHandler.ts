@@ -21,7 +21,7 @@ export class CommandHandler {
     }
 
     await this.repo.save(order);
-    console.log(`💾 [order-save] user=${cmd.payload.userId}`, order);
+    console.log(`💾 [order-write] save data for user=${cmd.payload.userId}`, order);
 
     for (const rawEvent of order.uncommittedEvents as IDomainEvent[]) {
       try {

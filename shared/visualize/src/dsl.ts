@@ -87,10 +87,8 @@ function renderContainer(svcKey: string, svc: ComposeService, indentLevel = 3): 
   const description = getLabel(svc, LABEL_KEYS.DESC, 'unknown');
   const type = getLabel(svc, LABEL_KEYS.TYPE, 'container').toLowerCase();
 
-  const header = `${indent}${id} = container "${name}" "${description}" "${technology}"`;
-
   if (type === 'database') {
-    return [`${header} {`,
+    return [`${indent}${id} = container "${name}" "${description}" "${technology}" {`,
             `${indent}  tags "Database"`,
             `${indent}}`,
             '']
@@ -101,28 +99,26 @@ function renderContainer(svcKey: string, svc: ComposeService, indentLevel = 3): 
   // Special handling for webserver
   else if (type === 'webserver') {
     // IDs for the generated Browser and User containers
-    const browserId = `${id}_browser`;
+    const serverId = `${id}_server`;
     const userId    = `${id}_user`;
 
-    return [`${header} {`,
-            `${indent}  tags "Web Server"`,
-            `${indent}}`,
+    return [`${indent}${id} = container "${name} SPA" "Web interface, connects to bff via wss, sends Queries and Commands to bff, renders incoming Payloads" "Browser, html/css/js, Socket.io.min"`,
             '',
-            `${indent}${browserId} = container "Web SPA" "Web interface for users" "Web Browser"`,
+            `${indent}${serverId} = container "${name} Server" "${description}" "${technology}"`,
             '',
             `${indent}${userId} = container "User" "End user interacting via browser" "Person" {`,
             `${indent}  tags "Person"`,
             `${indent}}`,
             '',
-            `${indent}${id} -> ${browserId} "Serves"`,
-            `${indent}${userId} -> ${browserId} "Uses"`,
+            `${indent}${serverId} -> ${id} "Serves"`,
+            `${indent}${userId} -> ${id} "Uses"`,
             '',
           ]
       .map(line => line + '\n')
       .join('');
   }
 
-  return header + '\n';
+  return `${indent}${id} = container "${name}" "${description}" "${technology}"\n`;
 }
 
 /**

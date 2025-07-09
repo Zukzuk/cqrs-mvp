@@ -123,9 +123,9 @@ services:
       dockerfile: Dockerfile
     container_name: shop-frontend
     labels:
-      structurizr.name: "Shop Nginx"
-      structurizr.description: "Serves static files, connects to bff via wss, sends Commands to bff, renders incoming Payloads"
-      structurizr.technology: "NGINX, html/js, Socket.io.min.js"
+      structurizr.name: "Shop Frontend"
+      structurizr.description: "Serves static files"
+      structurizr.technology: "Nginx"
       structurizr.group: "Shop Frontend"
       structurizr.depends_on.shop-bff-service: "listen for Payloads and push Queries and Commands"
       structurizr.type: "webserver"

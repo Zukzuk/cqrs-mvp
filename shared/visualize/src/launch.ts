@@ -4,11 +4,11 @@ import path from 'path';
 import { spawn } from 'child_process';
 
 /**
- * Writes the given DSL text to a temp 'workspace.dsl' file and
+ * Writes the given DSL text to a persistent 'diagram/workspace.dsl' file and
  * launches Structurizr Lite UI in Docker on the specified port.
  *
  * @param dslText     The Structurizr DSL content
- * @param projectName Used for naming the temp directory
+ * @param projectName Used for naming the Docker volume mount tag
  * @param port        Host port to bind to (default 7000)
  */
 export function launchStructurizrUI(
@@ -16,11 +16,16 @@ export function launchStructurizrUI(
   projectName: string,
   port: number = 7000
 ): void {
-  // Create a temporary directory
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), `${projectName}-`));
-  const dslFile = path.join(tmpDir, 'workspace.dsl');
+  // Ensure './diagram' directory exists in the current working directory
+  const diagramDir = path.join(process.cwd(), 'diagram');
+  if (!fs.existsSync(diagramDir)) {
+    fs.mkdirSync(diagramDir, { recursive: true });
+  }
 
-  // Write the DSL into workspace.dsl
+  // Define the DSL file path
+  const dslFile = path.join(diagramDir, 'workspace.dsl');
+
+  // Write the DSL into workspace.dsl under './diagram'
   fs.writeFileSync(dslFile, dslText, 'utf-8');
 
   console.log(`🚀 Starting Structurizr Lite UI at http://localhost:${port}`);
@@ -30,7 +35,7 @@ export function launchStructurizrUI(
   const dockerArgs = [
     'run', '--rm', '-it',
     '-p', `${port}:8080`,
-    '-v', `${tmpDir}:/usr/local/structurizr`,
+    '-v', `${diagramDir}:/usr/local/structurizr`,
     'structurizr/lite'
   ];
 

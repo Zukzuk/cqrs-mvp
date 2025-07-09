@@ -143,7 +143,7 @@ function renderGroups(node: GroupNode, groupName: string, depth: number, service
 }
 
 /**
- * Renders all inter-service dependencies.
+ * Renders all docker-compose 'depends_on' as relationships.
  */
 function renderDependencies(services: Record<string, ComposeService>): string {
   const lines: string[] = [];

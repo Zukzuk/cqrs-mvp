@@ -35,14 +35,23 @@ import { OrderDenormalizer } from './denormalizer';
   await bus.init();
   console.log('🟢 [projection-bus] initialized');
 
+  /*
+   * Events go to a topic exchange (domain-events) with routing keys, 
+   * and each consumer (projection, event-store, etc.) binds its own queue 
+   * (often with ['#'] or a narrower set of keys) to get exactly the slice 
+   * of the stream it needs.
+   */
   await bus.subscribe(
     async (evt: IDomainEvent) => {
       console.log('📨 [projection-bus] receiving event', evt.type);
       await denormalizer.handle(evt);
-    },{
-      queue: 'shop-projection-q',
-      durable: true,
-      autoDelete: false,
+    },
+    {
+      queue: 'shop-projection-q', // Declare a queue
+      exchange: 'domain-events', // Bind it to the "domain-events" exchange 
+      routingKeys: ['OrderCreated'], // or use 'Order.*' or provide an array of keys
+      durable: true, // Ensure the queue is durable
+      autoDelete: false, // Do not auto-delete the queue when no consumers are connected
     }
   );
 

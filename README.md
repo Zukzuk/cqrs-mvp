@@ -1,28 +1,56 @@
-# Full MVP: CQRS Node.js + TS with Docker Compose
+# CQRS-ES Shop System (MVP)
 
-This project includes four services:
+A minimal, hexagonal-architecture example showcasing CQRS and Event Sourcing for an order & projection platform.
 
-1. **RabbitMQ** (message broker)
-2. **Order Service** (handles commands, aggregates)
-3. **Projection Service** (consumes events, updates read-model)
-4. **BFF Service** (HTTP API + SSE)
-5. **Frontend** (static HTML client)
+## Domain:
+
+Defines Order aggregate & DomainEvent types
+
+Pure business rules, no infra dependencies
+
+## Application:
+
+CommandHandler loads aggregates, applies commands,
+persists via IEventStore, publishes to RabbitMQ
+
+## Infrastructure:
+
+Adapters for RabbitMQ (shared/eventbus), Mongo, HTTP
+
+event-store service subscribes to all domain-events and journals them in memory (or later a real DB)
+
+shop-projection-service rehydrates from event-store on startup and tails live events
+
+### This keeps your core logic clean, testable, and ready to swap any backing technology.
 
 ---
 ## Run
 
 ```bash
-docker-compose up --build
+npm run start:all
 ```
 
-- UI at `http://localhost:3000`
-- BFF at `http://localhost:4000`
-- RabbitMQ mgmt UI at `http://localhost:15672` (guest/guest)
-
 ---
-## Automatic Visualization Script (Mermaid)
+## C4 Arhitectural visualization (Structurizr))
 
-To generate a live diagram based on your actual `docker-compose.yml`, include a simple Node.js script in your project:
+Generate a 1to1 C4 diagram based on the actual `docker-compose.yml`
+```bash
+npm run dsl
+```
+
+Inspect it with Structurizr UI
 ```bash
 npm run visualize
 ```
+
+## Extending & Swapping
+
+Persistence: drop in a Postgres/Mongo-based IEventStore in event-store/ or as a library.
+
+Broker: swap RabbitMQ for Kafka by implementing the same IEventBus interface.
+
+Read Model: add new projection services binding only to the events they care about (routingKeys).
+
+Snapshots: have projection services call GET /events?from=<timestamp> on the Event Store to catch up after restarts.
+
+This setup keeps your domain & application layers pure, with all technical “plumbing” living in infrastructure adapters—making your core logic clean, testable, and ready to swap any backing technology.

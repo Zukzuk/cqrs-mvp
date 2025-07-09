@@ -4,6 +4,7 @@
   "private": true,
   "version": "1.0.0",
   "workspaces": [
+    "event-store",
     "order-service",
     "shop-projection-service",
     "shop-bff-service",
@@ -12,7 +13,8 @@
     "shared/visualize"
   ],
   "scripts": {
-    "visualize": "ts-node shared/visualize/src/index.ts",
+    "visualize": "nodemon --watch src --ext ts --exec \"ts-node shared/visualize/src/index.ts\"",
+    "dsl": "ts-node shared/visualize/src/generate.ts",
     "start:all": "docker build -f Dockerfile.base.nodejs -t cqrs-mvp/base:latest . && docker-compose up --build"
   }
 }

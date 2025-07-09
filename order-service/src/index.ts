@@ -16,6 +16,10 @@ import { Order } from './orderAggregate';
   const repo = new InMemoryRepository<Order>(eventStore);
   const handler = new CommandHandler(repo, bus);
 
+  /*
+   * Commands go point-to-point: send() directly into the commands queue 
+   * and consumeQueue() asserts and reads that same queue. There’s exactly one queue, one handler.
+   */
   await bus.consumeQueue<CreateOrder>(
     'commands',
     async (cmd: CreateOrder) => {
@@ -32,15 +36,6 @@ import { Order } from './orderAggregate';
   const app = express();
   app.get('/health', (_req, res) => {
     res.status(200).json({ status: 'ok' });
-  });
-
-  app.post('/replay', async (_req, res) => {
-    const all = await eventStore.loadAllEvents();
-    for (const evt of all) {
-      // optionally throttle/paginate in real store
-      await bus.publish(evt);
-    }
-    res.json({ replayed: all.length });
   });
 
   const server = http.createServer(app);

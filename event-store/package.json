@@ -1,5 +1,5 @@
 {
-  "name": "shop-projection-service",
+  "name": "event-store",
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
@@ -8,9 +8,7 @@
   },
   "dependencies": {
     "@daveloper/eventbus": "file:../shared/eventbus",
-    "express": "^5.1.0",
-    "mongodb": "^6.17.0",
-    "socket.io-client": "^4.8.1"
+    "express": "^5.1.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.17",

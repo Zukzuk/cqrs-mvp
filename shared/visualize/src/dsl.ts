@@ -102,7 +102,9 @@ function renderContainer(svcKey: string, svc: ComposeService, indentLevel = 3): 
     const serverId = `${id}_server`;
     const userId    = `${id}_user`;
 
-    return [`${indent}${id} = container "${name} SPA" "Web interface, connects to bff via wss, sends Queries and Commands to bff, renders incoming Payloads" "Browser, html/css/js, Socket.io.min"`,
+    return [`${indent}${id} = container "${name} SPA" "Web interface, connects to bff via wss, sends Queries and Commands to bff, renders incoming Payloads" "Browser, html/css/js, Socket.io.min" {`,
+            `${indent}  tags "Webclient"`,
+            `${indent}}`,
             '',
             `${indent}${serverId} = container "${name} Server" "${description}" "${technology}"`,
             '',
@@ -197,6 +199,13 @@ export function buildDsl(compose: ComposeFile): string {
                   `    styles {`,
                   `      element "Database" {`,
                   `        shape cylinder`,
+                  `        background "darkmagenta"`,
+                  `      }`,
+                  `      element "Webclient" {`,
+                  `        background "darkorange"`,
+                  `      }`,
+                  `      element "Person" {`,
+                  `        background "darkorange"`,
                   `      }`,
                   `    }`,
                   `    theme default`,

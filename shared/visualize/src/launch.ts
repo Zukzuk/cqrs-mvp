@@ -33,7 +33,7 @@ export function launchStructurizrUI(
 
   // Docker run arguments for Structurizr Lite
   const dockerArgs = [
-    'run', '--rm', '-it',
+    'run', '--rm',
     '-p', `${port}:8080`,
     '-v', `${diagramDir}:/usr/local/structurizr`,
     'structurizr/lite'

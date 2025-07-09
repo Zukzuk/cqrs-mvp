@@ -15,6 +15,7 @@ export interface IEventBus {
     options?: {
       queue?: string;
       durable?: boolean;
+      exchange?: string;
       autoDelete?: boolean;
       routingKeys?: string[];
     }

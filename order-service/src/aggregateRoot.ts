@@ -7,6 +7,7 @@ export abstract class AggregateRoot {
   protected apply(event: DomainEvent) {
     this._events.push(event);
     const agg = (this as any)[`on${event.type}`];
+    
     if (agg) agg.call(this, event);
   }
 

@@ -1,9 +1,10 @@
 import express from 'express';
 import http from 'http';
 import { RabbitMQEventBus } from '@daveloper/eventbus';
+import { InMemoryEventStore } from './eventStore/inMemoryEventStore';
 import { InMemoryRepository } from './repository';
 import { CommandHandler } from './commandHandler';
-import { AnyCommand } from './commands';
+import { CreateOrder } from './commands';
 import { Order } from './orderAggregate';
 
 (async () => {
@@ -11,12 +12,13 @@ import { Order } from './orderAggregate';
   await bus.init();
   console.log('🟢 [order-bus] initialized');
 
-  const repo = new InMemoryRepository<Order>();
+  const eventStore = new InMemoryEventStore();
+  const repo = new InMemoryRepository<Order>(eventStore);
   const handler = new CommandHandler(repo, bus);
 
-  await bus.consumeQueue<AnyCommand>(
+  await bus.consumeQueue<CreateOrder>(
     'commands',
-    async (cmd) => {
+    async (cmd: CreateOrder) => {
       console.log('📨 [order-bus] recieving command', cmd.type);
       try {
         await handler.handle(cmd);
@@ -30,6 +32,15 @@ import { Order } from './orderAggregate';
   const app = express();
   app.get('/health', (_req, res) => {
     res.status(200).json({ status: 'ok' });
+  });
+
+  app.post('/replay', async (_req, res) => {
+    const all = await eventStore.loadAllEvents();
+    for (const evt of all) {
+      // optionally throttle/paginate in real store
+      await bus.publish(evt);
+    }
+    res.json({ replayed: all.length });
   });
 
   const server = http.createServer(app);

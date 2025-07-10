@@ -1,13 +1,13 @@
 import { CreateOrder } from './commands';
 import { InMemoryRepository } from './repository';
 import { Order } from './orderAggregate';
-import { IEventBus, IDomainEvent } from '@daveloper/eventbus';
+import { IBroker, IDomainEvent } from '@daveloper/broker';
 import { OrderCreated } from './events';
 
 export class CommandHandler {
   constructor(
     private repo: InMemoryRepository<Order>,
-    private bus: IEventBus
+    private bus: IBroker
   ) { }
 
   async handle(cmd: CreateOrder) {
@@ -27,12 +27,12 @@ export class CommandHandler {
       try {
         const ev = new OrderCreated(rawEvent.payload, cmd.correlationId); // stamp with the corrId
         await this.bus.publish(ev);
-        console.log('✅ [order-handler] publish event', ev.type);
+        console.log('📤 [order-handler] publish event', ev.type);
+        order.clearEvents();
       } catch (err: any) {
         console.error('❌ [order-handler] failed to publish event', err.type, err);
+        // do something smart with the failed event here...
       }
     }
-
-    order.clearEvents();
   }
 }

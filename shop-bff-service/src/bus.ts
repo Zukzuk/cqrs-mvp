@@ -1,7 +1,7 @@
-import { RabbitMQEventBus } from '@daveloper/eventbus'
+import { RabbitMQBroker } from '@daveloper/broker'
 
 export async function initBus() {
-    const bus = new RabbitMQEventBus(process.env.RABBITMQ_URL!)
+    const bus = new RabbitMQBroker(process.env.RABBITMQ_URL!)
     await bus.init()
     console.log('🟢 [bff-bus] initialized')
     return bus

@@ -8,7 +8,7 @@ export interface ICommandHandler<T = any> {
   (message: T): Promise<void>;
 }
 
-export interface IEventBus {
+export interface IBroker {
   publish(event: IDomainEvent): Promise<void>;
   subscribe(
     handler: (event: IDomainEvent) => Promise<void>,

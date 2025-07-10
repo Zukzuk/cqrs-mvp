@@ -2,7 +2,7 @@ import express from 'express';
 import http from 'http';
 import { MongoClient } from 'mongodb';
 import { io as Client } from 'socket.io-client';
-import { RabbitMQEventBus, IDomainEvent } from '@daveloper/eventbus';
+import { RabbitMQBroker, IDomainEvent } from '@daveloper/broker';
 
 import { OrderRepository, OrderView } from './repository';
 import { OrderDenormalizer } from './denormalizer';
@@ -31,7 +31,7 @@ import { OrderDenormalizer } from './denormalizer';
 
   const denormalizer = new OrderDenormalizer(repository, socket);
 
-  const bus = new RabbitMQEventBus(process.env.RABBITMQ_URL!);
+  const bus = new RabbitMQBroker(process.env.RABBITMQ_URL!);
   await bus.init();
   console.log('🟢 [projection-bus] initialized');
 
@@ -54,6 +54,7 @@ import { OrderDenormalizer } from './denormalizer';
       autoDelete: false, // Do not auto-delete the queue when no consumers are connected
     }
   );
+  console.log('🔗 [projection-bus] subscribed to domain-events');
 
   socket.on('request_snapshot', async ({ userId }) => {
     const orders = await repository.findByUserId(userId);

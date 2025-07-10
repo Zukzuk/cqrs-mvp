@@ -7,9 +7,9 @@ RUN apk add --no-cache bash curl \
     -o /usr/local/bin/wait-for-it \
     && chmod +x /usr/local/bin/wait-for-it
 
-# build shared/eventbus
+# build shared/broker
 WORKDIR /usr/src/app
-COPY shared/eventbus ./shared/eventbus
-RUN cd shared/eventbus \
+COPY shared/broker ./shared/broker
+RUN cd shared/broker \
     && npm install \
     && npm run build

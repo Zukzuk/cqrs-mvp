@@ -31,7 +31,7 @@ services:
       structurizr.name: "EventStore"
       structurizr.description: "Durable, append-only event journal"
       structurizr.technology: "Node.js, Express"
-      structurizr.group: "Event Platform"
+      structurizr.group: "Order Domain"
       structurizr.type: "database"
       structurizr.depends_on.rabbitmq: "subscribe to all DomainEvents"
     depends_on:
@@ -54,11 +54,13 @@ services:
     labels:
       structurizr.name: "OrderApplicationService"
       structurizr.description: "Subscribes to certain Commands, protects the DomainLogic, emits DomainEvents to the broker"
-      structurizr.technology: "Node.js, SharedEventbus"
+      structurizr.technology: "Node.js, Broker"
       structurizr.group: "Order Domain"
-      structurizr.depends_on.rabbitmq: "subscribe to certain Commands and publish DomainEvents"
+      structurizr.depends_on.rabbitmq: "subscribe to certain Commands, publish DomainEvents"
+      structurizr.depends_on.event-store: "fetch streams"
     depends_on:
       - rabbitmq
+      - event-store
     ports:
       - "6000:6000"
     environment:
@@ -76,14 +78,16 @@ services:
     container_name: shop-projection-service
     labels:
       structurizr.name: "ShopProjectionService"
-      structurizr.description: "Subscribes to DomainEvents, handles readDB updates, pushes Payloads to bff"
-      structurizr.technology: "Node.js, SharedEventbus, Socket.io-client"
+      structurizr.description: "Handles fetches, subscribes to DomainEvents, denormalizes and upserts Payloads, pushes Payloads to bff"
+      structurizr.technology: "Node.js, Broker, Socket.io-client"
       structurizr.group: "Shop::Projection"
       structurizr.depends_on.rabbitmq: "subscribe to certain DomainEvents"
       structurizr.depends_on.shop-bff-service: "listen for Queries and push Payloads"
-      structurizr.depends_on.shop-projection-db: "read and upsert denormalized Data"
+      structurizr.depends_on.shop-projection-db: "fetch data, upsert data"
+      structurizr.depends_on.event-store: "fetch streams"
     depends_on:
       - rabbitmq
+      - event-store
       - shop-bff-service
       - shop-projection-db
     ports:
@@ -125,8 +129,8 @@ services:
     container_name: shop-bff-service
     labels:
       structurizr.name: "Shop BFF"
-      structurizr.description: "Exposes and guards WebSocket/APIs, publishes Commands to the broker, sends snapshotQueries to projections, listens for Payloads from projections, forwards Payloads to web clients"
-      structurizr.technology: "Node.js, SharedEventbus, Socket.io"
+      structurizr.description: "Exposes and guards WebSocket/APIs, publishes Commands to the broker, forwards Queries to projections, listens for Payloads from projections and forwards them to web clients"
+      structurizr.technology: "Node.js, Broker, Socket.io"
       structurizr.group: "Shop"
       structurizr.depends_on.rabbitmq: "publish Commands"
     depends_on:
@@ -151,8 +155,8 @@ services:
       structurizr.description: "Serves static files"
       structurizr.technology: "Nginx"
       structurizr.group: "Shop::Website"
-      structurizr.depends_on.shop-bff-service: "listen for Payloads and push Queries and Commands"
       structurizr.type: "webserver"
+      structurizr.depends_on.shop-bff-service: "send Commands, send fetches, listen for Payloads"
     depends_on:
       - shop-bff-service
     ports:

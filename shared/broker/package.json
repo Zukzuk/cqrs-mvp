@@ -1,0 +1,16 @@
+{
+  "name": "@daveloper/broker",
+  "version": "1.0.0",
+  "description": "SOLID-friendly Broker facade for commands and domain events",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "amqplib": "^0.10.x"
+  },
+  "devDependencies": {
+    "typescript": "^5.x",
+    "@types/amqplib": "^0.8.x"
+  }
+}

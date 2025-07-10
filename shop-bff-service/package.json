@@ -7,7 +7,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@daveloper/eventbus": "file:../shared/eventbus",
+    "@daveloper/broker": "file:../shared/broker",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "socket.io": "^4.6.1",

@@ -1,6 +1,6 @@
 import express from 'express';
 import http from 'http';
-import { RabbitMQEventBus } from '@daveloper/eventbus';
+import { RabbitMQBroker } from '@daveloper/broker';
 import { InMemoryEventStore } from './eventStore/inMemoryEventStore';
 import { InMemoryRepository } from './repository';
 import { CommandHandler } from './commandHandler';
@@ -8,7 +8,7 @@ import { CreateOrder } from './commands';
 import { Order } from './orderAggregate';
 
 (async () => {
-  const bus = new RabbitMQEventBus(process.env.RABBITMQ_URL!);
+  const bus = new RabbitMQBroker(process.env.RABBITMQ_URL!);
   await bus.init();
   console.log('🟢 [order-bus] initialized');
 

@@ -1,10 +1,10 @@
 import { Server, Socket, Namespace } from 'socket.io'
-import { RabbitMQEventBus } from '@daveloper/eventbus'
+import { RabbitMQBroker } from '@daveloper/broker'
 import { userAuth } from '../auth'
 
 export function registerWebClient(
     io: Server,
-    bus: RabbitMQEventBus,
+    bus: RabbitMQBroker,
     projectionNs: Namespace
 ) {
     io.use(userAuth)

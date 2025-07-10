@@ -1,6 +1,6 @@
 {
   "name": "cqrs-mvp",
-  "description": "Shop System - A CQRS ordering platform",
+  "description": "CQRS-ES System (MVP)",
   "private": true,
   "version": "1.0.0",
   "workspaces": [
@@ -9,7 +9,7 @@
     "shop-projection-service",
     "shop-bff-service",
     "shop-frontend",
-    "shared/eventbus",
+    "shared/broker",
     "shared/visualize"
   ],
   "scripts": {

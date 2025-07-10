@@ -15,7 +15,7 @@ persists via IEventStore, publishes to RabbitMQ
 
 ## Infrastructure:
 
-Adapters for RabbitMQ (shared/eventbus), Mongo, HTTP
+Adapters for RabbitMQ (shared/broker), Mongo, HTTP
 
 event-store service subscribes to all domain-events and journals them in memory (or later a real DB)
 
@@ -47,7 +47,7 @@ npm run visualize
 
 Persistence: drop in a Postgres/Mongo-based IEventStore in event-store/ or as a library.
 
-Broker: swap RabbitMQ for Kafka by implementing the same IEventBus interface.
+Broker: swap RabbitMQ for Kafka by implementing the same IBroker interface.
 
 Read Model: add new projection services binding only to the events they care about (routingKeys).
 

@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { RabbitMQEventBus, IDomainEvent } from '@daveloper/eventbus';
+import { RabbitMQBroker, IDomainEvent } from '@daveloper/broker';
 
 interface StoredEvent extends IDomainEvent {
   timestamp: string;
@@ -49,7 +49,7 @@ class InMemoryEventStore implements IEventStore {
 async function startEventStore() {
   const eventStore = new InMemoryEventStore();
 
-  const bus = new RabbitMQEventBus(process.env.RABBITMQ_URL!);
+  const bus = new RabbitMQBroker(process.env.RABBITMQ_URL!);
   await bus.init();
   console.log('🟢 [event-store-bus] initialized');
 
@@ -61,6 +61,7 @@ async function startEventStore() {
    */
   await bus.subscribe(
     async (evt: IDomainEvent) => {
+      console.log('📨 [event-store-bus] receiving event', evt.type);
       const streamId = (evt.payload.orderId || 'global') as string;
       await eventStore.appendToStream(streamId, [evt]);
     },

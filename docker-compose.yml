@@ -21,46 +21,22 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-
-  event-store:
-    build:
-      context: .
-      dockerfile: event-store/Dockerfile
-    container_name: event-store
-    labels:
-      structurizr.name: "EventStore"
-      structurizr.description: "Durable, append-only event journal"
-      structurizr.technology: "Node.js, Express"
-      structurizr.group: "Order Domain"
-      structurizr.type: "database"
-      structurizr.depends_on.rabbitmq: "subscribe to all DomainEvents"
-    depends_on:
-      - rabbitmq
-    ports:
-      - "7000:7000"
-    environment:
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
+  
   order-service:
     build:
       context: .
       dockerfile: order-service/Dockerfile
     container_name: order-service
     labels:
-      structurizr.name: "OrderApplicationService"
+      structurizr.name: "Order ApplicationService"
       structurizr.description: "Subscribes to certain Commands, protects the DomainLogic, emits DomainEvents to the broker"
       structurizr.technology: "Node.js, Broker"
       structurizr.group: "Order Domain"
       structurizr.depends_on.rabbitmq: "subscribe to certain Commands, publish DomainEvents"
-      structurizr.depends_on.event-store: "fetch streams"
+      structurizr.depends_on.order-eventstore: "fetch streams, commit domain events"
     depends_on:
       - rabbitmq
-      - event-store
+      - order-eventstore
     ports:
       - "6000:6000"
     environment:
@@ -71,23 +47,65 @@ services:
       timeout: 5s
       retries: 5
 
+  order-eventstore:
+    build:
+      context: .
+      dockerfile: order-eventstore/Dockerfile
+    container_name: order-eventstore
+    labels:
+      structurizr.name: "Order EventStore"
+      structurizr.description: "Durable, append-only event journal"
+      structurizr.technology: "Node.js, Express"
+      structurizr.group: "Order Domain::Event Store"
+      structurizr.depends_on.order-eventstore-db: "read, write"
+    depends_on:
+      - order-eventstore-db
+    ports:
+      - "7000:7000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  order-eventstore-db:
+    image: mongo:7
+    container_name: order-eventstore-db
+    command: ["--config", "/etc/mongo/mongo.conf"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - order_eventstore_data:/data/db
+      - ./mongo.conf:/etc/mongo/mongo.conf:ro
+    labels:
+      structurizr.name: "Order EventStoreDB"
+      structurizr.description: "Append only journal for DomainEvents"
+      structurizr.technology: "MongoDB"
+      structurizr.group: "Order Domain::Event Store"
+      structurizr.type: "database"
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   shop-projection-service:
     build:
       context: .
       dockerfile: shop-projection-service/Dockerfile
     container_name: shop-projection-service
     labels:
-      structurizr.name: "ShopProjectionService"
+      structurizr.name: "Shop ProjectionService"
       structurizr.description: "Handles fetches, subscribes to DomainEvents, denormalizes and upserts Payloads, pushes Payloads to bff"
       structurizr.technology: "Node.js, Broker, Socket.io-client"
       structurizr.group: "Shop::Projection"
       structurizr.depends_on.rabbitmq: "subscribe to certain DomainEvents"
       structurizr.depends_on.shop-bff-service: "listen for Queries and push Payloads"
       structurizr.depends_on.shop-projection-db: "fetch data, upsert data"
-      structurizr.depends_on.event-store: "fetch streams"
+      structurizr.depends_on.order-eventstore: "fetch streams"
     depends_on:
       - rabbitmq
-      - event-store
+      - order-eventstore
       - shop-bff-service
       - shop-projection-db
     ports:
@@ -108,10 +126,10 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - mongo_data:/data/db
+      - shop_projection_db:/data/db
       - ./mongo.conf:/etc/mongo/mongo.conf:ro
     labels:
-      structurizr.name: "ShopProjectionDB"
+      structurizr.name: "Shop ProjectionDB"
       structurizr.description: "Read DB for denormalized views"
       structurizr.technology: "MongoDB"
       structurizr.group: "Shop::Projection"
@@ -163,4 +181,5 @@ services:
       - "3000:3000"
 
 volumes:
-  mongo_data:
+  order_eventstore_data:
+  shop_projection_db:

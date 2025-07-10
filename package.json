@@ -13,8 +13,9 @@
     "shared/visualize"
   ],
   "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "start": "docker build -f Dockerfile.base.nodejs -t cqrs-mvp/base:latest . && docker-compose up --build",
     "visualize": "nodemon --watch src --ext ts --exec \"ts-node shared/visualize/src/index.ts\"",
-    "dsl": "ts-node shared/visualize/src/generate.ts",
-    "start:all": "docker build -f Dockerfile.base.nodejs -t cqrs-mvp/base:latest . && docker-compose up --build"
+    "dsl": "ts-node shared/visualize/src/generate.ts"
   }
 }

@@ -194,7 +194,7 @@ export function buildDsl(compose: ComposeFile): string {
                   `  views {`,
                   `    container shop container_view "Container Diagram" {`,
                   `      include *`,
-                  `      autolayout lr`,
+                  `      autolayout bt`,
                   `    }`,
                   `    styles {`,
                   `      element "Database" {`,

@@ -3,16 +3,15 @@
   "version": "1.0.0",
   "description": "Automates C4 diagramming through docker-compose interpretation",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "gen:diagram": "ts-node src/index.ts"
+    "build": "tsc"
   },
   "dependencies": {
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^20.4.2",
     "nodemon": "^3.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"

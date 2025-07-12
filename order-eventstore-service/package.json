@@ -2,13 +2,16 @@
   "name": "event-store",
   "version": "1.0.0",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@daveloper/broker": "file:../shared/broker",
-    "express": "^5.1.0"
+    "@daveloper/eventstore": "file:../shared/eventstore",
+    "@daveloper/domain": "file:../shared/domain",
+    "express": "^5.1.0",
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "@types/express": "^4.17.17",

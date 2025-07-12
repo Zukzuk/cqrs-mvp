@@ -4,18 +4,22 @@
   "private": true,
   "version": "1.0.0",
   "workspaces": [
-    "event-store",
+    "shared/domain",
+    "shared/broker",
+    "shared/eventstore",
+    "order-eventstore",
     "order-service",
     "shop-projection-service",
     "shop-bff-service",
     "shop-frontend",
-    "shared/broker",
-    "shared/visualize"
+    "tools/mongoui",
+    "tools/visualize"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "start": "docker build -f Dockerfile.base.nodejs -t cqrs-mvp/base:latest . && docker-compose up --build",
-    "visualize": "nodemon --watch src --ext ts --exec \"ts-node shared/visualize/src/index.ts\"",
-    "dsl": "ts-node shared/visualize/src/generate.ts"
+    "mongoui": "ts-node tools/mongoui/src/index.ts",
+    "visualize": "ts-node tools/visualize/src/index.ts",
+    "generate": "ts-node tools/visualize/src/generate.ts"
   }
 }

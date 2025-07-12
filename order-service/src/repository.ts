@@ -1,7 +1,7 @@
 import { AggregateRoot } from './aggregateRoot';
-import { IEventStore } from './eventStore/eventStore';
+import { IEventStore } from '@daveloper/eventstore';
 
-export class InMemoryRepository<T extends AggregateRoot> {
+export class Repository<T extends AggregateRoot> {
   constructor(private eventStore: IEventStore) { }
 
   async load(id: string, factory: () => T): Promise<T> {

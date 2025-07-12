@@ -1,11 +1,9 @@
-export interface DomainEvent { type: string; payload: any; correlationId: string; }
+import { IDomainEvent } from '@daveloper/domain';
 
-export class OrderCreated implements DomainEvent {
+export class OrderCreated implements IDomainEvent {
   readonly type = 'OrderCreated';
   constructor(
     public payload: { orderId: string; userId: string, total: number },
     public correlationId: string,
   ) { }
 }
-
-export type AnyEvent = OrderCreated;

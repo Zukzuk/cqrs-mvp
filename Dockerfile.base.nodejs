@@ -1,15 +1,18 @@
-FROM node:22-alpine
+FROM node:22-alpine AS base
 
-# install bash/curl + wait-for-it
 RUN apk add --no-cache bash curl \
-    && curl -fsSL \
-    https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh \
-    -o /usr/local/bin/wait-for-it \
-    && chmod +x /usr/local/bin/wait-for-it
+ && curl -fsSL \
+      https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh \
+      -o /usr/local/bin/wait-for-it \
+ && chmod +x /usr/local/bin/wait-for-it
 
-# build shared/broker
 WORKDIR /usr/src/app
-COPY shared/broker ./shared/broker
-RUN cd shared/broker \
-    && npm install \
-    && npm run build
+# Copy the workspace manifest + all subfolders
+COPY package*.json ./
+COPY shared/ ./shared
+
+# This will install all three packages and symlink them
+RUN npm install
+
+# And then build all of them in dependency order
+RUN npm run build

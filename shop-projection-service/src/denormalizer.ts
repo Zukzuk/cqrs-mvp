@@ -1,4 +1,4 @@
-import { IDomainEvent } from '@daveloper/broker';
+import { IDomainEvent } from '@daveloper/domain';
 import { OrderRepository, OrderView } from './repository';
 import { Socket } from 'socket.io-client';
 

@@ -1,10 +1,10 @@
-import { DomainEvent } from './events';
+import { IDomainEvent } from '@daveloper/domain';
 
 export abstract class AggregateRoot {
 
-  private _events: DomainEvent[] = [];
+  private _events: IDomainEvent[] = [];
 
-  protected apply(event: DomainEvent) {
+  protected apply(event: IDomainEvent) {
     this._events.push(event);
     const agg = (this as any)[`on${event.type}`];
     

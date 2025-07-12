@@ -1,12 +1,13 @@
 import { CreateOrder } from './commands';
-import { InMemoryRepository } from './repository';
+import { Repository } from './repository';
 import { Order } from './orderAggregate';
-import { IBroker, IDomainEvent } from '@daveloper/broker';
+import { IBroker } from '@daveloper/broker';
+import { IDomainEvent } from '@daveloper/domain';
 import { OrderCreated } from './events';
 
 export class CommandHandler {
   constructor(
-    private repo: InMemoryRepository<Order>,
+    private repo: Repository<Order>,
     private bus: IBroker
   ) { }
 

@@ -1,0 +1,13 @@
+{
+  "name": "@daveloper/domain",
+  "version": "1.0.0",
+  "description": "SOLID-friendly Domain interfaces",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.1.3"
+  }
+}

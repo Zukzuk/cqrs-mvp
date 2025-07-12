@@ -2,9 +2,9 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@daveloper/broker": [
-        "../shared/broker/dist"
-      ]
+      "@daveloper/broker": [ "../shared/broker/dist" ],
+      "@daveloper/domain": [ "../shared/domain/dist" ],
+      "@daveloper/eventstore": [ "../shared/eventstore/dist" ],
     },
     "target": "ES2020",
     "module": "CommonJS",
@@ -14,7 +14,5 @@
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": [ "src/**/*" ]
 }

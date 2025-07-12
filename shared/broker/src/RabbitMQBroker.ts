@@ -1,11 +1,12 @@
-import amqp, { Connection, Channel, ConsumeMessage } from 'amqplib';
-import { IBroker, IDomainEvent, ICommandHandler } from './IBroker';
+import amqp, { ChannelModel, Channel, ConsumeMessage } from 'amqplib';
+import { IBroker, ICommandHandler } from './IBroker';
+import { IDomainEvent } from '@daveloper/domain';
 
 /**
  * Support publishing domain events and subscribing handlers with routing key filters.
  */
 export class RabbitMQBroker implements IBroker {
-  private conn!: Connection;
+  private conn!: ChannelModel;
   private pubCh!: Channel;
   private subCh!: Channel;
   private cmdCh!: Channel;

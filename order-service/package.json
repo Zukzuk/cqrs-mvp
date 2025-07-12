@@ -2,12 +2,14 @@
   "name": "order-service",
   "version": "1.0.0",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js"
   },
   "dependencies": {
     "@daveloper/broker": "file:../shared/broker",
+    "@daveloper/domain": "file:../shared/domain",
     "express": "^5.1.0"
   },
   "devDependencies": {

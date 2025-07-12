@@ -1,18 +1,18 @@
 {
-  "name": "shop-projection-service",
+  "name": "@daveloper/eventstore",
   "version": "1.0.0",
+  "description": "SOLID-friendly EventStore facade",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js"
+    "build": "tsc"
   },
   "dependencies": {
-    "@daveloper/broker": "file:../shared/broker",
-    "@daveloper/domain": "file:../shared/domain",
+    "@daveloper/broker": "file:../../shared/broker",
+    "@daveloper/domain": "file:../../shared/domain",
     "express": "^5.1.0",
     "mongodb": "^6.17.0",
-    "socket.io-client": "^4.8.1"
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "@types/express": "^4.17.17",

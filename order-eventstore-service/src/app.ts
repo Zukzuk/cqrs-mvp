@@ -1,0 +1,72 @@
+import express from 'express';
+import { MongoClient } from 'mongodb';
+import { IDomainEvent } from '@daveloper/domain';
+import { IEventStore, MongoEventStore } from '@daveloper/eventstore';
+
+async function bootstrap() {
+    const mongoUrl = process.env.MONGO_URL!;
+    const client = new MongoClient(mongoUrl);
+    await client.connect();
+    const db = client.db(process.env.MONGO_DB_NAME || 'eventstore');
+    const collection = db.collection('events');
+
+    // Choose implementation here
+    const eventStore: IEventStore = new MongoEventStore(collection);
+
+    const app = express();
+    app.use(express.json());
+
+    // Health check
+    app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+
+    // Append events
+    app.post('/streams/:streamId/events', async (req, res) => {
+        const { streamId } = req.params;
+        const events: IDomainEvent[] = req.body;
+        if (!Array.isArray(events)) {
+            return res.status(400).json({ error: 'Body must be an array of IDomainEvent' });
+        }
+
+        try {
+            await eventStore.appendToStream(streamId, events);
+            res.status(201).json({ appended: events.length });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Failed to append events' });
+        }
+    });
+
+    // Load single stream
+    app.get('/streams/:streamId/events', async (req, res) => {
+        const { streamId } = req.params;
+        const from = req.query.from as string | undefined;
+
+        try {
+            const events = await eventStore.loadStream(streamId, from);
+            res.json(events);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Failed to load stream' });
+        }
+    });
+
+    // Load all events
+    app.get('/events', async (req, res) => {
+        const from = req.query.from as string | undefined;
+
+        try {
+            const events = await eventStore.loadAllEvents(from);
+            res.json(events);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Failed to load events' });
+        }
+    });
+
+    app.listen(+process.env.PORT! || 7000, () => console.log('🚀 listening'));
+}
+
+bootstrap().catch(err => {
+    console.error(err);
+    process.exit(1);
+});

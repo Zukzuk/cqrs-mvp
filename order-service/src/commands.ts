@@ -1,11 +1,9 @@
-export interface Command { type: string; payload: any; correlationId: string; }
+import { ICommand } from '@daveloper/domain';
 
-export class CreateOrder implements Command {
+export class CreateOrder implements ICommand {
   readonly type = 'CreateOrder';
   constructor(
     public payload: { orderId: string; userId: string, total: number },
     public correlationId: string,
   ) { }
 }
-
-export type AnyCommand = CreateOrder;

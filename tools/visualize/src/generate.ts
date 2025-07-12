@@ -1,5 +1,3 @@
-// src/scripts/generate-dsl.ts
-
 import fs from 'fs';
 import path from 'path';
 import { loadCompose } from './compose';

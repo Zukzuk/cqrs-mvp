@@ -164,8 +164,8 @@ services:
 
   shop-webserver:
     build:
-      context: ./shop-webserver
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: shop-webserver/Dockerfile
     container_name: shop-webserver
     labels:
       structurizr.name: "Shop Frontend"

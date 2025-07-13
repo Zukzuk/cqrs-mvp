@@ -1,12 +1,7 @@
 import { Namespace, Server, Socket } from 'socket.io';
 import { serviceAuth } from '../auth';
 
-/**
- * Registers the projection namespace handlers on the BFF.
- * @param projectionNs - The Socket.IO Namespace for projections (e.g., '/order_projection').
- * @param io - The main Socket.IO Server instance, used to emit to web clients.
- */
-export function registerProjection(
+export function registerShopProjection(
     projectionNs: Namespace,
     io: Server
 ) {

@@ -3,7 +3,8 @@
   "description" : "Description",
   "documentation" : { },
   "id" : 1,
-  "lastModifiedDate" : "2025-07-13T19:13:20Z",
+  "lastModifiedAgent" : "structurizr-ui",
+  "lastModifiedDate" : "2025-07-13T19:33:39Z",
   "model" : {
     "properties" : {
       "structurizr.groupSeparator" : "::"
@@ -211,6 +212,7 @@
     "configuration" : {
       "branding" : { },
       "lastSavedView" : "container_view",
+      "metadataSymbols" : "SquareBrackets",
       "styles" : {
         "elements" : [ {
           "background" : "#4169e1",
@@ -244,44 +246,44 @@
       },
       "elements" : [ {
         "id" : "2",
-        "x" : 538,
-        "y" : 436
+        "x" : 995,
+        "y" : 945
       }, {
         "id" : "3",
-        "x" : 1923,
-        "y" : 376
+        "x" : 1925,
+        "y" : 530
       }, {
         "id" : "4",
-        "x" : 2685,
-        "y" : 862
+        "x" : 2715,
+        "y" : 450
       }, {
         "id" : "5",
-        "x" : 2685,
-        "y" : 262
+        "x" : 2815,
+        "y" : 45
       }, {
         "id" : "6",
-        "x" : 328,
-        "y" : 1456
+        "x" : 1650,
+        "y" : 1950
       }, {
         "id" : "7",
-        "x" : 1715,
-        "y" : 2108
+        "x" : 2480,
+        "y" : 2060
       }, {
         "id" : "8",
-        "x" : 1715,
-        "y" : 1508
+        "x" : 2595,
+        "y" : 2592
       }, {
         "id" : "9",
-        "x" : 1015,
-        "y" : 2105
+        "x" : 805,
+        "y" : 2110
       }, {
         "id" : "10",
-        "x" : 952,
-        "y" : 2708
+        "x" : 805,
+        "y" : 2595
       }, {
         "id" : "11",
-        "x" : 318,
-        "y" : 2406
+        "x" : 180,
+        "y" : 2060
       } ],
       "externalSoftwareSystemBoundariesVisible" : false,
       "key" : "container_view",

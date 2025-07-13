@@ -1,8 +1,3 @@
-#!/usr/bin/env node
-
-// scripts/clean.js
-// Cross-platform clean script using glob.sync and rimraf.sync
-
 const glob = require('glob');
 const rimraf = require('rimraf');
 const path = require('path');

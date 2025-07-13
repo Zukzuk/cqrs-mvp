@@ -3,7 +3,7 @@
   "description" : "Description",
   "documentation" : { },
   "id" : 1,
-  "lastModifiedDate" : "2025-07-13T19:07:24Z",
+  "lastModifiedDate" : "2025-07-13T19:13:20Z",
   "model" : {
     "properties" : {
       "structurizr.groupSeparator" : "::"

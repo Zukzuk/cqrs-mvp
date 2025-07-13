@@ -1,6 +1,6 @@
 import express from 'express';
 import { MongoClient } from 'mongodb';
-import { IDomainEvent } from '@daveloper/domain';
+import { IDomainEvent } from '@daveloper/interfaces';
 import { IEventStore, MongoEventStore } from '@daveloper/eventstore';
 
 async function bootstrap() {

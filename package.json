@@ -4,22 +4,30 @@
   "private": true,
   "version": "1.0.0",
   "workspaces": [
-    "shared/domain",
+    "shared/interfaces",
     "shared/**",
+    "tools/**",
     "order-eventstore",
     "order-service",
+    "shop-projection-db",
     "shop-projection-service",
     "shop-bff-service",
-    "shop-webserver",
-    "tools/**"
+    "shop-webserver"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "build:shared": "npm run build --workspace shared",
     "build:tools": "npm run build --workspace tools",
     "start": "docker build -f Dockerfile.base.nodejs -t cqrs-mvp/base:latest . && docker-compose up --build",
+    "start:tooling": "concurrently \"npm run mongoui\" \"npm run visualize\"",
     "mongoui": "ts-node tools/mongoui/src/index.ts",
     "visualize": "ts-node tools/visualize/src/index.ts",
-    "generate": "ts-node tools/visualize/src/generate.ts"
+    "generate": "ts-node tools/visualize/src/generate.ts",
+    "clean": "node scripts/clean.js"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0",
+    "glob": "^11.0.3",
+    "rimraf": "^6.0.1"
   }
 }

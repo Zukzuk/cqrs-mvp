@@ -1,4 +1,4 @@
-import { ICommand } from '@daveloper/domain';
+import { ICommand } from '@daveloper/interfaces';
 
 export class CreateOrder implements ICommand {
   readonly type = 'CreateOrder';

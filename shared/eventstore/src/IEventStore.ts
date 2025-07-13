@@ -1,4 +1,4 @@
-import { IDomainEvent } from '@daveloper/domain';
+import { IDomainEvent } from '@daveloper/interfaces';
 
 export interface StoredEvent extends IDomainEvent {
     timestamp: string;

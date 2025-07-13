@@ -3,16 +3,15 @@ import http from 'http';
 import { MongoClient } from 'mongodb';
 import { io as Client } from 'socket.io-client';
 import { RabbitMQBroker } from '@daveloper/broker';
-import { IDomainEvent } from '@daveloper/domain';
-
-import { OrderRepository, OrderView } from './repository';
+import { IDomainEvent, IShopView } from '@daveloper/interfaces';
+import { OrderRepository } from './repository';
 import { OrderDenormalizer } from './denormalizer';
 
 (async () => {
   const mongoClient = new MongoClient(process.env.MONGO_URL!);
   await mongoClient.connect();
   const db = mongoClient.db('shop_projection');
-  const collection = db.collection<OrderView>('orders');
+  const collection = db.collection<IShopView>('orders');
   const repository = new OrderRepository(collection);
 
   const socket = Client('http://shop-bff-service:4000/shop_projection', {

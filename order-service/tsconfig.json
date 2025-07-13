@@ -3,7 +3,7 @@
     "baseUrl": ".",
     "paths": {
       "@daveloper/broker": [ "../shared/broker/dist" ],
-      "@daveloper/domain": [ "../shared/domain/dist" ],
+      "@daveloper/interfaces": [ "../shared/interfaces/dist" ],
       "@daveloper/eventstore": [ "../shared/eventstore/dist" ],
     },
     "target": "ES2020",

@@ -1,6 +1,6 @@
 import amqp, { ChannelModel, Channel, ConsumeMessage } from 'amqplib';
 import { IBroker, ICommandHandler } from './IBroker';
-import { IDomainEvent } from '@daveloper/domain';
+import { IDomainEvent } from '@daveloper/interfaces';
 
 /**
  * Support publishing domain events and subscribing handlers with routing key filters.

@@ -1,6 +1,6 @@
 import { Collection } from 'mongodb';
 import { IEventStore, StoredEvent } from './IEventStore';
-import { IDomainEvent } from '@daveloper/domain';
+import { IDomainEvent } from '@daveloper/interfaces';
 
 export class MongoEventStore implements IEventStore {
     constructor(private collection: Collection) {

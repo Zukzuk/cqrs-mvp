@@ -2,7 +2,7 @@ import { CreateOrder } from './commands';
 import { Repository } from './repository';
 import { Order } from './orderAggregate';
 import { IBroker } from '@daveloper/broker';
-import { IDomainEvent } from '@daveloper/domain';
+import { IDomainEvent } from '@daveloper/interfaces';
 import { OrderCreated } from './events';
 
 export class CommandHandler {

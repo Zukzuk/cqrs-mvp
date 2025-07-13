@@ -1,21 +1,19 @@
 import { Collection } from 'mongodb';
-
-export interface OrderView {
-  orderId: string;
-  userId: string;
-  total: number;
-  status: string;
-  correlationId?: string;
-}
+import { IShopView } from '@daveloper/interfaces';
 
 export class OrderRepository {
-  constructor(private readonly collection: Collection<OrderView>) {}
+  constructor(private readonly collection: Collection<IShopView>) {}
 
-  async save(view: OrderView): Promise<void> {
-    await this.collection.insertOne(view);
+  // Upsert an OrderView into the collection
+  async save(view: IShopView): Promise<void> {
+    await this.collection.updateOne(
+      { orderId: view.orderId },
+      { $set: view },
+      { upsert: true }
+    );
   }
 
-  async findByUserId(userId: string): Promise<OrderView[]> {
+  async findByUserId(userId: string): Promise<IShopView[]> {
     return this.collection.find({ userId }).toArray();
   }
 }

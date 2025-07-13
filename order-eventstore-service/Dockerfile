@@ -6,7 +6,8 @@ RUN npm install
 COPY order-eventstore-service .
 RUN npm run build
 
-ENTRYPOINT ["sh","-c",\
-     "/usr/local/bin/wait-for-it order-eventstore-db:27017 --timeout=30 --strict --quiet && \
-     exec node dist/index.js"]
+ENTRYPOINT ["sh","-c","\
+     /usr/local/bin/wait-for-it order-eventstore-db:27017 --timeout=30 --strict --quiet && \
+     exec node dist/index.js\
+     "]
 CMD []

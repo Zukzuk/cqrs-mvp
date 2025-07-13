@@ -1,7 +1,7 @@
 {
-  "name": "@daveloper/domain",
+  "name": "@daveloper/interfaces",
   "version": "1.0.0",
-  "description": "SOLID-friendly Domain interfaces",
+  "description": "SOLID-friendly interfaces",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

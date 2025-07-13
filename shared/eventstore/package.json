@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@daveloper/broker": "file:../../shared/broker",
-    "@daveloper/domain": "file:../../shared/domain",
+    "@daveloper/interfaces": "file:../../shared/interfaces",
     "express": "^5.1.0",
     "mongodb": "^6.17.0",
     "node-fetch": "^3.3.2"

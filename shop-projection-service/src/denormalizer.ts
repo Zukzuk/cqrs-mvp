@@ -1,5 +1,5 @@
-import { IDomainEvent } from '@daveloper/domain';
-import { OrderRepository, OrderView } from './repository';
+import { IDomainEvent, IShopView } from '@daveloper/interfaces';
+import { OrderRepository } from './repository';
 import { Socket } from 'socket.io-client';
 
 export class OrderDenormalizer {
@@ -13,7 +13,7 @@ export class OrderDenormalizer {
     if (!orderId || !userId) return;
 
     if (evt.type === 'OrderCreated') {
-      const view: OrderView = {
+      const view: IShopView = {
         orderId,
         userId,
         total,

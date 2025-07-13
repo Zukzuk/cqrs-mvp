@@ -33,7 +33,7 @@ services:
       structurizr.technology: "Node.js, Broker"
       structurizr.group: "Order Domain"
       structurizr.depends_on.broker-service: "subscribe to certain Commands, publish DomainEvents"
-      structurizr.depends_on.order-eventstore-service: "fetch streams, commit domain events"
+      structurizr.depends_on.order-eventstore-service: "fetch streams, commit DomainEvents"
     depends_on:
       - broker-service
       - order-eventstore-service
@@ -121,18 +121,23 @@ services:
       retries: 5
 
   shop-projection-db:
-    image: mongo:7
+    build:
+      context: ./shop-projection-db
+      dockerfile: Dockerfile
     container_name: shop-projection-db
-    command: ["--config", "/etc/mongo/mongo.conf"]
-    volumes:
-      - shop_projection_db:/data/db
-      - ./mongo.conf:/etc/mongo/mongo.conf:ro
     labels:
       structurizr.name: "Shop Projection Database"
       structurizr.description: "Read DB for denormalized views"
       structurizr.technology: "MongoDB"
       structurizr.group: "Shop::Projection"
       structurizr.type: "database"
+    command: ["--config", "/etc/mongo/mongo.conf"]
+    volumes:
+      - shop_projection_data:/data/db
+      - ./mongo.conf:/etc/mongo/mongo.conf:ro
+    environment:
+      - MONGO_URL=mongodb://127.0.0.1:27017
+      - EVENTSTORE_URL=http://order-eventstore-service:7000
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -181,4 +186,4 @@ services:
 
 volumes:
   order_eventstore_data:
-  shop_projection_db:
+  shop_projection_data:

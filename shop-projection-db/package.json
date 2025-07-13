@@ -1,5 +1,5 @@
 {
-  "name": "event-store",
+  "name": "shop-projection-db",
   "version": "1.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,9 +8,8 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@daveloper/eventstore": "file:../shared/eventstore",
     "@daveloper/interfaces": "file:../shared/interfaces",
-    "express": "^5.1.0",
+    "mongodb": "^6.17.0",
     "node-fetch": "^3.3.2"
   },
   "devDependencies": {

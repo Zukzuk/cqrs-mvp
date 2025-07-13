@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 import { IEventStore, StoredEvent } from './IEventStore';
-import { IDomainEvent } from '@daveloper/domain';
+import { IDomainEvent } from '@daveloper/interfaces';
 
 export class HttpEventStore implements IEventStore {
   constructor(private baseUrl: string) {}

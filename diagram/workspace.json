@@ -1,0 +1,315 @@
+{
+  "configuration" : { },
+  "description" : "Description",
+  "documentation" : { },
+  "id" : 1,
+  "lastModifiedDate" : "2025-07-13T19:07:24Z",
+  "model" : {
+    "properties" : {
+      "structurizr.groupSeparator" : "::"
+    },
+    "softwareSystems" : [ {
+      "containers" : [ {
+        "description" : "Provides a robust messaging broker with management UI",
+        "documentation" : { },
+        "group" : ".Event Platform",
+        "id" : "2",
+        "name" : "Broker",
+        "properties" : {
+          "structurizr.dsl.identifier" : "broker_service"
+        },
+        "tags" : "Element,Container,Broker",
+        "technology" : "RabbitMQ"
+      }, {
+        "description" : "Subscribes to certain Commands, protects the DomainLogic, emits DomainEvents to the broker",
+        "documentation" : { },
+        "group" : ".Order Domain",
+        "id" : "3",
+        "name" : "Order Application",
+        "properties" : {
+          "structurizr.dsl.identifier" : "order_service"
+        },
+        "relationships" : [ {
+          "description" : "subscribe to certain Commands, publish DomainEvents",
+          "destinationId" : "2",
+          "id" : "14",
+          "sourceId" : "3",
+          "tags" : "Relationship"
+        }, {
+          "description" : "fetch streams, commit DomainEvents",
+          "destinationId" : "4",
+          "id" : "15",
+          "sourceId" : "3",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "Node.js, Broker"
+      }, {
+        "description" : "Durable, append-only event journal",
+        "documentation" : { },
+        "group" : ".Order Domain::.Event Store",
+        "id" : "4",
+        "name" : "Order EventStore",
+        "properties" : {
+          "structurizr.dsl.identifier" : "order_eventstore_service"
+        },
+        "relationships" : [ {
+          "description" : "read, write",
+          "destinationId" : "5",
+          "id" : "16",
+          "sourceId" : "4",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "Node.js, Express"
+      }, {
+        "description" : "Append only journal for DomainEvents",
+        "documentation" : { },
+        "group" : ".Order Domain::.Event Store",
+        "id" : "5",
+        "name" : "Order EventStore Database",
+        "properties" : {
+          "structurizr.dsl.identifier" : "order_eventstore_db"
+        },
+        "tags" : "Element,Container,Database",
+        "technology" : "MongoDB"
+      }, {
+        "description" : "Exposes and guards WebSocket/APIs, publishes Commands to the broker, forwards Queries to projections, listens for Payloads from projections and forwards them to web clients",
+        "documentation" : { },
+        "group" : ".Shop",
+        "id" : "6",
+        "name" : "Shop BFF",
+        "properties" : {
+          "structurizr.dsl.identifier" : "shop_bff_service"
+        },
+        "relationships" : [ {
+          "description" : "publish Commands",
+          "destinationId" : "2",
+          "id" : "21",
+          "sourceId" : "6",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "Node.js, Broker, Socket.io"
+      }, {
+        "description" : "Handles fetches, subscribes to DomainEvents, denormalizes and upserts Payloads, pushes Payloads to bff",
+        "documentation" : { },
+        "group" : ".Shop::.Projection",
+        "id" : "7",
+        "name" : "Shop Projection",
+        "properties" : {
+          "structurizr.dsl.identifier" : "shop_projection_service"
+        },
+        "relationships" : [ {
+          "description" : "subscribe to certain DomainEvents",
+          "destinationId" : "2",
+          "id" : "17",
+          "sourceId" : "7",
+          "tags" : "Relationship"
+        }, {
+          "description" : "fetch streams",
+          "destinationId" : "4",
+          "id" : "18",
+          "sourceId" : "7",
+          "tags" : "Relationship"
+        }, {
+          "description" : "listen for Queries and push Payloads",
+          "destinationId" : "6",
+          "id" : "19",
+          "sourceId" : "7",
+          "tags" : "Relationship"
+        }, {
+          "description" : "fetch data, upsert data",
+          "destinationId" : "8",
+          "id" : "20",
+          "sourceId" : "7",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "Node.js, Broker, Socket.io-client"
+      }, {
+        "description" : "Read DB for denormalized views",
+        "documentation" : { },
+        "group" : ".Shop::.Projection",
+        "id" : "8",
+        "name" : "Shop Projection Database",
+        "properties" : {
+          "structurizr.dsl.identifier" : "shop_projection_db"
+        },
+        "tags" : "Element,Container,Database",
+        "technology" : "MongoDB"
+      }, {
+        "description" : "Web interface, connects to bff via wss, sends Queries and Commands to bff, renders incoming Payloads",
+        "documentation" : { },
+        "group" : ".Shop::.Website",
+        "id" : "9",
+        "name" : "Shop Frontend SPA",
+        "properties" : {
+          "structurizr.dsl.identifier" : "shop_webserver"
+        },
+        "relationships" : [ {
+          "description" : "send Commands and Queries, listen for Payloads",
+          "destinationId" : "6",
+          "id" : "22",
+          "sourceId" : "9",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,Webclient",
+        "technology" : "Browser, html/css/js, Socket.io.min"
+      }, {
+        "description" : "Serves static files",
+        "documentation" : { },
+        "group" : ".Shop::.Website",
+        "id" : "10",
+        "name" : "Shop Frontend Server",
+        "properties" : {
+          "structurizr.dsl.identifier" : "shop_webserver_server"
+        },
+        "relationships" : [ {
+          "description" : "Serves",
+          "destinationId" : "9",
+          "id" : "12",
+          "sourceId" : "10",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "Nginx"
+      }, {
+        "description" : "End user interacting via browser",
+        "documentation" : { },
+        "group" : ".Shop::.Website",
+        "id" : "11",
+        "name" : "User",
+        "properties" : {
+          "structurizr.dsl.identifier" : "shop_webserver_user"
+        },
+        "relationships" : [ {
+          "description" : "Uses",
+          "destinationId" : "9",
+          "id" : "13",
+          "sourceId" : "11",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,Person",
+        "technology" : "Person"
+      } ],
+      "documentation" : { },
+      "id" : "1",
+      "location" : "Unspecified",
+      "name" : "CQRS-ES System (MVP)",
+      "properties" : {
+        "structurizr.dsl.identifier" : "shop"
+      },
+      "tags" : "Element,Software System"
+    } ]
+  },
+  "name" : "Name",
+  "properties" : {
+    "structurizr.dsl" : "d29ya3NwYWNlIHsKICBtb2RlbCAiY3Fycy1tdnAiIHsKICAgIHByb3BlcnRpZXMgewogICAgICBzdHJ1Y3R1cml6ci5ncm91cFNlcGFyYXRvciAiOjoiCiAgICB9CgogICAgc2hvcCA9IHNvZnR3YXJlU3lzdGVtICJDUVJTLUVTIFN5c3RlbSAoTVZQKSIgewoKICAgICAgZ3JvdXAgIi5FdmVudCBQbGF0Zm9ybSIgewogICAgICAgIGJyb2tlcl9zZXJ2aWNlID0gY29udGFpbmVyICJCcm9rZXIiICJQcm92aWRlcyBhIHJvYnVzdCBtZXNzYWdpbmcgYnJva2VyIHdpdGggbWFuYWdlbWVudCBVSSIgIlJhYmJpdE1RIiB7CiAgICAgICAgICB0YWdzICJCcm9rZXIiCiAgICAgICAgfQogICAgICB9CgogICAgICBncm91cCAiLk9yZGVyIERvbWFpbiIgewogICAgICAgIG9yZGVyX3NlcnZpY2UgPSBjb250YWluZXIgIk9yZGVyIEFwcGxpY2F0aW9uIiAiU3Vic2NyaWJlcyB0byBjZXJ0YWluIENvbW1hbmRzLCBwcm90ZWN0cyB0aGUgRG9tYWluTG9naWMsIGVtaXRzIERvbWFpbkV2ZW50cyB0byB0aGUgYnJva2VyIiAiTm9kZS5qcywgQnJva2VyIgoKICAgICAgICBncm91cCAiLkV2ZW50IFN0b3JlIiB7CiAgICAgICAgICBvcmRlcl9ldmVudHN0b3JlX3NlcnZpY2UgPSBjb250YWluZXIgIk9yZGVyIEV2ZW50U3RvcmUiICJEdXJhYmxlLCBhcHBlbmQtb25seSBldmVudCBqb3VybmFsIiAiTm9kZS5qcywgRXhwcmVzcyIKICAgICAgICAgIG9yZGVyX2V2ZW50c3RvcmVfZGIgPSBjb250YWluZXIgIk9yZGVyIEV2ZW50U3RvcmUgRGF0YWJhc2UiICJBcHBlbmQgb25seSBqb3VybmFsIGZvciBEb21haW5FdmVudHMiICJNb25nb0RCIiB7CiAgICAgICAgICAgIHRhZ3MgIkRhdGFiYXNlIgogICAgICAgICAgfQogICAgICAgIH0KICAgICAgfQoKICAgICAgZ3JvdXAgIi5TaG9wIiB7CiAgICAgICAgc2hvcF9iZmZfc2VydmljZSA9IGNvbnRhaW5lciAiU2hvcCBCRkYiICJFeHBvc2VzIGFuZCBndWFyZHMgV2ViU29ja2V0L0FQSXMsIHB1Ymxpc2hlcyBDb21tYW5kcyB0byB0aGUgYnJva2VyLCBmb3J3YXJkcyBRdWVyaWVzIHRvIHByb2plY3Rpb25zLCBsaXN0ZW5zIGZvciBQYXlsb2FkcyBmcm9tIHByb2plY3Rpb25zIGFuZCBmb3J3YXJkcyB0aGVtIHRvIHdlYiBjbGllbnRzIiAiTm9kZS5qcywgQnJva2VyLCBTb2NrZXQuaW8iCgogICAgICAgIGdyb3VwICIuUHJvamVjdGlvbiIgewogICAgICAgICAgc2hvcF9wcm9qZWN0aW9uX3NlcnZpY2UgPSBjb250YWluZXIgIlNob3AgUHJvamVjdGlvbiIgIkhhbmRsZXMgZmV0Y2hlcywgc3Vic2NyaWJlcyB0byBEb21haW5FdmVudHMsIGRlbm9ybWFsaXplcyBhbmQgdXBzZXJ0cyBQYXlsb2FkcywgcHVzaGVzIFBheWxvYWRzIHRvIGJmZiIgIk5vZGUuanMsIEJyb2tlciwgU29ja2V0LmlvLWNsaWVudCIKICAgICAgICAgIHNob3BfcHJvamVjdGlvbl9kYiA9IGNvbnRhaW5lciAiU2hvcCBQcm9qZWN0aW9uIERhdGFiYXNlIiAiUmVhZCBEQiBmb3IgZGVub3JtYWxpemVkIHZpZXdzIiAiTW9uZ29EQiIgewogICAgICAgICAgICB0YWdzICJEYXRhYmFzZSIKICAgICAgICAgIH0KICAgICAgICB9CgogICAgICAgIGdyb3VwICIuV2Vic2l0ZSIgewogICAgICAgICAgc2hvcF93ZWJzZXJ2ZXIgPSBjb250YWluZXIgIlNob3AgRnJvbnRlbmQgU1BBIiAiV2ViIGludGVyZmFjZSwgY29ubmVjdHMgdG8gYmZmIHZpYSB3c3MsIHNlbmRzIFF1ZXJpZXMgYW5kIENvbW1hbmRzIHRvIGJmZiwgcmVuZGVycyBpbmNvbWluZyBQYXlsb2FkcyIgIkJyb3dzZXIsIGh0bWwvY3NzL2pzLCBTb2NrZXQuaW8ubWluIiB7CiAgICAgICAgICAgIHRhZ3MgIldlYmNsaWVudCIKICAgICAgICAgIH0KICAgICAgICAgIHNob3Bfd2Vic2VydmVyX3NlcnZlciA9IGNvbnRhaW5lciAiU2hvcCBGcm9udGVuZCBTZXJ2ZXIiICJTZXJ2ZXMgc3RhdGljIGZpbGVzIiAiTmdpbngiCiAgICAgICAgICBzaG9wX3dlYnNlcnZlcl91c2VyID0gY29udGFpbmVyICJVc2VyIiAiRW5kIHVzZXIgaW50ZXJhY3RpbmcgdmlhIGJyb3dzZXIiICJQZXJzb24iIHsKICAgICAgICAgICAgdGFncyAiUGVyc29uIgogICAgICAgICAgfQogICAgICAgICAgc2hvcF93ZWJzZXJ2ZXJfc2VydmVyIC0+IHNob3Bfd2Vic2VydmVyICJTZXJ2ZXMiCiAgICAgICAgICBzaG9wX3dlYnNlcnZlcl91c2VyIC0+IHNob3Bfd2Vic2VydmVyICJVc2VzIgogICAgICAgIH0KICAgICAgfQoKCiAgICAgIG9yZGVyX3NlcnZpY2UgLT4gYnJva2VyX3NlcnZpY2UgInN1YnNjcmliZSB0byBjZXJ0YWluIENvbW1hbmRzLCBwdWJsaXNoIERvbWFpbkV2ZW50cyIKICAgICAgb3JkZXJfc2VydmljZSAtPiBvcmRlcl9ldmVudHN0b3JlX3NlcnZpY2UgImZldGNoIHN0cmVhbXMsIGNvbW1pdCBEb21haW5FdmVudHMiCiAgICAgIG9yZGVyX2V2ZW50c3RvcmVfc2VydmljZSAtPiBvcmRlcl9ldmVudHN0b3JlX2RiICJyZWFkLCB3cml0ZSIKICAgICAgc2hvcF9wcm9qZWN0aW9uX3NlcnZpY2UgLT4gYnJva2VyX3NlcnZpY2UgInN1YnNjcmliZSB0byBjZXJ0YWluIERvbWFpbkV2ZW50cyIKICAgICAgc2hvcF9wcm9qZWN0aW9uX3NlcnZpY2UgLT4gb3JkZXJfZXZlbnRzdG9yZV9zZXJ2aWNlICJmZXRjaCBzdHJlYW1zIgogICAgICBzaG9wX3Byb2plY3Rpb25fc2VydmljZSAtPiBzaG9wX2JmZl9zZXJ2aWNlICJsaXN0ZW4gZm9yIFF1ZXJpZXMgYW5kIHB1c2ggUGF5bG9hZHMiCiAgICAgIHNob3BfcHJvamVjdGlvbl9zZXJ2aWNlIC0+IHNob3BfcHJvamVjdGlvbl9kYiAiZmV0Y2ggZGF0YSwgdXBzZXJ0IGRhdGEiCiAgICAgIHNob3BfYmZmX3NlcnZpY2UgLT4gYnJva2VyX3NlcnZpY2UgInB1Ymxpc2ggQ29tbWFuZHMiCiAgICAgIHNob3Bfd2Vic2VydmVyIC0+IHNob3BfYmZmX3NlcnZpY2UgInNlbmQgQ29tbWFuZHMgYW5kIFF1ZXJpZXMsIGxpc3RlbiBmb3IgUGF5bG9hZHMiCiAgICB9CiAgfQoKICB2aWV3cyB7CiAgICBjb250YWluZXIgc2hvcCBjb250YWluZXJfdmlldyAiQ29udGFpbmVyIERpYWdyYW0iIHsKICAgICAgaW5jbHVkZSAqCiAgICB9CiAgICBzdHlsZXMgewogICAgICBlbGVtZW50ICogewogICAgICAgIHNoYXBlIHJvdW5kZWRib3gKICAgICAgICBiYWNrZ3JvdW5kICJyb3lhbGJsdWUiCiAgICAgIH0KICAgICAgZWxlbWVudCAiQnJva2VyIiB7CiAgICAgICAgc2hhcGUgaGV4YWdvbgogICAgICAgIGJhY2tncm91bmQgInRvbWF0byIKICAgICAgfQogICAgICBlbGVtZW50ICJEYXRhYmFzZSIgewogICAgICAgIHNoYXBlIGN5bGluZGVyCiAgICAgICAgYmFja2dyb3VuZCAib3JjaGlkIgogICAgICB9CiAgICAgIGVsZW1lbnQgIldlYmNsaWVudCIgewogICAgICAgIHNoYXBlIHdlYmJyb3dzZXIKICAgICAgICBiYWNrZ3JvdW5kICJzZWFncmVlbiIKICAgICAgfQogICAgICBlbGVtZW50ICJQZXJzb24iIHsKICAgICAgICBiYWNrZ3JvdW5kICJzZWFncmVlbiIKICAgICAgfQogICAgfQogICAgdGhlbWUgZGVmYXVsdAogIH0KfQ=="
+  },
+  "views" : {
+    "configuration" : {
+      "branding" : { },
+      "lastSavedView" : "container_view",
+      "styles" : {
+        "elements" : [ {
+          "background" : "#4169e1",
+          "shape" : "RoundedBox",
+          "tag" : "*"
+        }, {
+          "background" : "#ff6347",
+          "shape" : "Hexagon",
+          "tag" : "Broker"
+        }, {
+          "background" : "#da70d6",
+          "shape" : "Cylinder",
+          "tag" : "Database"
+        }, {
+          "background" : "#2e8b57",
+          "shape" : "WebBrowser",
+          "tag" : "Webclient"
+        }, {
+          "background" : "#2e8b57",
+          "tag" : "Person"
+        } ]
+      },
+      "terminology" : { },
+      "themes" : [ "https://static.structurizr.com/themes/default/theme.json" ]
+    },
+    "containerViews" : [ {
+      "description" : "Container Diagram",
+      "dimensions" : {
+        "height" : 3545,
+        "width" : 3453
+      },
+      "elements" : [ {
+        "id" : "2",
+        "x" : 538,
+        "y" : 436
+      }, {
+        "id" : "3",
+        "x" : 1923,
+        "y" : 376
+      }, {
+        "id" : "4",
+        "x" : 2685,
+        "y" : 862
+      }, {
+        "id" : "5",
+        "x" : 2685,
+        "y" : 262
+      }, {
+        "id" : "6",
+        "x" : 328,
+        "y" : 1456
+      }, {
+        "id" : "7",
+        "x" : 1715,
+        "y" : 2108
+      }, {
+        "id" : "8",
+        "x" : 1715,
+        "y" : 1508
+      }, {
+        "id" : "9",
+        "x" : 1015,
+        "y" : 2105
+      }, {
+        "id" : "10",
+        "x" : 952,
+        "y" : 2708
+      }, {
+        "id" : "11",
+        "x" : 318,
+        "y" : 2406
+      } ],
+      "externalSoftwareSystemBoundariesVisible" : false,
+      "key" : "container_view",
+      "order" : 1,
+      "relationships" : [ {
+        "id" : "12"
+      }, {
+        "id" : "13"
+      }, {
+        "id" : "14"
+      }, {
+        "id" : "15"
+      }, {
+        "id" : "16"
+      }, {
+        "id" : "17"
+      }, {
+        "id" : "18"
+      }, {
+        "id" : "19"
+      }, {
+        "id" : "20"
+      }, {
+        "id" : "21"
+      }, {
+        "id" : "22"
+      } ],
+      "softwareSystemId" : "1"
+    } ]
+  }
+}

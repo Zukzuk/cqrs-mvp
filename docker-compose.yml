@@ -8,6 +8,7 @@ services:
       structurizr.description: "Provides a robust messaging broker with management UI"
       structurizr.technology: "RabbitMQ"
       structurizr.group: "Event Platform"
+      structurizr.type: "broker"
     ports:
       - "5672:5672"
       - "15672:15672"

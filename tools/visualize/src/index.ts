@@ -1,5 +1,5 @@
-import { loadCompose } from './compose';
-import { buildDsl } from './dsl';
+import { loadCompose } from './loadCompose';
+import { buildDsl } from './createDsl';
 import { launchStructurizrUI } from './launch';
 
 (async function main() {

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import { loadCompose } from './compose';
-import { buildDsl } from './dsl';
+import { loadCompose } from './loadCompose';
+import { buildDsl } from './createDsl';
 
 (async () => {
     const root = process.cwd();

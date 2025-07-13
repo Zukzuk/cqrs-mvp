@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { ComposeFile, ComposeService } from './compose';
+import { ComposeFile, ComposeService } from './loadCompose';
 
 /**
  * Tree node representing a group and its nested subgroups.
@@ -87,11 +87,18 @@ function renderContainer(svcKey: string, svc: ComposeService, indentLevel = 3): 
   const description = getLabel(svc, LABEL_KEYS.DESC, 'unknown');
   const type = getLabel(svc, LABEL_KEYS.TYPE, 'container').toLowerCase();
 
-  if (type === 'database') {
+  if (type === 'broker') {
+    return [`${indent}${id} = container "${name}" "${description}" "${technology}" {`,
+            `${indent}  tags "Broker"`,
+            `${indent}}`]
+      .map(line => line + '\n')
+      .join('');
+  }
+
+    if (type === 'database') {
     return [`${indent}${id} = container "${name}" "${description}" "${technology}" {`,
             `${indent}  tags "Database"`,
-            `${indent}}`,
-            '']
+            `${indent}}`]
       .map(line => line + '\n')
       .join('');
   }
@@ -105,17 +112,12 @@ function renderContainer(svcKey: string, svc: ComposeService, indentLevel = 3): 
     return [`${indent}${id} = container "${name} SPA" "Web interface, connects to bff via wss, sends Queries and Commands to bff, renders incoming Payloads" "Browser, html/css/js, Socket.io.min" {`,
             `${indent}  tags "Webclient"`,
             `${indent}}`,
-            '',
             `${indent}${serverId} = container "${name} Server" "${description}" "${technology}"`,
-            '',
             `${indent}${userId} = container "User" "End user interacting via browser" "Person" {`,
             `${indent}  tags "Person"`,
             `${indent}}`,
-            '',
             `${indent}${serverId} -> ${id} "Serves"`,
-            `${indent}${userId} -> ${id} "Uses"`,
-            '',
-          ]
+            `${indent}${userId} -> ${id} "Uses"`]
       .map(line => line + '\n')
       .join('');
   }
@@ -128,7 +130,7 @@ function renderContainer(svcKey: string, svc: ComposeService, indentLevel = 3): 
  */
 function renderGroups(node: GroupNode, groupName: string, depth: number, services: Record<string, ComposeService>): string {
   const indent = '  '.repeat(depth);
-  let result = `${indent}group ".${groupName}" {\n`;
+  let result = `\n${indent}group ".${groupName}" {\n`;
 
   // Render child services
   for (const svcKey of node.services) {
@@ -148,7 +150,7 @@ function renderGroups(node: GroupNode, groupName: string, depth: number, service
  * Renders all docker-compose 'depends_on' as relationships.
  */
 function renderDependencies(services: Record<string, ComposeService>): string {
-  const lines: string[] = [];
+  const lines: string[] = ['\n'];
 
   for (const [svcKey, svc] of Object.entries(services)) {
     const fromId = svcKey.replace(/-/g, '_');
@@ -173,9 +175,8 @@ export function buildDsl(compose: ComposeFile): string {
                   `  model "${compose.name}" {`,
                   `    properties {`,
                   `      structurizr.groupSeparator "${GROUP_SEPARATOR}"`,
-                  `    }`,
-                  `    shop = softwareSystem "${compose.description}" {`,
-                  '']
+                  `    }\n`,
+                  `    shop = softwareSystem "${compose.description}" {`]
     .map(line => line + '\n')
     .join('');
 
@@ -189,23 +190,34 @@ export function buildDsl(compose: ComposeFile): string {
 
   const dependencySection = renderDependencies(compose.services);
 
+  // check https://docs.structurizr.com/ui/diagrams/notation
+  // check https://www.w3schools.com/cssref/css_colors.php
   const footer = [`    }`,
-                  `  }`,
+                  `  }\n`,
                   `  views {`,
                   `    container shop container_view "Container Diagram" {`,
                   `      include *`,
-                  `      autolayout bt`,
+                  // `      autolayout bt`,
                   `    }`,
                   `    styles {`,
+                  `      element * {`,
+                  `        shape roundedbox`,
+                  `        background "royalblue"`,
+                  `      }`,
+                  `      element "Broker" {`,
+                  `        shape hexagon`,
+                  `        background "tomato"`,
+                  `      }`,
                   `      element "Database" {`,
                   `        shape cylinder`,
-                  `        background "darkmagenta"`,
+                  `        background "orchid"`,
                   `      }`,
                   `      element "Webclient" {`,
-                  `        background "darkorange"`,
+                  `        shape webbrowser`,
+                  `        background "seagreen"`,
                   `      }`,
                   `      element "Person" {`,
-                  `        background "darkorange"`,
+                  `        background "seagreen"`,
                   `      }`,
                   `    }`,
                   `    theme default`,

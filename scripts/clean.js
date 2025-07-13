@@ -11,11 +11,9 @@ const path = require('path');
 const patterns = [
   'node_modules',
   'dist',
-  'diagram',
   'package-lock.json',
   '**/node_modules',
   '**/dist',
-  '**/diagram',
   '**/package-lock.json',
 ];
 

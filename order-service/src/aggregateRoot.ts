@@ -1,10 +1,10 @@
-import { IDomainEvent } from '@daveloper/interfaces';
+import { IOrderCreatedEvent } from '@daveloper/interfaces';
 
 export abstract class AggregateRoot {
 
-  private _events: IDomainEvent[] = [];
+  private _events: IOrderCreatedEvent[] = [];
 
-  protected apply(event: IDomainEvent) {
+  protected apply(event: IOrderCreatedEvent) {
     this._events.push(event);
     const agg = (this as any)[`on${event.type}`];
     

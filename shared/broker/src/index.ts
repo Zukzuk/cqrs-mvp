@@ -1,2 +1,2 @@
-export * from './IBroker';
+export * from './Broker';
 export * from './RabbitMQBroker';

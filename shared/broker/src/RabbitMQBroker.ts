@@ -1,6 +1,6 @@
 import amqp, { ChannelModel, Channel, ConsumeMessage } from 'amqplib';
-import { IBroker, ICommandHandler } from './IBroker';
-import { IDomainEvent } from '@daveloper/interfaces';
+import { IBroker, ICommandHandler } from './Broker';
+import { IDomainEvent, TDomainEventUnion, TCommandUnion } from '@daveloper/interfaces';
 
 /**
  * Support publishing domain events and subscribing handlers with routing key filters.
@@ -33,11 +33,11 @@ export class RabbitMQBroker implements IBroker {
    * Publish a domain event to the exchange using the event type as the routing key.
    * Events go to a topic exchange (domain-events) with routing keys.
    */
-  async publish(evt: IDomainEvent) {
+  async publish<E extends TDomainEventUnion>(evt: E): Promise<void> {
     const payload = Buffer.from(JSON.stringify(evt));
     this.pubCh.publish(
-      this.exchange,
-      evt.type,
+      this.exchange,  // e.g. 'domain-events'
+      evt.type,       // routing key (must be one of your DomainEvent types)
       payload,
       { persistent: true }
     );
@@ -50,43 +50,62 @@ export class RabbitMQBroker implements IBroker {
    * to get exactly the slice of the stream it needs.
    * Returns an unsubscribe function that cancels the consumer.
    */
-  async subscribe(
-    handler: (evt: IDomainEvent) => Promise<void>,
-    options: {
+  async subscribe<E extends IDomainEvent = IDomainEvent>(
+    handler: (evt: E) => Promise<void>,
+    {
+      queue,
+      durable = false,
+      autoDelete = true,
+      routingKeys = [] as E['type'][],
+      exchange
+    }: {
       queue?: string;
       durable?: boolean;
       exchange?: string;
       autoDelete?: boolean;
-      routingKeys?: string[];
+      routingKeys?: E['type'][]; // Tied to the event’s `type`
     } = {}
   ): Promise<() => Promise<void>> {
-    const { queue, durable = false, autoDelete = true, routingKeys, exchange } = options;
-    const q = await this.subCh.assertQueue(queue || '', { exclusive: !queue, durable, autoDelete });
-    console.log(`🪝 [broker-subscribe] declaring queue='${q.queue}', durable=${durable}, autoDelete=${autoDelete}`);
+    const q = await this.subCh.assertQueue(
+      queue || '',
+      { exclusive: !queue, durable, autoDelete }
+    );
+    console.log(
+      `🪝 [broker-subscribe] declaring queue='${q.queue}', durable=${durable}, autoDelete=${autoDelete}`
+    );
 
-    // Determine which routing patterns to bind
-    const keys = routingKeys && routingKeys.length ? routingKeys : ['#'];
-    const exch = exchange ? exchange : this.exchange;
+    const keys = routingKeys.length ? routingKeys : ['#'];
+    const exch = exchange ?? this.exchange;
     for (const key of keys) {
       await this.subCh.bindQueue(q.queue, exch, key);
-      console.log(`🔗 [broker-subscribe] bound queue='${q.queue}' -> exchange='${exch}' with routingKey='${key}'`);
+      console.log(
+        `🔗 [broker-subscribe] bound queue='${q.queue}' -> exchange='${exch}' with routingKey='${key}'`
+      );
     }
 
-    // Process one message at a time per consumer
     await this.subCh.prefetch(1);
 
     const { consumerTag } = await this.subCh.consume(
       q.queue,
       async (msg: ConsumeMessage | null) => {
         if (!msg) return;
-        const event: IDomainEvent = JSON.parse(msg.content.toString());
-        console.log('📨 [broker-subscribe] received event', event.type, 'on queue=', q.queue);
+        const raw = msg.content.toString();
+        const eventAny = JSON.parse(raw) as IDomainEvent;
+        console.log(
+          '📨 [broker-subscribe] received event', eventAny.type, 'on queue=', q.queue
+        );
+
         try {
-          await handler(event);
+          // cast to E before calling the handler
+          await handler(eventAny as E);
           this.subCh.ack(msg);
-          console.log('✅ [broker-subscribe] ACK', event.type);
+          console.log('✅ [broker-subscribe] ACK', eventAny.type);
         } catch (err) {
-          console.error('❌ [broker-subscribe] handler failed for', event.type, err);
+          console.error(
+            '❌ [broker-subscribe] handler failed for',
+            eventAny.type,
+            err
+          );
           this.subCh.nack(msg, false, false);
         }
       }
@@ -102,22 +121,25 @@ export class RabbitMQBroker implements IBroker {
   /**
    * Send a raw command or message to a specific queue.
    */
-  async send(queueName: string, payload: any) {
+  async send<C extends TCommandUnion>(
+    queueName: string,
+    command: C
+  ): Promise<void> {
     await this.cmdCh.assertQueue(queueName, { durable: true });
     this.cmdCh.sendToQueue(
       queueName,
-      Buffer.from(JSON.stringify(payload)),
+      Buffer.from(JSON.stringify(command)),
       { persistent: true }
     );
-    console.log('📨 [broker-send] sent command to queue=', queueName);
+    console.log('📨 [broker-send] sent command', command.type, 'to queue=', queueName, 'corrId=', command.correlationId);
   }
 
   /**
    * Consume a command queue with a given handler.
    */
-  async consumeQueue<T = any>(
+  async consumeQueue<C extends TCommandUnion>(
     queueName: string,
-    handler: ICommandHandler<T>
+    handler: ICommandHandler<C>
   ) {
     await this.cmdCh.assertQueue(queueName, { durable: true });
     console.log(`🪡 [broker-queue] consuming command queue='${queueName}'`);
@@ -125,14 +147,28 @@ export class RabbitMQBroker implements IBroker {
       queueName,
       async (msg: ConsumeMessage | null) => {
         if (!msg) return;
+
+        let command: C;
         try {
-          const data = JSON.parse(msg.content.toString()) as T;
-          console.log('📨 [broker-queue] received command on', queueName, data);
-          await handler(data);
+          // parse and cast to our command type
+          command = JSON.parse(msg.content.toString()) as C;
+        } catch (err) {
+          console.error('❌ [broker-queue] failed to parse command', queueName, err);
+          // cannot ack malformed message, so nack without requeue
+          this.cmdCh.nack(msg, false, false);
+          return;
+        }
+
+        console.log('📨 [broker-queue] received command on', queueName, command.type);
+
+        try {
+          // now handler expects exactly the command shape C
+          await handler(command);
           this.cmdCh.ack(msg);
           console.log('✅ [broker-queue] ACK', queueName);
         } catch (err) {
           console.error('❌ [broker-queue] command handler failed on', queueName, err);
+          // no requeue on handler error
           this.cmdCh.nack(msg, false, false);
         }
       }

@@ -21,8 +21,7 @@ export function registerWebClient(
         projectionNs.emit('request_snapshot', { userId })
 
         /*
-         * Commands go point-to-point: send() directly into the commands queue 
-         * and consumeQueue() asserts and reads that same queue. There’s exactly one queue, one handler.
+         * Commands go point-to-point
          */
         socket.on('command', async (raw, ack) => {
             console.log('⬅️ [bff-socket] recieving command from client:', raw)

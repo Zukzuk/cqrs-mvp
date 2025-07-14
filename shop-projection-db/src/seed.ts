@@ -1,89 +1,77 @@
 import { MongoClient } from 'mongodb';
 import fetch from 'node-fetch';
-import { IDomainEvent, IShopView } from '@daveloper/interfaces';
+import { IShopView } from '@daveloper/interfaces';
+import { IStoredEvent } from '@daveloper/eventstore';
 
 interface ProjectionMeta {
-    _id: string;
-    lastSequence: number;
-}
-
-// Extend the shared IDomainEvent with sequence metadata from the event-store
-interface StoredEvent extends IDomainEvent {
-    sequence: number;
+  _id: string;
+  lastSequence: number;
 }
 
 const MONGO_URL = process.env.MONGO_URL!;
 const EVENTSTORE_URL = process.env.EVENTSTORE_URL!;
 const DB_NAME = 'shop_projection';
+// The document _id under projection_meta that tracks this projection’s cursor
+const PROJECTION_META_ID = 'shop-orders';
 
 async function seed() {
-    console.log('🟡 [seeder] connecting to Mongo…');
-    const client = new MongoClient(MONGO_URL);
-    await client.connect();
+  console.log('🟡 [shop-projection-seeder] connecting to Mongo…');
+  const client = new MongoClient(MONGO_URL);
+  await client.connect();
 
-    const db = client.db(DB_NAME);
-    const orders = db.collection('orders');
-    const metaCol = db.collection<ProjectionMeta>('projection_meta');
+  const db = client.db(DB_NAME);
+  const orders = db.collection<IShopView>('orders');
+  const metaCol = db.collection<ProjectionMeta>('projection_meta');
 
-    // upsert helper
-    const saveView = async (view: IShopView) => {
-        await orders.updateOne(
-            { orderId: view.orderId },
-            { $set: view },
-            { upsert: true }
-        );
-    };
+  // load or initialize cursor for our "shop-orders" projection
+  const meta = await metaCol.findOne({ _id: PROJECTION_META_ID });
+  let cursor = meta?.lastSequence ?? 0;
+  console.log(`🟡 [shop-projection-seeder] starting from sequence=${cursor}`);
 
-    // stub out socket.emit with correct signature
-    const emit = (_event: string, _payload: any): void => { };
-
-    // load or initialize cursor
-    const meta = await metaCol.findOne({ _id: 'shop-orders' });
-    let cursor = meta?.lastSequence ?? 0;
-    console.log(`🟡 [seeder] starting from sequence=${cursor}`);
-
-    // replay in pages
-    while (true) {
-        const res = await fetch(
-            `${EVENTSTORE_URL}/events?stream=Order&from=${cursor}&limit=100`
-        );
-        if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
-
-        // parse JSON into our StoredEvent type
-        const batch = (await res.json()) as StoredEvent[];
-        if (batch.length === 0) break;
-
-        for (const evt of batch) {
-            if (evt.type === 'OrderCreated') {
-                // evt.payload corresponds to OrderCreated payload shape
-                const { orderId, userId, total } = evt.payload as { orderId: string; userId: string; total: number };
-                await saveView({
-                    orderId,
-                    userId,
-                    total,
-                    status: 'CREATED',
-                    correlationId: evt.correlationId,
-                });
-                emit('order_update', { orderId, userId, total, status: 'CREATED', correlationId: evt.correlationId });
-            }
-            // advance cursor to latest sequence
-            cursor = evt.sequence;
-        }
-
-        // persist updated cursor
-        await metaCol.updateOne(
-            { _id: 'shop-orders' },
-            { $set: { lastSequence: cursor } },
-            { upsert: true }
-        );
-        console.log(`✅ [seeder] applied up to ${cursor}`);
+  while (true) {
+    const url = `${EVENTSTORE_URL}/events?from=${cursor}&limit=100`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      const body = await res.text();
+      console.error(`❌ [shop-projection-seeder] fetch ${res.status}:`, body);
+      throw new Error(`Fetch failed: ${res.status}`);
     }
 
-    console.log(`🟢 [seeder] complete (final sequence=${cursor})`);
-    await client.close();
+    const batch = (await res.json()) as IStoredEvent[];
+    if (batch.length === 0) {
+      console.log('🟢 [shop-projection-seeder] no new events');
+      break;
+    }
+
+    console.log(`🟡 [shop-projection-seeder] got ${batch.length} events; first seq=${batch[0].sequence}`);
+
+    for (const evt of batch) {
+      if (evt.type === 'OrderCreated') {
+        const { orderId, userId, total } = evt.payload as { orderId: string; userId: string; total: number };
+        await orders.updateOne(
+          { orderId },
+          { $set: { orderId, userId, total, status: 'CREATED', correlationId: evt.correlationId } },
+          { upsert: true }
+        );
+      }
+      // advance our cursor
+      cursor = evt.sequence;
+    }
+
+    // persist updated cursor under our explicit projection ID
+    await metaCol.updateOne(
+      { _id: PROJECTION_META_ID },
+      { $set: { lastSequence: cursor } },
+      { upsert: true }
+    );
+    console.log(`✅ [shop-projection-seeder] applied up to sequence=${cursor}`);
+  }
+
+  await client.close();
+  console.log(`🟢 [shop-projection-seeder] complete (final sequence=${cursor})`);
 }
 
 seed().catch(err => {
-    console.error('❌ [seeder] error', err);
-    process.exit(1);
+  console.error('❌ [shop-projection-seeder] error', err);
+  process.exit(1);
 });

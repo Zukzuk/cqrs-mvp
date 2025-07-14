@@ -1,4 +1,4 @@
-import { IDomainEvent, IShopView } from '@daveloper/interfaces';
+import { IOrderCreatedEvent, IShopView } from '@daveloper/interfaces';
 import { OrderRepository } from './repository';
 import { Socket } from 'socket.io-client';
 
@@ -8,7 +8,7 @@ export class OrderDenormalizer {
     private readonly socket: Socket
   ) { }
 
-  async handle(evt: IDomainEvent): Promise<void> {
+  async handle(evt: IOrderCreatedEvent): Promise<void> {
     const { orderId, userId, total } = evt.payload;
     if (!orderId || !userId) return;
 

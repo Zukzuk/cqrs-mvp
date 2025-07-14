@@ -2,7 +2,7 @@ import { CreateOrder } from './commands';
 import { Repository } from './repository';
 import { Order } from './orderAggregate';
 import { IBroker } from '@daveloper/broker';
-import { IDomainEvent } from '@daveloper/interfaces';
+import { IOrderCreatedEvent } from '@daveloper/interfaces';
 import { OrderCreated } from './events';
 
 export class CommandHandler {
@@ -24,7 +24,7 @@ export class CommandHandler {
     await this.repo.save(order);
     console.log(`💾 [order-write] save data for user=${cmd.payload.userId}`, order);
 
-    for (const rawEvent of order.uncommittedEvents as IDomainEvent[]) {
+    for (const rawEvent of order.uncommittedEvents as IOrderCreatedEvent[]) {
       try {
         const ev = new OrderCreated(rawEvent.payload, cmd.correlationId); // stamp with the corrId
         await this.bus.publish(ev);
@@ -32,7 +32,7 @@ export class CommandHandler {
         order.clearEvents();
       } catch (err: any) {
         console.error('❌ [order-handler] failed to publish event', err.type, err);
-        // do something smart with the failed event here...
+        // TODO: do something smart with the failed event here...
       }
     }
   }

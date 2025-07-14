@@ -1,18 +1,17 @@
 import express from 'express';
 import { MongoClient } from 'mongodb';
 import { IDomainEvent } from '@daveloper/interfaces';
-import { IEventStore, MongoEventStore } from '@daveloper/eventstore';
+import { ICounterDoc, IStoredEvent, MongoEventStore } from '@daveloper/eventstore';
 
 async function bootstrap() {
     const mongoUrl = process.env.MONGO_URL!;
     const client = new MongoClient(mongoUrl);
     await client.connect();
-    
-    const db = client.db(process.env.MONGO_DB_NAME || 'eventstore');
-    const collection = db.collection('events');
 
-    // Choose implementation here
-    const eventStore: IEventStore = new MongoEventStore(collection);
+    const db = client.db(process.env.MONGO_DB_NAME || 'eventstore');
+    const eventsColl = db.collection<IStoredEvent>('events');
+    const countersColl = db.collection<ICounterDoc>('event_counters');
+    const eventStore = new MongoEventStore(eventsColl, countersColl);
 
     const app = express();
     app.use(express.json());
@@ -25,7 +24,7 @@ async function bootstrap() {
         const { streamId } = req.params;
         const events: IDomainEvent[] = req.body;
         if (!Array.isArray(events)) {
-            return res.status(400).json({ error: 'Body must be an array of IDomainEvent' });
+            return res.status(400).json({ error: 'Body must be an array of IOrderCreatedEvent' });
         }
 
         try {
@@ -64,7 +63,7 @@ async function bootstrap() {
         }
     });
 
-    app.listen(+process.env.PORT! || 4001, () => console.log('🚀 listening'));
+    app.listen(+process.env.PORT! || 4001, () => console.log('🚀 OrderEventstoreService listening on port 4001'));
 }
 
 bootstrap().catch(err => {

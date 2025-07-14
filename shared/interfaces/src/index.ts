@@ -1,3 +1,3 @@
-export * from './IDomainEvent';
-export * from './ICommand';
-export * from './IShopView';
+export * from './DomainEvents';
+export * from './Commands';
+export * from './ProjectionViews';

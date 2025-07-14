@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import { IEventStore, StoredEvent } from './IEventStore';
+import { IEventStore, IStoredEvent } from './EventStore';
 import { IDomainEvent } from '@daveloper/interfaces';
 
 export class HttpEventStore implements IEventStore {
@@ -16,7 +16,7 @@ export class HttpEventStore implements IEventStore {
     }
   }
 
-  async loadStream(streamId: string, from?: string): Promise<StoredEvent[]> {
+  async loadStream(streamId: string, from?: string): Promise<IStoredEvent[]> {
     const url = new URL(`${this.baseUrl}/streams/${streamId}/events`);
     if (from) {
       url.searchParams.set('from', from);
@@ -27,12 +27,12 @@ export class HttpEventStore implements IEventStore {
       throw new Error(`Failed to load stream: HTTP ${res.status}`);
     }
 
-    // Cast the JSON response to StoredEvent[]
+    // Cast the JSON response to IStoredEvent[]
     const data = await res.json();
-    return data as StoredEvent[];
+    return data as IStoredEvent[];
   }
 
-  async loadAllEvents(from?: string): Promise<StoredEvent[]> {
+  async loadAllEvents(from?: string): Promise<IStoredEvent[]> {
     const url = new URL(`${this.baseUrl}/events`);
     if (from) {
       url.searchParams.set('from', from);
@@ -43,8 +43,8 @@ export class HttpEventStore implements IEventStore {
       throw new Error(`Failed to load events: HTTP ${res.status}`);
     }
 
-    // Cast the JSON response to StoredEvent[]
+    // Cast the JSON response to IStoredEvent[]
     const data = await res.json();
-    return data as StoredEvent[];
+    return data as IStoredEvent[];
   }
 }

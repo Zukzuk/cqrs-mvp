@@ -6,13 +6,13 @@
   "workspaces": [
     "shared/interfaces",
     "shared/**",
-    "tools/**",
     "order-eventstore-service",
     "order-service",
+    "shop-bff-service",
     "shop-projection-db",
     "shop-projection-service",
-    "shop-bff-service",
-    "shop-webserver"
+    "shop-webserver",
+    "tools/**"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",

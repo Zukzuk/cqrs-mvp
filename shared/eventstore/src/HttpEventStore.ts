@@ -27,24 +27,21 @@ export class HttpEventStore implements IEventStore {
       throw new Error(`Failed to load stream: HTTP ${res.status}`);
     }
 
-    // Cast the JSON response to IStoredEvent[]
-    const data = await res.json();
-    return data as IStoredEvent[];
+    const data = (await res.json()) as IStoredEvent[];
+    return data;
   }
 
-  async loadAllEvents(from?: string): Promise<IStoredEvent[]> {
+  async loadAllEvents(from?: string, limit?: number): Promise<IStoredEvent[]> {
     const url = new URL(`${this.baseUrl}/events`);
-    if (from) {
-      url.searchParams.set('from', from);
-    }
+    if (from) url.searchParams.set('from', from);
+    if (limit) url.searchParams.set('limit', `${limit}`);
 
     const res = await fetch(url.toString());
     if (!res.ok) {
       throw new Error(`Failed to load events: HTTP ${res.status}`);
     }
 
-    // Cast the JSON response to IStoredEvent[]
-    const data = await res.json();
-    return data as IStoredEvent[];
+    const data = (await res.json()) as IStoredEvent[];
+    return data;
   }
 }

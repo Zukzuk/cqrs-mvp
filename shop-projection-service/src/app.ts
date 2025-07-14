@@ -14,7 +14,7 @@ import { OrderDenormalizer } from './denormalizer';
   const collection = db.collection<IShopView>('orders');
   const repository = new OrderRepository(collection);
 
-  const socket = Client('http://shop-bff-service:4000/shop_projection', {
+  const socket = Client('http://shop-bff-service:3000/shop_projection', {
     transports: ['websocket'],
     auth: { serviceId: 'service123' },
   });
@@ -65,5 +65,5 @@ import { OrderDenormalizer } from './denormalizer';
   const app = express();
   const server = http.createServer(app);
   app.get('/health', (_req, res) => res.status(200).json({ status: 'ok' }));
-  server.listen(5000, () => console.log('🚀 ShopProjectionService Listening on port 5000'));
+  server.listen(3002, () => console.log('🚀 ShopProjectionService Listening on port 3002'));
 })();

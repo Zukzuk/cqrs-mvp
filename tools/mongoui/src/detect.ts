@@ -2,10 +2,9 @@ import { execSync } from 'child_process';
 
 export function detectMongoContainers(): string[] {
   try {
-    // Only containers with the label structurizr.technology=MongoDB
     const out = execSync(
       `docker ps \
-       --filter label=structurizr.technology=MongoDB \
+       --filter label=structurizr.type=database \
        --format "{{.Names}}"`
     ).toString();
 

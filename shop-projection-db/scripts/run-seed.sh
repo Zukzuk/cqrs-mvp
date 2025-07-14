@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-echo "🟡 [initdb] running projection‐seeder…"
-/opt/seeder/node_modules/.bin/ts-node /opt/seeder/scr/seed.ts
-echo "✅ [initdb] projection‐seeder done"
+echo "[shop-projection-db] running projection‐seeder…"
+node /opt/seeder/dist/seed.js
+echo "[shop-projection-db] projection‐seeder done"

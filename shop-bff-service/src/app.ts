@@ -11,7 +11,7 @@ import { registerShopProjection } from './namespaces/shopProjection'
   registerShopProjection(shopProjectionNs, io)
   registerWebClient(io, bus, shopProjectionNs)
 
-  server.listen(4000, () =>
-    console.log('🚀 [http+wss+pubsub] BFF listening on port 4000')
+  server.listen(3000, () =>
+    console.log('🚀 [http+wss+pubsub] BFF listening on port 3000')
   )
 })()

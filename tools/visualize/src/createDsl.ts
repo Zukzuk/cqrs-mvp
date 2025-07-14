@@ -17,7 +17,9 @@ const LABEL_KEYS = {
   GROUP: 'structurizr.group',
   NAME: 'structurizr.name',
   TECH: 'structurizr.technology',
+  PORT: 'structurizr.port',
   DESC: 'structurizr.description',
+  DESC_SITE: 'structurizr.description_website',
   TYPE: 'structurizr.type',
 };
 
@@ -84,11 +86,13 @@ function renderContainer(svcKey: string, svc: ComposeService, indentLevel = 3): 
   const id = svcKey.replace(/-/g, '_');
   const name = getLabel(svc, LABEL_KEYS.NAME, svcKey);
   const technology = getLabel(svc, LABEL_KEYS.TECH, 'unknown');
-  const description = getLabel(svc, LABEL_KEYS.DESC, 'unknown');
+  const port = getLabel(svc, LABEL_KEYS.PORT, '');
+  const description = getLabel(svc, LABEL_KEYS.DESC, '');
+  const description_website = getLabel(svc, LABEL_KEYS.DESC_SITE, '');
   const type = getLabel(svc, LABEL_KEYS.TYPE, 'container').toLowerCase();
 
   if (type === 'broker') {
-    return [`${indent}${id} = container "${name}" "${description}" "${technology}" {`,
+    return [`${indent}${id} = container "${name}" "${description}" "${technology} [${port}]" {`,
             `${indent}  tags "Broker"`,
             `${indent}}`]
       .map(line => line + '\n')
@@ -96,7 +100,7 @@ function renderContainer(svcKey: string, svc: ComposeService, indentLevel = 3): 
   }
 
     if (type === 'database') {
-    return [`${indent}${id} = container "${name}" "${description}" "${technology}" {`,
+    return [`${indent}${id} = container "${name}" "${description}" "${technology} [${port}]"" {`,
             `${indent}  tags "Database"`,
             `${indent}}`]
       .map(line => line + '\n')
@@ -109,20 +113,20 @@ function renderContainer(svcKey: string, svc: ComposeService, indentLevel = 3): 
     const serverId = `${id}_server`;
     const userId    = `${id}_user`;
 
-    return [`${indent}${id} = container "${name} SPA" "Web interface, connects to bff via wss, sends Queries and Commands to bff, renders incoming Payloads" "Browser, html/css/js, Socket.io.min" {`,
+    return [`${indent}${id} = container "${name} SPA" "${description_website}" "Browser, Socket.io.min" {`,
             `${indent}  tags "Webclient"`,
             `${indent}}`,
-            `${indent}${serverId} = container "${name} Server" "${description}" "${technology}"`,
+            `${indent}${serverId} = container "${name} Server" "${description}" "${technology} [${port}]"`,
             `${indent}${userId} = container "User" "End user interacting via browser" "Person" {`,
             `${indent}  tags "Person"`,
             `${indent}}`,
-            `${indent}${serverId} -> ${id} "Serves"`,
-            `${indent}${userId} -> ${id} "Uses"`]
+            `${indent}${serverId} -> ${id} "serves"`,
+            `${indent}${userId} -> ${id} "uses"`]
       .map(line => line + '\n')
       .join('');
   }
 
-  return `${indent}${id} = container "${name}" "${description}" "${technology}"\n`;
+  return `${indent}${id} = container "${name}" "${description}" "${technology} [${port}]"\n`;
 }
 
 /**

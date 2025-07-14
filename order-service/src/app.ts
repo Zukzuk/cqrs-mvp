@@ -39,7 +39,7 @@ import { Order } from './orderAggregate';
   });
 
   const server = http.createServer(app);
-  const port = Number(process.env.PORT) || 6000;
+  const port = Number(process.env.PORT) || 4000;
   server.listen(port, () => {
     console.log(`🚀 [http+pubsub] OrderApplicationService listening on port ${port}`);
   });

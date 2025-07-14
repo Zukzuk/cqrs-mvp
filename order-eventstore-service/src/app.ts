@@ -7,6 +7,7 @@ async function bootstrap() {
     const mongoUrl = process.env.MONGO_URL!;
     const client = new MongoClient(mongoUrl);
     await client.connect();
+    
     const db = client.db(process.env.MONGO_DB_NAME || 'eventstore');
     const collection = db.collection('events');
 
@@ -63,7 +64,7 @@ async function bootstrap() {
         }
     });
 
-    app.listen(+process.env.PORT! || 7000, () => console.log('🚀 listening'));
+    app.listen(+process.env.PORT! || 4001, () => console.log('🚀 listening'));
 }
 
 bootstrap().catch(err => {

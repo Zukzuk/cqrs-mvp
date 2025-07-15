@@ -1,4 +1,4 @@
-import { Collection } from 'mongodb';
+import { Collection, FindOneAndUpdateOptions } from 'mongodb';
 import { IEventStore, IStoredEvent, ICounterDoc } from './EventStore';
 import { IDomainEvent } from '@daveloper/interfaces';
 
@@ -12,17 +12,22 @@ export class MongoEventStore implements IEventStore {
     }
 
     private async nextSequence(streamId: string): Promise<number> {
+        const opts: FindOneAndUpdateOptions = {
+            upsert: true,
+            returnDocument: 'after'
+        };
+
+        // This returns WithId<ICounterDoc> | null, where the doc is the *post-inc* state
         const doc = await this.counters.findOneAndUpdate(
             { _id: streamId },
-            { $inc: { seq: 1 } },
-            {
-                upsert: true,
-                returnDocument: 'after'
-            }
+            { $inc: { seq: 1 } }, // Increment the sequence by 1
+            opts
         );
+
         if (!doc) {
             throw new Error(`Could not obtain sequence for stream=${streamId}`);
         }
+
         return doc.seq;
     }
 

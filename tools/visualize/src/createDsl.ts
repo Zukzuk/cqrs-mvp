@@ -6,9 +6,7 @@ import { ComposeFile, ComposeService } from './loadCompose';
  * Tree node representing a group and its nested subgroups.
  */
 interface GroupNode {
-  /** Map of subgroup name to its node */
   children: Map<string, GroupNode>;
-  /** List of service keys in this group */
   services: string[];
 }
 
@@ -99,7 +97,7 @@ function renderContainer(svcKey: string, svc: ComposeService, indentLevel = 3): 
       .join('');
   }
 
-    if (type === 'database') {
+  if (type === 'database') {
     return [`${indent}${id} = container "${name}" "${description}" "${technology} [${port}]"" {`,
             `${indent}  tags "Database"`,
             `${indent}}`]
@@ -113,7 +111,7 @@ function renderContainer(svcKey: string, svc: ComposeService, indentLevel = 3): 
     const serverId = `${id}_server`;
     const userId    = `${id}_user`;
 
-    return [`${indent}${id} = container "${name} SPA" "${description_website}" "Browser, Socket.io.min" {`,
+    return [`${indent}${id} = container "${name} SPA" "${description_website}" "Browser, Socket.io.min [URL]" {`,
             `${indent}  tags "Webclient"`,
             `${indent}}`,
             `${indent}${serverId} = container "${name} Server" "${description}" "${technology} [${port}]"`,
@@ -201,7 +199,6 @@ export function buildDsl(compose: ComposeFile): string {
                   `  views {`,
                   `    container shop container_view "Container Diagram" {`,
                   `      include *`,
-                  // `      autolayout bt`,
                   `    }`,
                   `    styles {`,
                   `      element * {`,

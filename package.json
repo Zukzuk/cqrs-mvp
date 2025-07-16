@@ -20,7 +20,7 @@
     "build:tools": "npm run build --workspace tools",
     "up": "docker build -f Dockerfile.base.nodejs -t cqrs-mvp/base:latest . && docker-compose up --build -d",
     "down": "docker-compose down",
-    "down:clear": "docker-compose down && docker volume prune ",
+    "down:clear": "docker-compose down && docker volume prune",
     "tooling": "concurrently \"npm run mongoui\" \"npm run visualize\"",
     "mongoui": "ts-node tools/mongoui/src/index.ts",
     "visualize": "ts-node tools/visualize/src/index.ts",

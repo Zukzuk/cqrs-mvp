@@ -8,7 +8,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@daveloper/broker": "file:../shared/broker",
+    "@daveloper/broker": "^1.0.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "socket.io": "^4.6.1",

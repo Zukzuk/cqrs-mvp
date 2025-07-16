@@ -1,9 +1,8 @@
 import { CreateOrder } from './commands';
 import { Repository } from './repository';
 import { Order } from './orderAggregate';
-import { IBroker } from '@daveloper/broker';
-import { IOrderCreatedEvent } from '@daveloper/interfaces';
 import { OrderCreated } from './events';
+import { IBroker, IOrderCreatedEvent } from '@daveloper/interfaces';
 
 export class CommandHandler {
   constructor(

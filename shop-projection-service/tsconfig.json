@@ -1,18 +1,11 @@
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@daveloper/broker": [ "../shared/broker/dist" ],
-      "@daveloper/interfaces": [ "../shared/interfaces/dist" ],
-      "@daveloper/eventstore": [ "../shared/eventstore/dist" ],
-    },
-    "target": "ES2020",
-    "module": "CommonJS",
+    "rootDir": "src",
     "outDir": "dist",
-    "strict": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
   },
-  "include": [ "src/**/*" ]
+  "include": ["src/**/*"]
 }

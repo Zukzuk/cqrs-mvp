@@ -1,5 +1,5 @@
 import { AggregateRoot } from './aggregateRoot';
-import { IEventStore } from '@daveloper/eventstore';
+import { IEventStore } from '@daveloper/interfaces';
 
 export class Repository<T extends AggregateRoot> {
   constructor(private eventStore: IEventStore) { }

@@ -6,8 +6,9 @@ WORKDIR /usr/src/app/shop-projection-db
 # copy only this service’s package.json + lock + tsconfig
 COPY shop-projection-db/package*.json shop-projection-db/tsconfig.json ./
 
-# vendor in your shared interfaces for the local file:../shared/interfaces
+# vendor in your shared dependencies
 COPY shared/interfaces ../shared/interfaces
+COPY shared/denormalizers ../shared/denormalizers
 
 # install *just* this service’s deps (will use root-workspace node_modules)
 RUN npm i
@@ -32,6 +33,7 @@ COPY --from=builder /usr/local/bin/wait-for-it /usr/local/bin/wait-for-it
 
 # copy the compiled JS
 COPY --from=builder /usr/src/app/shop-projection-db/dist    /opt/seeder/dist
+COPY --from=builder /usr/src/app/shared                     /opt/seeder/shared
 
 # copy the *root* node_modules (contains your service’s deps)
 COPY --from=builder /usr/src/app/node_modules               /opt/seeder/node_modules

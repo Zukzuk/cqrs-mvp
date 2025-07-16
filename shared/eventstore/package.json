@@ -8,8 +8,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@daveloper/broker": "file:../../shared/broker",
-    "@daveloper/interfaces": "file:../../shared/interfaces",
+    "@daveloper/interfaces": "^1.0.0",
     "express": "^5.1.0",
     "mongodb": "^6.17.0",
     "node-fetch": "^3.3.2"

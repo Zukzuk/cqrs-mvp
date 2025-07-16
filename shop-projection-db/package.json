@@ -8,7 +8,8 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@daveloper/interfaces": "file:../shared/interfaces",
+    "@daveloper/interfaces": "^1.0.0",
+    "@daveloper/denormalizers": "^1.0.0",
     "mongodb": "^6.17.0",
     "node-fetch": "^3.3.2"
   },

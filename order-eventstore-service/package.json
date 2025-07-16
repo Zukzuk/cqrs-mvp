@@ -8,8 +8,8 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@daveloper/eventstore": "file:../shared/eventstore",
-    "@daveloper/interfaces": "file:../shared/interfaces",
+    "@daveloper/eventstore": "^1.0.0",
+    "@daveloper/interfaces": "^1.0.0",
     "express": "^5.1.0",
     "node-fetch": "^3.3.2"
   },

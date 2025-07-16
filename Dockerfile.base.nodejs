@@ -9,7 +9,7 @@ RUN apk add --no-cache bash curl \
 WORKDIR /usr/src/app
 
 # Copy the workspace manifest + all subfolders
-COPY package*.json ./
+COPY package*.json tsconfig.base.json ./
 COPY shared/ ./shared
 
 # This will install all three packages and symlink them

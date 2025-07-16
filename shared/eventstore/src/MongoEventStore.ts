@@ -1,6 +1,5 @@
 import { Collection, FindOneAndUpdateOptions } from 'mongodb';
-import { IEventStore, IStoredEvent, ICounterDoc } from './EventStore';
-import { IDomainEvent } from '@daveloper/interfaces';
+import { IDomainEvent, IEventStore, IStoredEvent, ICounterDoc  } from '@daveloper/interfaces';
 
 export class MongoEventStore implements IEventStore {
     constructor(

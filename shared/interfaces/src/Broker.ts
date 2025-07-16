@@ -1,4 +1,4 @@
-import { TCommandUnion, TDomainEventUnion, TAllDomainEventTypes } from '@daveloper/interfaces';
+import { TCommandUnion, TDomainEventUnion, TAllDomainEventTypes } from './index';
 
 export interface ICommandHandler<T = any> {
   (message: T): Promise<void>;

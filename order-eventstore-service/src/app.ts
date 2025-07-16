@@ -1,7 +1,7 @@
 import express from 'express';
 import { MongoClient } from 'mongodb';
-import { IDomainEvent } from '@daveloper/interfaces';
-import { ICounterDoc, IStoredEvent, MongoEventStore } from '@daveloper/eventstore';
+import { IDomainEvent, ICounterDoc, IStoredEvent } from '@daveloper/interfaces';
+import { MongoEventStore } from '@daveloper/eventstore';
 
 async function bootstrap() {
     const mongoUrl = process.env.MONGO_URL!;

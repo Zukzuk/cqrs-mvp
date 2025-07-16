@@ -1,4 +1,4 @@
-import { IDomainEvent } from '@daveloper/interfaces';
+import { IDomainEvent } from './index';
 
 export interface IStoredEvent extends IDomainEvent {
     streamId: string;

@@ -1,5 +1,5 @@
 import { Namespace, Server, Socket } from 'socket.io';
-import { serviceAuth } from '../auth';
+import { serviceAuth } from './auth';
 
 export function registerShopProjection(
     projectionNs: Namespace,

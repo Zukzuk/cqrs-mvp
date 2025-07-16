@@ -8,7 +8,7 @@ import { OrderCreated } from './events';
 export class CommandHandler {
   constructor(
     private repo: Repository<Order>,
-    private bus: IBroker
+    private broker: IBroker
   ) { }
 
   async handle(cmd: CreateOrder) {
@@ -27,7 +27,7 @@ export class CommandHandler {
     for (const rawEvent of order.uncommittedEvents as IOrderCreatedEvent[]) {
       try {
         const ev = new OrderCreated(rawEvent.payload, cmd.correlationId); // stamp with the corrId
-        await this.bus.publish(ev);
+        await this.broker.publish(ev);
         console.log('📤 [order-handler] publish event', ev.type);
         order.clearEvents();
       } catch (err: any) {

@@ -8,22 +8,22 @@ import { CreateOrder } from './commands';
 import { Order } from './orderAggregate';
 
 (async () => {
-  const bus = new RabbitMQBroker(process.env.BROKER_URL!);
-  await bus.init();
-  console.log('🟢 [order-bus] initialized');
+  const broker = new RabbitMQBroker(process.env.BROKER_URL!);
+  await broker.init();
+  console.log('🟢 [order-broker] initialized');
 
   const eventStore = new HttpEventStore(process.env.EVENTSTORE_URL!);
   const repo = new Repository<Order>(eventStore);
-  const handler = new CommandHandler(repo, bus);
+  const handler = new CommandHandler(repo, broker);
 
   /*
    * Commands go point-to-point: send() directly into the commands queue 
    * and consumeQueue() asserts and reads that same queue. There’s exactly one queue, one handler.
    */
-  await bus.consumeQueue<CreateOrder>(
+  await broker.consumeQueue<CreateOrder>(
     'commands',
     async (cmd: CreateOrder) => {
-      console.log('📨 [order-bus] recieving command', cmd.type);
+      console.log('📨 [order-broker] recieving command', cmd.type);
       try {
         await handler.handle(cmd);
         console.log('✅ [order-handler] command successfully handled', cmd.type);

@@ -1,10 +1,10 @@
 import { Server, Socket, Namespace } from 'socket.io'
 import { RabbitMQBroker } from '@daveloper/broker'
-import { userAuth } from '../auth'
+import { userAuth } from './auth'
 
 export function registerWebClient(
     io: Server,
-    bus: RabbitMQBroker,
+    broker: RabbitMQBroker,
     projectionNs: Namespace
 ) {
     io.use(userAuth)
@@ -27,11 +27,11 @@ export function registerWebClient(
             console.log('⬅️ [bff-socket] recieving command from client:', raw)
             raw.payload.userId = userId
             try {
-                await bus.send('commands', raw)
-                console.log('✅ [bff-bus] command published')
+                await broker.send('commands', raw)
+                console.log('✅ [bff-broker] command published')
                 ack?.({ status: 'ok' })
             } catch (e: any) {
-                console.error('❌ [bff-bus] command publish failed', e)
+                console.error('❌ [bff-broker] command publish failed', e)
                 ack?.({ status: 'error', error: e.message })
             }
         })

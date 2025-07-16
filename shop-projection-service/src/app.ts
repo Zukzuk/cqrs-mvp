@@ -31,9 +31,9 @@ import { OrderDenormalizer } from './denormalizer';
 
   const denormalizer = new OrderDenormalizer(repository, socket);
 
-  const bus = new RabbitMQBroker(process.env.BROKER_URL!);
-  await bus.init();
-  console.log('🟢 [projection-bus] initialized');
+  const broker = new RabbitMQBroker(process.env.BROKER_URL!);
+  await broker.init();
+  console.log('🟢 [projection-broker] initialized');
 
   /*
    * Events go to a topic exchange (domain-events) with routing keys, 
@@ -41,9 +41,9 @@ import { OrderDenormalizer } from './denormalizer';
    * (often with ['#'] or a narrower set of keys) to get exactly the slice 
    * of the stream it needs.
    */
-  await bus.subscribe<IOrderCreatedEvent>(
+  await broker.subscribe<IOrderCreatedEvent>(
     async (evt) => {
-      console.log('📨 [projection-bus] receiving event', evt.type);
+      console.log('📨 [projection-broker] receiving event', evt.type);
       await denormalizer.handle(evt);
     },
     {
@@ -54,7 +54,7 @@ import { OrderDenormalizer } from './denormalizer';
       autoDelete: false, // Do not auto-delete the queue when no consumers are connected
     }
   );
-  console.log('🔗 [projection-bus] subscribed to domain-events');
+  console.log('🔗 [projection-broker] subscribed to domain-events');
 
   socket.on('request_snapshot', async ({ userId }) => {
     const orders = await repository.findByUserId(userId);

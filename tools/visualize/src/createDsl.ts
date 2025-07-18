@@ -231,10 +231,10 @@ export function buildDsl(compose: ComposeFile): string {
 }
 
 /**
- * Writes the DSL text to disk under `<rootDir>/diagrams`.
+ * Writes the DSL text to disk under `<rootDir>/diagram`.
  */
 export async function writeDsl(dsl: string, projectName: string, rootDir: string): Promise<string> {
-  const outputDir = path.join(rootDir, 'diagrams');
+  const outputDir = path.join(rootDir, 'diagram');
   fs.mkdirSync(outputDir, { recursive: true });
 
   const fileName = `${projectName}-diagram.dsl`;

@@ -5,7 +5,8 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
-        "build": "tsc"
+        "build": "tsc",
+        "mongoui": "ts-node src/index.ts"
     },
     "devDependencies": {
         "typescript": "^5.8.3",

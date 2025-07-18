@@ -5,7 +5,9 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "visualize": "ts-node src/index.ts",
+    "generate": "ts-node src/generate.ts"
   },
   "dependencies": {
     "js-yaml": "^4.1.0"

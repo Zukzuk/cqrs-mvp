@@ -20,16 +20,10 @@
     "build:tools": "npm run build --workspace tools",
     "up": "docker build -f Dockerfile.base.nodejs -t cqrs-mvp/base:latest . && docker-compose up --build -d",
     "down": "docker-compose down",
-    "down:clear": "docker-compose down && docker volume prune",
     "tooling": "concurrently \"npm run mongoui\" \"npm run visualize\"",
     "mongoui": "ts-node tools/mongoui/src/index.ts",
     "visualize": "ts-node tools/visualize/src/index.ts",
     "generate": "ts-node tools/visualize/src/generate.ts",
-    "clean": "node scripts/clean.js"
-  },
-  "devDependencies": {
-    "concurrently": "^9.2.0",
-    "glob": "^11.0.3",
-    "rimraf": "^6.0.1"
+    "clean": "node tools/scripts/clean.js"
   }
 }

@@ -1,0 +1,34 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+      grpc:
+
+processors:
+  batch: {}
+  resource:
+    attributes:
+      - action: upsert
+        key: deployment.environment
+        value: dev
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:9464"   # Prometheus scrapes deze
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+  debug:
+    verbosity: basic
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [otlp/tempo, debug]
+    metrics:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [prometheus]

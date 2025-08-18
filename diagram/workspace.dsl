@@ -7,16 +7,16 @@ workspace {
     shop = softwareSystem "CQRS-ES System (MVP)" {
 
       group ".Event Platform" {
-        broker_service = container "Broker" "Provides a robust messaging broker with management UI" "RabbitMQ [5672,15672]" {
+        broker_service = container "Broker" "Provides a robust messaging broker with management UI" "RabbitMQ [5672,${RABBITMQ_UI_PORT}]" {
           tags "Broker"
         }
       }
 
       group ".Order Domain" {
-        order_service = container "Order Application" "Subscribes to certain Commands, protects the DomainLogic, emits DomainEvents to the broker" "Node.js, Express [4000]"
+        order_service = container "Order Application" "Subscribes to certain Commands, protects the DomainLogic, emits DomainEvents to the broker" "Node.js, Express [${ORDER_SERVICE_PORT}]"
 
         group ".Event Store" {
-          order_eventstore_service = container "Order EventStore" "Durable, append-only event journal" "Node.js, Express [4001]"
+          order_eventstore_service = container "Order EventStore" "Durable, append-only event journal" "Node.js, Express [${EVENTSTORE_SERVICE_PORT}]"
           order_eventstore_db = container "Order EventStore Database" "Append only journal for DomainEvents" "MongoDB [default]"" {
             tags "Database"
           }
@@ -24,13 +24,13 @@ workspace {
       }
 
       group ".Shop" {
-        shop_bff_service = container "Shop BFF" "Exposes and guards WebSocket/APIs, publishes Commands to the broker, forwards Queries to projections, listens for Payloads from projections and forwards them to web clients" "Node.js, Express, Socket.io [3000]"
+        shop_bff_service = container "Shop BFF" "Exposes and guards WebSocket/APIs, publishes Commands to the broker, forwards Queries to projections, listens for Payloads from projections and forwards them to web clients" "Node.js, Express, Socket.io [${SHOP_BFF_PORT}]"
 
         group ".Website" {
           shop_webserver = container "Shop Frontend SPA" "Web interface, connects to bff via wss, sends Queries and Commands to bff, renders incoming Payloads" "Browser, Socket.io.min [URL]" {
             tags "Webclient"
           }
-          shop_webserver_server = container "Shop Frontend Server" "Serves static files" "Nginx [3001]"
+          shop_webserver_server = container "Shop Frontend Server" "Serves static files" "Nginx [${SHOP_WEB_PORT}]"
           shop_webserver_user = container "User" "End user interacting via browser" "Person" {
             tags "Person"
           }
@@ -39,7 +39,7 @@ workspace {
         }
 
         group ".Projection" {
-          shop_projection_service = container "Shop Projection" "Handles fetches, subscribes to DomainEvents, denormalizes and upserts Payloads, pushes Payloads to bff" "Node.js, Express, Socket.io-client [3002]"
+          shop_projection_service = container "Shop Projection" "Handles fetches, subscribes to DomainEvents, denormalizes and upserts Payloads, pushes Payloads to bff" "Node.js, Express, Socket.io-client [${SHOP_PROJECTION_PORT}]"
           shop_projection_db = container "Shop Projection Database" "Read DB for denormalized views" "Node.js, MongoDB [default]"" {
             tags "Database"
           }

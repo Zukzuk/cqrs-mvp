@@ -7,12 +7,13 @@ services:
       structurizr.name: "Broker"
       structurizr.description: "Provides a robust messaging broker with management UI"
       structurizr.technology: "RabbitMQ"
-      structurizr.port: "5672,15672"
+      structurizr.port: "5672,${RABBITMQ_UI_PORT}"
       structurizr.group: "Event Platform"
       structurizr.type: "broker"
     ports:
-      - "5672" # only expose for internal communication
-      - "15672:15672" # expose for UI access via localhost
+      - "5672" # only expose for internal netwerk communication
+      - "15692" # only expose for internal netwerk scraping
+      - "${RABBITMQ_UI_PORT}:15672" # expose for UI access via localhost
     volumes:
       - ./rabbitmq.conf.d:/etc/rabbitmq/conf.d/20-logging.conf:ro
       - broker_rabbitmq_data:/var/lib/rabbitmq
@@ -34,7 +35,7 @@ services:
       structurizr.name: "Order Application"
       structurizr.description: "Subscribes to certain Commands, protects the DomainLogic, emits DomainEvents to the broker"
       structurizr.technology: "Node.js, Express"
-      structurizr.port: "4000"
+      structurizr.port: "${ORDER_SERVICE_PORT}"
       structurizr.group: "Order Domain"
       structurizr.depends_on.broker-service: "subscribe to certain Commands, publish DomainEvents"
       structurizr.depends_on.order-eventstore-service: "fetch streams, commit DomainEvents"
@@ -42,10 +43,10 @@ services:
       - broker-service
       - order-eventstore-service
     ports:
-      - "4000:4000"
+      - "${ORDER_SERVICE_PORT}:4000"
     environment:
       - BROKER_URL=amqp://guest:guest@broker-service:5672
-      - EVENTSTORE_URL=http://order-eventstore-service:4001
+      - EVENTSTORE_URL=http://order-eventstore-service:${EVENTSTORE_SERVICE_PORT}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
       interval: 10s
@@ -61,7 +62,7 @@ services:
       structurizr.name: "Order EventStore"
       structurizr.description: "Durable, append-only event journal"
       structurizr.technology: "Node.js, Express"
-      structurizr.port: "4001"
+      structurizr.port: "${EVENTSTORE_SERVICE_PORT}"
       structurizr.group: "Order Domain::Event Store"
       structurizr.depends_on.order-eventstore-db: "read, write"
     depends_on:
@@ -69,7 +70,7 @@ services:
     environment:
       - MONGO_URL=mongodb://order-eventstore-db:27017
     ports:
-      - "4001:4001"
+      - "${EVENTSTORE_SERVICE_PORT}:4001"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4001/health"]
       interval: 10s
@@ -106,13 +107,13 @@ services:
       structurizr.name: "Shop BFF"
       structurizr.description: "Exposes and guards WebSocket/APIs, publishes Commands to the broker, forwards Queries to projections, listens for Payloads from projections and forwards them to web clients"
       structurizr.technology: "Node.js, Express, Socket.io"
-      structurizr.port: "3000"
+      structurizr.port: "${SHOP_BFF_PORT}"
       structurizr.group: "Shop"
       structurizr.depends_on.broker-service: "publish Commands"
     depends_on:
       - broker-service
     ports:
-      - "3000:3000"
+      - "${SHOP_BFF_PORT}:3000"
     environment:
       - BROKER_URL=amqp://guest:guest@broker-service:5672
     healthcheck:
@@ -131,14 +132,14 @@ services:
       structurizr.description: "Serves static files"
       structurizr.description_website: "Web interface, connects to bff via wss, sends Queries and Commands to bff, renders incoming Payloads"
       structurizr.technology: "Nginx"
-      structurizr.port: "3001"
+      structurizr.port: "${SHOP_WEB_PORT}"
       structurizr.group: "Shop::Website"
       structurizr.type: "webserver"
       structurizr.depends_on.shop-bff-service: "send Commands and Queries, listen for Payloads"
     depends_on:
       - shop-bff-service
     ports:
-      - "3001:3001"
+      - "${SHOP_WEB_PORT}:3001"
 
   shop-projection-service:
     build:
@@ -149,7 +150,7 @@ services:
       structurizr.name: "Shop Projection"
       structurizr.description: "Handles fetches, subscribes to DomainEvents, denormalizes and upserts Payloads, pushes Payloads to bff"
       structurizr.technology: "Node.js, Express, Socket.io-client"
-      structurizr.port: "3002"
+      structurizr.port: "${SHOP_PROJECTION_PORT}"
       structurizr.group: "Shop::Projection"
       structurizr.depends_on.broker-service: "subscribe to certain DomainEvents"
       structurizr.depends_on.shop-bff-service: "listen for Queries and push Payloads"
@@ -159,7 +160,7 @@ services:
       - shop-bff-service
       - shop-projection-db
     ports:
-      - "3002:3002"
+      - "${SHOP_PROJECTION_PORT}:3002"
     environment:
       - BROKER_URL=amqp://guest:guest@broker-service:5672
       - MONGO_URL=mongodb://shop-projection-db:27017
@@ -198,8 +199,8 @@ services:
       retries: 5
 
 volumes:
+  broker_rabbitmq_data:
   order_eventstore_data:
   order_eventstore_config:
   shop_projection_data:
   shop_projection_config:
-  broker_rabbitmq_data:

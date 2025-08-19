@@ -105,11 +105,19 @@ function renderContainer(svcKey: string, svc: ComposeService, indentLevel = 3): 
       .join('');
   }
 
+  if (type === 'telemetry') {
+    return [`${indent}${id} = container "${name}" "${description}" "${technology} [${port}]"" {`,
+            `${indent}  tags "Observability"`,
+            `${indent}}`]
+      .map(line => line + '\n')
+      .join('');
+  }
+
   // Special handling for webserver
   else if (type === 'webserver') {
     // IDs for the generated Browser and User containers
     const serverId = `${id}_server`;
-    const userId    = `${id}_user`;
+    const userId = `${id}_user`;
 
     return [`${indent}${id} = container "${name} SPA" "${description_website}" "Browser, Socket.io.min [URL]" {`,
             `${indent}  tags "Webclient"`,
@@ -133,6 +141,14 @@ function renderContainer(svcKey: string, svc: ComposeService, indentLevel = 3): 
 function renderGroups(node: GroupNode, groupName: string, depth: number, services: Record<string, ComposeService>): string {
   const indent = '  '.repeat(depth);
   let result = `\n${indent}group ".${groupName}" {\n`;
+
+  if (depth === 3 && groupName !== 'Observability' && groupName !== 'Event Platform') {
+    const id = groupName.replace(' ', '_').toLowerCase();
+    result += `${indent}  otel_inject_${id} = container "Otel ${groupName}" "Catch OTLP and send data to Otel Collector" "Code injection" {\n`;
+    result += `${indent}    tags "Injector"\n`;
+    result += `${indent}  }\n`;
+    result += `${indent}  otel_inject_${id} -> otel_collector "report metrics and traces"\n\n`
+  }
 
   // Render child services
   for (const svcKey of node.services) {
@@ -208,6 +224,14 @@ export function buildDsl(compose: ComposeFile): string {
                   `      element "Broker" {`,
                   `        shape hexagon`,
                   `        background "tomato"`,
+                  `      }`,
+                  `      element "Injector" {`,
+                  `        shape ellipse`,
+                  `        background "black"`,
+                  `      }`,
+                  `      element "Observability" {`,
+                  `        shape roundedbox`,
+                  `        background "darkorange"`,
                   `      }`,
                   `      element "Database" {`,
                   `        shape cylinder`,

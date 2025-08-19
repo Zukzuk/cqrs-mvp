@@ -12,7 +12,8 @@
     "shop-projection-db",
     "shop-projection-service",
     "shop-webserver",
-    "observability/**"
+    "observability/**",
+    "scripts/**"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
@@ -21,10 +22,11 @@
     "up": "docker build -f Dockerfile.base.nodejs -t cqrs-mvp/base:latest . && docker compose -f docker-compose.yml -f docker-compose.obs.yml --profile obs up --build -d",
     "up:bare": "docker build -f Dockerfile.base.nodejs -t cqrs-mvp/base:latest . && docker compose up --build -d",
     "down": "docker compose -f docker-compose.yml -f docker-compose.obs.yml --profile obs down",
-    "obs": "concurrently \"npm run mongoui\" \"npm run visualize\"",
+    "tools": "concurrently \"npm run mongoui\" \"npm run visualize\"",
     "mongoui": "ts-node observability/mongoui/src/index.ts",
     "visualize": "ts-node observability/visualize/src/index.ts",
     "generate": "ts-node observability/visualize/src/generate.ts",
+    "concat": "node scripts/concat-code.js",
     "clean": "node scripts/clean.js"
   }
 }

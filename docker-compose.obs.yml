@@ -1,3 +1,9 @@
+x-otel-env: &otel_env
+  NODE_OPTIONS: "--require @daveloper/otel"
+  OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
+  OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: http://otel-collector:4318/v1/metrics
+  OTEL_RESOURCE_ATTRIBUTES: service.version=${SERVICE_VERSION:-0.1.0},deployment.environment=${DEPLOY_ENV:-dev}
+
 services:
   otel-collector:
     profiles: ["obs"]
@@ -5,16 +11,21 @@ services:
     container_name: otel-collector
     command: ["--config=/etc/otel/otel-collector.yaml"]
     volumes:
-      - ./observability/otel-collector.yaml:/etc/otel/otel-collector.yaml:ro
+      - ./shared/opentelemetry/otel-collector.yaml:/etc/otel/otel-collector.yaml:ro
+    depends_on:
+      - tempo
     ports:
-      - "${OTEL_GRPC_PORT}:4317"   # OTLP gRPC
-      - "${OTEL_HTTP_PORT}:4318"   # OTLP HTTP
+      - "${OTEL_GRPC_PORT}:4317" # OTLP gRPC
+      - "${OTEL_HTTP_PORT}:4318" # OTLP HTTP
+      - "9464:9464" # Prometheus scrape van collector-metrics
     labels:
       structurizr.name: "OpenTelemetry Collector"
       structurizr.description: "Recieve OTLP (traces/metrics) and export to Tempo/Prometheus"
       structurizr.technology: "OpenTelemetry Collector"
-      structurizr.port: "${OTEL_GRPC_PORT},${OTEL_HTTP_PORT}"
+      structurizr.port: "${OTEL_GRPC_PORT},${OTEL_HTTP_PORT},9464"
       structurizr.group: "Observability"
+      structurizr.type: "telemetry"
+      structurizr.depends_on.tempo: "export traces"
 
   prometheus:
     profiles: ["obs"]
@@ -25,12 +36,18 @@ services:
       - prometheus_data:/prometheus
     ports:
       - "${PROMETHEUS_PORT}:9090"
+    depends_on:
+      - otel-collector
+      - broker-service
     labels:
       structurizr.name: "Prometheus"
-      structurizr.description: "Scrapet metrics van OTel Collector en RabbitMQ Exporter"
+      structurizr.description: "Scrape metrics van OTel Collector en RabbitMQ Exporter"
       structurizr.technology: "Prometheus"
       structurizr.port: "${PROMETHEUS_PORT}"
       structurizr.group: "Observability"
+      structurizr.type: "telemetry"
+      structurizr.depends_on.otel-collector: "get metrics"
+      structurizr.depends_on.broker-service: "scrape metrics and traces"
 
   tempo:
     profiles: ["obs"]
@@ -48,6 +65,7 @@ services:
       structurizr.technology: "Grafana Tempo"
       structurizr.port: "${TEMPO_HTTP_PORT}"
       structurizr.group: "Observability"
+      structurizr.type: "telemetry"
 
   grafana:
     profiles: ["obs"]
@@ -62,46 +80,42 @@ services:
       - ./observability/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
     ports:
       - "${GRAFANA_PORT}:3000"
+    depends_on:
+      - prometheus
+      - tempo
     labels:
       structurizr.name: "Grafana"
       structurizr.description: "Dashboards en trace/metrics Explore"
       structurizr.technology: "Grafana"
       structurizr.port: "${GRAFANA_PORT}"
       structurizr.group: "Observability"
+      structurizr.type: "telemetry"
+      structurizr.depends_on.prometheus: "get metrics"
+      structurizr.depends_on.tempo: "explore traces"
   
-  # ---- App-services: OTel env alleen als profiel 'obs' aan staat ----
-
   shop-bff-service:
     profiles: ["obs"]
     environment:
+      <<: *otel_env
       OTEL_SERVICE_NAME: shop-bff-service
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
-      OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: http://otel-collector:4318/v1/metrics
-      OTEL_RESOURCE_ATTRIBUTES: service.version=${SERVICE_VERSION:-0.1.0},deployment.environment=${DEPLOY_ENV:-dev}
 
   order-service:
     profiles: ["obs"]
     environment:
+      <<: *otel_env
       OTEL_SERVICE_NAME: order-service
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
-      OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: http://otel-collector:4318/v1/metrics
-      OTEL_RESOURCE_ATTRIBUTES: service.version=${SERVICE_VERSION:-0.1.0},deployment.environment=${DEPLOY_ENV:-dev}
 
   order-eventstore-service:
     profiles: ["obs"]
     environment:
+      <<: *otel_env
       OTEL_SERVICE_NAME: order-eventstore-service
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
-      OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: http://otel-collector:4318/v1/metrics
-      OTEL_RESOURCE_ATTRIBUTES: service.version=${SERVICE_VERSION:-0.1.0},deployment.environment=${DEPLOY_ENV:-dev}
 
   shop-projection-service:
     profiles: ["obs"]
     environment:
+      <<: *otel_env
       OTEL_SERVICE_NAME: shop-projection-service
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
-      OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: http://otel-collector:4318/v1/metrics
-      OTEL_RESOURCE_ATTRIBUTES: service.version=${SERVICE_VERSION:-0.1.0},deployment.environment=${DEPLOY_ENV:-dev}
 
 volumes:
   prometheus_data:

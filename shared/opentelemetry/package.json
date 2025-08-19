@@ -1,0 +1,21 @@
+{
+    "name": "@daveloper/otel",
+    "version": "1.0.0",
+    "description": "Launcher for otel implementation",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc"
+    },
+    "dependencies": {
+        "@opentelemetry/sdk-node": "^0.203.0",
+        "@opentelemetry/auto-instrumentations-node": "^0.62.1",
+        "@opentelemetry/exporter-trace-otlp-proto": "^0.203.0",
+        "@opentelemetry/exporter-metrics-otlp-proto": "^0.203.0",
+        "@opentelemetry/sdk-metrics": "^2.0.1"
+    },
+    "devDependencies": {
+        "typescript": "^5.8.3",
+        "@types/node": "^20.11.30"
+    }
+}

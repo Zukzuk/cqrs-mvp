@@ -10,6 +10,12 @@ interface GroupNode {
   services: string[];
 }
 
+/**
+ * List of IDs for Otel injectors to be used in relationships.
+ * This is populated during rendering and used to create relationships later.
+ */
+const otelInjectIds: string[] = [];
+
 /** Label keys used in ComposeService.annotations */
 const LABEL_KEYS = {
   GROUP: 'structurizr.group',
@@ -144,10 +150,10 @@ function renderGroups(node: GroupNode, groupName: string, depth: number, service
 
   if (depth === 3 && groupName !== 'Observability' && groupName !== 'Event Platform') {
     const id = groupName.replace(' ', '_').toLowerCase();
+    otelInjectIds.push(id);
     result += `${indent}  otel_inject_${id} = container "Otel ${groupName}" "Catch OTLP and send data to Otel Collector" "Code injection" {\n`;
     result += `${indent}    tags "Injector"\n`;
     result += `${indent}  }\n`;
-    result += `${indent}  otel_inject_${id} -> otel_collector "report metrics and traces"\n\n`
   }
 
   // Render child services
@@ -206,7 +212,8 @@ export function buildDsl(compose: ComposeFile): string {
     .map(svcKey => renderContainer(svcKey, compose.services[svcKey], 3))
     .join('');
 
-  const dependencySection = renderDependencies(compose.services);
+  let dependencySection = renderDependencies(compose.services);
+  dependencySection += otelInjectIds.map(id => `      otel_inject_${id} -> otel_collector "report metrics and traces"\n`).join('');
 
   // check https://docs.structurizr.com/ui/diagrams/notation
   // check https://www.w3schools.com/cssref/css_colors.php

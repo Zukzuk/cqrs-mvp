@@ -2,21 +2,23 @@ receivers:
   otlp:
     protocols:
       http:
+        endpoint: 0.0.0.0:4318
       grpc:
+        endpoint: 0.0.0.0:4317
 
 processors:
   batch: {}
   resource:
     attributes:
-      - action: upsert
+      - action: insert
         key: deployment.environment
         value: dev
 
 exporters:
   prometheus:
-    endpoint: "0.0.0.0:9464" # Prometheus scrapes deze
+    endpoint: "0.0.0.0:9464"
   otlp/tempo:
-    endpoint: tempo:4317 # OTLP gRPC endpoint for Tempo
+    endpoint: otel-tempo:4317
     tls:
       insecure: true
   debug:

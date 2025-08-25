@@ -10,7 +10,9 @@ const ignoreDirs = new Set([
   "node_modules",
   "dist",
   ".git",
-  "observability",
+  "observability/grafana",
+  "observability/mongoui",
+  "observability/visualize",
   "scripts",
 ]);
 

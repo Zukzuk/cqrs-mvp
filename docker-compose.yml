@@ -7,15 +7,16 @@ services:
       structurizr.name: "Broker"
       structurizr.description: "Provides a robust messaging broker with management UI"
       structurizr.technology: "RabbitMQ"
-      structurizr.port: "5672,${RABBITMQ_UI_PORT}"
+      structurizr.port: "${RABBITMQ_UI_PORT}"
       structurizr.group: "Event Platform"
       structurizr.type: "broker"
+    expose:
+      - "5672"    # amqp
     ports:
-      - "5672" # only expose for internal netwerk communication
-      - "15692" # only expose for internal netwerk scraping
       - "${RABBITMQ_UI_PORT}:15672" # expose for UI access via localhost
     volumes:
-      - ./rabbitmq.conf.d:/etc/rabbitmq/conf.d/20-logging.conf:ro
+      - ./rabbitmq.conf.d:/etc/rabbitmq/conf.d/20-prometheus.conf:ro
+      - ./rabbitmq_enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
       - broker_rabbitmq_data:/var/lib/rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: guest

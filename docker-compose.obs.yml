@@ -1,28 +1,31 @@
 x-otel-env: &otel_env
-  NODE_OPTIONS: "--require @daveloper/otel"
+  NODE_OPTIONS: "--require /usr/src/app/observability/opentelemetry/dist/sdk.js"
   OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
   OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: http://otel-collector:4318/v1/metrics
   OTEL_RESOURCE_ATTRIBUTES: service.version=${SERVICE_VERSION:-0.1.0},deployment.environment=${DEPLOY_ENV:-dev}
+  OTEL_PROPAGATORS: tracecontext,baggage
+  OTEL_TRACES_SAMPLER: always_on
 
 services:
   otel-collector:
     profiles: ["obs"]
     image: otel/opentelemetry-collector:0.104.0
     container_name: otel-collector
-    command: ["--config=/etc/otel/otel-collector.yaml"]
+    command: ["--config=/etc/otelcol/config.yaml"]
     volumes:
-      - ./shared/opentelemetry/otel-collector.yaml:/etc/otel/otel-collector.yaml:ro
+      - ./observability/opentelemetry/otel-collector.yaml:/etc/otelcol/config.yaml:ro
     depends_on:
       - otel-tempo
+    expose:
+      - "4317"   # OTLP gRPC
+      - "4318"   # OTLP HTTP
     ports:
-      - "4317" # OTLP gRPC
-      - "4318" # OTLP HTTP
       - "9464:9464" # Prometheus scrape van collector-metrics
     labels:
       structurizr.name: "OpenTelemetry Collector"
       structurizr.description: "Recieve OTLP and save and/or expose it"
       structurizr.technology: "OpenTelemetry Collector"
-      structurizr.port: "4317,4318,9464"
+      structurizr.port: "9464"
       structurizr.group: "Observability"
       structurizr.type: "telemetry"
       structurizr.depends_on.tempo: "export traces"
@@ -73,7 +76,7 @@ services:
     container_name: otel-grafana
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Editor
     volumes:
       - grafana_data:/var/lib/grafana
       - ./observability/grafana/datasources:/etc/grafana/provisioning/datasources:ro

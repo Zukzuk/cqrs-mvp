@@ -4,3 +4,6 @@ log.console.level = warning
 
 # keep file logs at info
 log.file.level = info
+
+prometheus.tcp.port = 15692
+prometheus.tcp.ip   = 0.0.0.0

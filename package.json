@@ -4,15 +4,16 @@
   "private": true,
   "version": "1.0.0",
   "workspaces": [
+    "observability/**",
     "shared/interfaces",
     "shared/**",
+    "observability/**",
     "order-eventstore-service",
     "order-service",
     "shop-bff-service",
     "shop-projection-db",
     "shop-projection-service",
     "shop-webserver",
-    "observability/**",
     "scripts/**"
   ],
   "scripts": {

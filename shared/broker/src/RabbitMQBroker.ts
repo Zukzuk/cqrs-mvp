@@ -1,8 +1,6 @@
 import amqp, { ChannelModel, Channel, ConsumeMessage } from 'amqplib';
 import { IDomainEvent, TDomainEventUnion, TCommandUnion, IBroker, ICommandHandler, PublishOptions, MessageMeta } from '@daveloper/interfaces';
-import {
-  injectHeaders, startProducerSpan, withExtractedContext, startConsumerSpan
-} from '@daveloper/opentelemetry';
+import { injectHeaders, startProducerSpan, withExtractedContext, startConsumerSpan } from '@daveloper/opentelemetry';
 
 /**
  * Support publishing domain events and subscribing handlers with routing key filters.
@@ -40,6 +38,8 @@ export class RabbitMQBroker implements IBroker {
       'event.name': evt.type,
       ...(evt.correlationId ? { 'correlation.id': evt.correlationId } : {}),
     });
+    
+    console.log(span)
 
     const payload = Buffer.from(JSON.stringify(evt));
     const { headers, persistent = true } = injectHeaders(opts);

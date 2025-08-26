@@ -7,7 +7,7 @@ workspace {
     shop = softwareSystem "CQRS-ES System (MVP)" {
 
       group ".Event Platform" {
-        broker_service = container "Broker" "Provides a robust messaging broker with management UI" "RabbitMQ [5672,4672]" {
+        broker_service = container "Broker" "Provides a robust messaging broker with management UI" "RabbitMQ [4672]" {
           tags "Broker"
         }
       }
@@ -27,7 +27,7 @@ workspace {
       }
 
       group ".Observability" {
-        otel_collector = container "OpenTelemetry Collector" "Recieve OTLP and save and/or expose it" "OpenTelemetry Collector [4317,4318,9464]"" {
+        otel_collector = container "OpenTelemetry Collector" "Recieve OTLP and save and/or expose it" "OpenTelemetry Collector [9464]"" {
           tags "Observability"
         }
         otel_grafana = container "Grafana" "Dashboards and explore traces and metrics" "Grafana [8300]"" {

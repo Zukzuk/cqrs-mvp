@@ -17,8 +17,8 @@ services:
     depends_on:
       - otel-tempo
     expose:
-      - "4317"   # OTLP gRPC
-      - "4318"   # OTLP HTTP
+      - "4317" # OTLP gRPC
+      - "4318" # OTLP HTTP
     ports:
       - "9464:9464" # Prometheus scrape van collector-metrics
     labels:
@@ -113,12 +113,6 @@ services:
     environment:
       <<: *otel_env
       OTEL_SERVICE_NAME: order-eventstore-service
-
-  shop-projection-service:
-    profiles: ["obs"]
-    environment:
-      <<: *otel_env
-      OTEL_SERVICE_NAME: shop-projection-service
 
 volumes:
   prometheus_data:

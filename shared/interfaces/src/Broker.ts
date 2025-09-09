@@ -1,49 +1,26 @@
 import { TCommandUnion, TDomainEventUnion, TAllDomainEventTypes } from './index';
 
-export interface ICommandHandler<T = any> {
-  (message: T, meta?: MessageMeta): Promise<void>;
-}
-
-export type PublishOptions = { 
-  headers?: Record<string, unknown>; 
-  persistent?: boolean 
-};
-
-export type MessageMeta = {
-  headers?: Record<string, unknown>; 
-  routingKey?: string; 
-  exchange?: string;
-  deliveryTag?: number; 
-  raw?: Buffer;
-};
+export interface ICommandHandler<T = any> { (message: T): Promise<void>; }
 
 export interface IBroker {
-  // --- Domain events ---
-  publish<E extends TDomainEventUnion = TDomainEventUnion>(
-    event: E,
-    opts?: PublishOptions // allow header injection
-  ): Promise<void>;
+  // Publish any one of the domain events
+  publish<E extends TDomainEventUnion = TDomainEventUnion>(event: E): Promise<void>;
 
+  // Subscribe can be generic for a narrow handler
   subscribe<E extends TDomainEventUnion = TDomainEventUnion>(
-    handler: (event: E, meta?: MessageMeta) => Promise<void>,
+    handler: (event: E) => Promise<void>,
     options: {
       queue: string;
       durable: boolean;
       exchange: string;
       autoDelete: boolean;
-      routingKeys: TAllDomainEventTypes[];
+      routingKeys: TAllDomainEventTypes[];  // only keys from the entire set of domain‐event types
     }
   ): Promise<() => Promise<void>>;
 
-  // --- Commands ---
-  send<C extends TCommandUnion>(
-    queueName: string,
-    command: C,
-    opts?: PublishOptions // allow header injection
-  ): Promise<void>;
+  // Send a command to the commands queue
+  send<C extends TCommandUnion>(queueName: string, command: C): Promise<void>;
 
-  consumeQueue<C extends TCommandUnion>(
-    queueName: string,
-    handler: ICommandHandler<C>
-  ): Promise<void>;
+  // Consume a command queue with a given handler
+  consumeQueue<C extends TCommandUnion>(queueName: string, handler: ICommandHandler<C>): Promise<void>;
 }

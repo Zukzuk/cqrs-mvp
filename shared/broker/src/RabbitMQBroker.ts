@@ -1,6 +1,5 @@
 import amqp, { ChannelModel, Channel, ConsumeMessage } from 'amqplib';
-import { IDomainEvent, TDomainEventUnion, TCommandUnion, IBroker, ICommandHandler, PublishOptions, MessageMeta } from '@daveloper/interfaces';
-import { injectHeaders, startProducerSpan, withExtractedContext, startConsumerSpan } from '@daveloper/opentelemetry';
+import { IDomainEvent, TDomainEventUnion, TCommandUnion, IBroker, ICommandHandler } from '@daveloper/interfaces';
 
 /**
  * Support publishing domain events and subscribing handlers with routing key filters.
@@ -33,42 +32,25 @@ export class RabbitMQBroker implements IBroker {
    * Publish a domain event to the exchange using the event type as the routing key.
    * Events go to a topic exchange (domain-events) with routing keys.
    */
-  async publish<E extends TDomainEventUnion>(evt: E, opts: PublishOptions = {}): Promise<void> {
-    const span = startProducerSpan('event', this.exchange, evt.type, {
-      'event.name': evt.type,
-      ...(evt.correlationId ? { 'correlation.id': evt.correlationId } : {}),
-    });
-    
-    console.log(span)
-
+  async publish<E extends TDomainEventUnion>(evt: E): Promise<void> {
     const payload = Buffer.from(JSON.stringify(evt));
-    const { headers, persistent = true } = injectHeaders(opts);
-
-    try {
-      const payload = Buffer.from(JSON.stringify(evt));
-      const { headers, persistent = true } = injectHeaders(opts);
-      const ok = this.pubCh.publish(
-        this.exchange,  // e.g. 'domain-events'
-        evt.type,       // routing key (must be one of your DomainEvent types)
-        payload, { headers, persistent }
-      );
-      if (!ok) await new Promise<void>(r => setImmediate(r));
-      console.log('📤 [broker-publish] published', evt.type, 'corrId=', evt.correlationId);
-    } catch (e) {
-      span?.recordException(e as Error);
-      throw e;
-    } finally {
-      span?.end();
-    }
+    this.pubCh.publish(
+      this.exchange,  // e.g. 'domain-events'
+      evt.type,       // routing key (must be one of your DomainEvent types)
+      payload,
+      { persistent: true }
+    );
+    console.log('📤 [broker-publish] published', evt.type, 'corrId=', evt.correlationId);
   }
 
   /**
    * Subscribe to domain events with optional routing key patterns.
-   * Each consumer (projection, event-store, etc.) binds its own queue to get exactly the slice of the stream it needs.
+   * Each consumer (projection, event-store, etc.) binds its own queue 
+   * to get exactly the slice of the stream it needs.
    * Returns an unsubscribe function that cancels the consumer.
    */
   async subscribe<E extends IDomainEvent = IDomainEvent>(
-    handler: (evt: E, meta?: MessageMeta) => Promise<void>,
+    handler: (evt: E) => Promise<void>,
     {
       queue,
       durable = false,
@@ -99,39 +81,23 @@ export class RabbitMQBroker implements IBroker {
       q.queue,
       async (msg: ConsumeMessage | null) => {
         if (!msg) return;
-        const raw = msg.content;
-        const eventAny = JSON.parse(raw.toString()) as IDomainEvent;
-        const meta: MessageMeta = {
-          headers: msg.properties?.headers,
-          routingKey: msg.fields.routingKey,
-          exchange: exch,
-          deliveryTag: msg.fields.deliveryTag,
-          raw,
-        };
-
+        const raw = msg.content.toString();
+        const eventAny = JSON.parse(raw) as IDomainEvent;
         console.log('📨 [broker-subscribe] received event', eventAny.type, 'on queue=', q.queue);
 
-        await withExtractedContext(meta.headers, async () => {
-          const evt = JSON.parse(raw.toString()) as E;
-          const span = startConsumerSpan(q.queue, meta.routingKey, {
-            'event.name': (evt as any).type,
-            ...(evt as any).correlationId ? { 'correlation.id': (evt as any).correlationId } : {},
-          });
-
-          try {
-            await handler(evt, meta);
-            this.subCh.ack(msg);
-            console.log('✅ [broker-subscribe] ACK', eventAny.type);
-          }
-          catch (err) {
-            span?.recordException(err as Error);
-            console.error('❌ [broker-subscribe] handler failed for', eventAny.type, err);
-            this.subCh.nack(msg, false, false);
-          }
-          finally {
-            span?.end();
-          }
-        });
+        try {
+          // cast to E before calling the handler
+          await handler(eventAny as E);
+          this.subCh.ack(msg);
+          console.log('✅ [broker-subscribe] ACK', eventAny.type);
+        } catch (err) {
+          console.error(
+            '❌ [broker-subscribe] handler failed for',
+            eventAny.type,
+            err
+          );
+          this.subCh.nack(msg, false, false);
+        }
       }
     );
 
@@ -147,26 +113,15 @@ export class RabbitMQBroker implements IBroker {
    */
   async send<C extends TCommandUnion>(
     queueName: string,
-    command: C,
-    opts: PublishOptions = {},
+    command: C
   ): Promise<void> {
     await this.cmdCh.assertQueue(queueName, { durable: true });
-    const span = startProducerSpan('command', queueName, queueName, {
-      'command.name': command.type,
-      ...(command.correlationId ? { 'correlation.id': command.correlationId } : {}),
-    });
-
-    try {
-      const body = Buffer.from(JSON.stringify(command));
-      const { headers, persistent = true } = injectHeaders(opts);
-      this.cmdCh.sendToQueue(queueName, body, { headers, persistent });
-      console.log('📨 [broker-send] sent command', command.type, 'to queue=', queueName, 'corrId=', command.correlationId);
-    } catch (e) {
-      span?.recordException(e as Error);
-      throw e;
-    } finally {
-      span?.end();
-    }
+    this.cmdCh.sendToQueue(
+      queueName,
+      Buffer.from(JSON.stringify(command)),
+      { persistent: true }
+    );
+    console.log('📨 [broker-send] sent command', command.type, 'to queue=', queueName, 'corrId=', command.correlationId);
   }
 
   /**
@@ -178,56 +133,34 @@ export class RabbitMQBroker implements IBroker {
   ) {
     await this.cmdCh.assertQueue(queueName, { durable: true });
     console.log(`🪡 [broker-queue] consuming command queue='${queueName}'`);
-
     await this.cmdCh.consume(
       queueName,
       async (msg: ConsumeMessage | null) => {
         if (!msg) return;
 
-        const raw = msg.content;
+        let command: C;
+        try {
+          // parse and cast to our command type
+          command = JSON.parse(msg.content.toString()) as C;
+        } catch (err) {
+          console.error('❌ [broker-queue] failed to parse command', queueName, err);
+          // cannot ack malformed message, so nack without requeue
+          this.cmdCh.nack(msg, false, false);
+          return;
+        }
 
-        const meta: MessageMeta = {
-          headers: msg.properties?.headers,
-          routingKey: msg.fields.routingKey,
-          exchange: queueName,
-          deliveryTag: msg.fields.deliveryTag,
-          raw: msg.content,
-        };
+        console.log('📨 [broker-queue] received command on', queueName, command.type);
 
-        await withExtractedContext(meta.headers, async () => {
-          let command: C;
-          try {
-            command = JSON.parse(raw.toString()) as C;
-          }
-          catch (err) {
-            console.error('❌ [broker-queue] failed to parse command', queueName, err);
-            // cannot ack malformed message, so nack without requeue
-            this.cmdCh.nack(msg, false, false);
-            return;
-          }
-
-          const span = startConsumerSpan(queueName, meta.routingKey, {
-            'command.name': (command as any).type,
-            ...(command as any).correlationId ? { 'correlation.id': (command as any).correlationId } : {},
-          });
-
-          console.log('📨 [broker-queue] received command on', queueName, command.type);
-
-          try {
-            await handler(command, meta);
-            this.cmdCh.ack(msg);
-            console.log('✅ [broker-queue] ACK', queueName);
-          }
-          catch (err) {
-            span?.recordException(err as Error);
-            console.error('❌ [broker-queue] command handler failed on', queueName, err);
-            // no requeue on handler error
-            this.cmdCh.nack(msg, false, false);
-          }
-          finally {
-            span?.end();
-          }
-        });
+        try {
+          // now handler expects exactly the command shape C
+          await handler(command);
+          this.cmdCh.ack(msg);
+          console.log('✅ [broker-queue] ACK', queueName);
+        } catch (err) {
+          console.error('❌ [broker-queue] command handler failed on', queueName, err);
+          // no requeue on handler error
+          this.cmdCh.nack(msg, false, false);
+        }
       }
     );
   }

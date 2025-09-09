@@ -10,9 +10,9 @@ const ignoreDirs = new Set([
   "node_modules",
   "dist",
   ".git",
-  "observability/grafana",
-  "observability/mongoui",
-  "observability/visualize",
+  "grafana",
+  "mongoui",
+  "visualize",
   "scripts",
 ]);
 
@@ -20,6 +20,7 @@ const ignoreDirs = new Set([
 const ignoreFiles = new Set([
   "package-lock.json",
   "workspace.json",
+  "tsconfig.json",
 ]);
 
 // Extensies die we willen meenemen

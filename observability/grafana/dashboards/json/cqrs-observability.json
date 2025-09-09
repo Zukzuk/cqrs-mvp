@@ -1,17 +1,12 @@
 {
-  "uid": "cqrs-obs-min",
-  "title": "CQRS Observability \u2014 Minimal",
-  "tags": [
-    "cqrs",
-    "observability",
-    "minimal"
-  ],
+  "uid": "cqrs-commands-min",
+  "title": "CQRS \u2014 Commands Timeline (Minimal)",
   "timezone": "browser",
   "schemaVersion": 39,
   "version": 1,
-  "refresh": "10s",
+  "refresh": "5s",
   "time": {
-    "from": "now-6h",
+    "from": "now-1h",
     "to": "now"
   },
   "__inputs": [
@@ -32,14 +27,8 @@
     },
     {
       "type": "panel",
-      "id": "timeseries",
-      "name": "Time series",
-      "version": ""
-    },
-    {
-      "type": "panel",
-      "id": "stat",
-      "name": "Stat",
+      "id": "table",
+      "name": "Table",
       "version": ""
     },
     {
@@ -61,175 +50,99 @@
           "value": "Prometheus"
         },
         "hide": 0
-      },
-      {
-        "type": "query",
-        "name": "service",
-        "label": "Service",
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
-        },
-        "query": "label_values(up, job)",
-        "refresh": 2,
-        "includeAll": true,
-        "multi": true,
-        "current": {
-          "selected": true,
-          "text": [
-            "All"
-          ],
-          "value": [
-            "$__all"
-          ]
-        }
-      },
-      {
-        "type": "query",
-        "name": "instance",
-        "label": "Instance",
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
-        },
-        "query": "label_values(up{job=~\"$service\"}, instance)",
-        "refresh": 2,
-        "includeAll": true,
-        "multi": true,
-        "current": {
-          "selected": true,
-          "text": [
-            "All"
-          ],
-          "value": [
-            "$__all"
-          ]
-        }
       }
     ]
   },
   "panels": [
     {
-      "type": "stat",
-      "title": "Commands / sec",
+      "type": "table",
+      "title": "Commands recorded (every scrape, last 1h)",
       "id": 1,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
       "gridPos": {
-        "h": 4,
-        "w": 6,
+        "h": 15,
+        "w": 24,
         "x": 0,
         "y": 0
       },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
       "targets": [
         {
-          "expr": "sum(rate(cqrs_commands_total{job=~\"$service\",instance=~\"$instance\"}[$__rate_interval]))",
-          "legendFormat": "cmd/s",
-          "refId": "A"
+          "expr": "increase(cqrs_commands_total[2m])",
+          "legendFormat": "{{command}} ({{exported_job}})",
+          "refId": "A",
+          "interval": "",
+          "format": "time_series"
         }
       ],
       "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+        "footer": {
+          "show": false,
           "fields": "",
-          "values": false
-        }
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Events / sec",
-      "id": 2,
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 6,
-        "y": 0
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "targets": [
-        {
-          "expr": "sum(rate(cqrs_events_total{job=~\"$service\",instance=~\"$instance\"}[$__rate_interval]))",
-          "legendFormat": "evt/s",
-          "refId": "A"
-        }
-      ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Command Error %",
-      "id": 3,
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 12,
-        "y": 0
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "targets": [
-        {
-          "expr": "100 * (sum(rate(cqrs_command_errors_total{job=~\"$service\",instance=~\"$instance\"}[$__rate_interval])) / clamp_min(sum(rate(cqrs_commands_total{job=~\"$service\",instance=~\"$instance\"}[$__rate_interval])), 1e-9))",
-          "legendFormat": "error %",
-          "refId": "A"
-        }
-      ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
+          "reducer": [
+            "sum"
+          ]
         },
-        "colorMode": "value"
-      }
-    },
-    {
-      "type": "timeseries",
-      "title": "Processing latency p95 (s)",
-      "id": 4,
-      "gridPos": {
-        "h": 10,
-        "w": 18,
-        "x": 0,
-        "y": 4
+        "showHeader": true
       },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "transformations": [
+        {
+          "id": "seriesToRows",
+          "options": {}
+        }
+      ],
       "fieldConfig": {
         "defaults": {
-          "unit": "s"
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
         },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(cqrs_command_duration_seconds_bucket{job=~\"$service\",instance=~\"$instance\"}[$__rate_interval])))",
-          "legendFormat": "p95",
-          "refId": "A"
-        }
-      ]
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 200
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Metric"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 320
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }

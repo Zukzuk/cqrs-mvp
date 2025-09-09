@@ -11,11 +11,11 @@ services:
       structurizr.group: "Event Platform"
       structurizr.type: "broker"
     expose:
-      - "5672"    # amqp
+      - "5672" # amqp
     ports:
       - "${RABBITMQ_UI_PORT}:15672" # expose for UI access via localhost
     volumes:
-      - ./rabbitmq.conf.d:/etc/rabbitmq/conf.d/20-prometheus.conf:ro
+      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
       - ./rabbitmq_enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
       - broker_rabbitmq_data:/var/lib/rabbitmq
     environment:

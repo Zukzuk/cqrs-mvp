@@ -29,6 +29,63 @@ export class RabbitMQBroker implements IBroker {
   }
 
   /**
+  * Send a raw command or message to a specific queue.
+  */
+  async send<C extends TCommandUnion>(
+    queueName: string,
+    command: C
+  ): Promise<void> {
+    await this.cmdCh.assertQueue(queueName, { durable: true });
+    this.cmdCh.sendToQueue(
+      queueName,
+      Buffer.from(JSON.stringify(command)),
+      { persistent: true }
+    );
+    console.log('📨 [broker-send] sent command', command.type, 'to queue=', queueName, 'corrId=', command.correlationId);
+  }
+
+  /**
+   * Consume a command queue with a given handler.
+   */
+  async consumeQueue<C extends TCommandUnion>(
+    queueName: string,
+    handler: ICommandHandler<C>
+  ) {
+    await this.cmdCh.assertQueue(queueName, { durable: true });
+    console.log(`🪡 [broker-queue] consuming command queue='${queueName}'`);
+    await this.cmdCh.consume(
+      queueName,
+      async (msg: ConsumeMessage | null) => {
+        if (!msg) return;
+
+        let command: C;
+        try {
+          // parse and cast to our command type
+          command = JSON.parse(msg.content.toString()) as C;
+        } catch (err) {
+          console.error('❌ [broker-queue] failed to parse command', queueName, err);
+          // cannot ack malformed message, so nack without requeue
+          this.cmdCh.nack(msg, false, false);
+          return;
+        }
+
+        console.log('📨 [broker-queue] received command on', queueName, command.type);
+
+        try {
+          // now handler expects exactly the command shape C
+          await handler(command);
+          this.cmdCh.ack(msg);
+          console.log('✅ [broker-queue] ACK', queueName);
+        } catch (err) {
+          console.error('❌ [broker-queue] command handler failed on', queueName, err);
+          // no requeue on handler error
+          this.cmdCh.nack(msg, false, false);
+        }
+      }
+    );
+  }
+
+  /**
    * Publish a domain event to the exchange using the event type as the routing key.
    * Events go to a topic exchange (domain-events) with routing keys.
    */
@@ -106,63 +163,6 @@ export class RabbitMQBroker implements IBroker {
       console.log(`🛑 [broker-subscribe] canceling consumer tag=${consumerTag}`);
       await this.subCh.cancel(consumerTag);
     };
-  }
-
-  /**
-   * Send a raw command or message to a specific queue.
-   */
-  async send<C extends TCommandUnion>(
-    queueName: string,
-    command: C
-  ): Promise<void> {
-    await this.cmdCh.assertQueue(queueName, { durable: true });
-    this.cmdCh.sendToQueue(
-      queueName,
-      Buffer.from(JSON.stringify(command)),
-      { persistent: true }
-    );
-    console.log('📨 [broker-send] sent command', command.type, 'to queue=', queueName, 'corrId=', command.correlationId);
-  }
-
-  /**
-   * Consume a command queue with a given handler.
-   */
-  async consumeQueue<C extends TCommandUnion>(
-    queueName: string,
-    handler: ICommandHandler<C>
-  ) {
-    await this.cmdCh.assertQueue(queueName, { durable: true });
-    console.log(`🪡 [broker-queue] consuming command queue='${queueName}'`);
-    await this.cmdCh.consume(
-      queueName,
-      async (msg: ConsumeMessage | null) => {
-        if (!msg) return;
-
-        let command: C;
-        try {
-          // parse and cast to our command type
-          command = JSON.parse(msg.content.toString()) as C;
-        } catch (err) {
-          console.error('❌ [broker-queue] failed to parse command', queueName, err);
-          // cannot ack malformed message, so nack without requeue
-          this.cmdCh.nack(msg, false, false);
-          return;
-        }
-
-        console.log('📨 [broker-queue] received command on', queueName, command.type);
-
-        try {
-          // now handler expects exactly the command shape C
-          await handler(command);
-          this.cmdCh.ack(msg);
-          console.log('✅ [broker-queue] ACK', queueName);
-        } catch (err) {
-          console.error('❌ [broker-queue] command handler failed on', queueName, err);
-          // no requeue on handler error
-          this.cmdCh.nack(msg, false, false);
-        }
-      }
-    );
   }
 
   /**

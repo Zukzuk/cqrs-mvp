@@ -3,7 +3,8 @@
   "description" : "Description",
   "documentation" : { },
   "id" : 1,
-  "lastModifiedDate" : "2025-09-08T13:09:47Z",
+  "lastModifiedAgent" : "structurizr-ui",
+  "lastModifiedDate" : "2025-09-15T10:10:46Z",
   "model" : {
     "properties" : {
       "structurizr.groupSeparator" : "::"
@@ -325,6 +326,7 @@
     "configuration" : {
       "branding" : { },
       "lastSavedView" : "container_view",
+      "metadataSymbols" : "SquareBrackets",
       "styles" : {
         "elements" : [ {
           "background" : "#4169e1",
@@ -361,73 +363,73 @@
     "containerViews" : [ {
       "description" : "Container Diagram",
       "dimensions" : {
-        "height" : 3473,
-        "width" : 5008
+        "height" : 4083,
+        "width" : 4993
       },
       "elements" : [ {
         "id" : "2",
-        "x" : 3168,
-        "y" : 1471
+        "x" : 3135,
+        "y" : 1405
       }, {
         "id" : "3",
-        "x" : 3438,
-        "y" : 311
+        "x" : 3295,
+        "y" : 196
       }, {
         "id" : "4",
-        "x" : 3418,
-        "y" : 696
+        "x" : 3335,
+        "y" : 590
       }, {
         "id" : "5",
-        "x" : 4258,
-        "y" : 301
+        "x" : 4207,
+        "y" : 190
       }, {
         "id" : "6",
-        "x" : 4158,
-        "y" : 691
+        "x" : 4107,
+        "y" : 580
       }, {
         "id" : "7",
-        "x" : 215,
-        "y" : 760
+        "x" : 445,
+        "y" : 795
       }, {
         "id" : "8",
-        "x" : 945,
-        "y" : 290
+        "x" : 1175,
+        "y" : 325
       }, {
         "id" : "9",
-        "x" : 935,
-        "y" : 750
+        "x" : 1165,
+        "y" : 785
       }, {
         "id" : "10",
-        "x" : 215,
-        "y" : 285
+        "x" : 445,
+        "y" : 320
       }, {
         "id" : "11",
-        "x" : 1323,
-        "y" : 2106
+        "x" : 2310,
+        "y" : 2204
       }, {
         "id" : "12",
-        "x" : 3178,
-        "y" : 2151
+        "x" : 2868,
+        "y" : 2205
       }, {
         "id" : "13",
-        "x" : 4258,
-        "y" : 2601
+        "x" : 3948,
+        "y" : 2655
       }, {
         "id" : "14",
-        "x" : 3913,
-        "y" : 2141
+        "x" : 3603,
+        "y" : 2195
       }, {
         "id" : "15",
-        "x" : 2443,
-        "y" : 2166
+        "x" : 3015,
+        "y" : 2804
       }, {
         "id" : "16",
-        "x" : 2443,
-        "y" : 2596
+        "x" : 3015,
+        "y" : 3234
       }, {
         "id" : "17",
-        "x" : 1873,
-        "y" : 2131
+        "x" : 2445,
+        "y" : 2769
       } ],
       "externalSoftwareSystemBoundariesVisible" : false,
       "key" : "container_view",

@@ -5,7 +5,7 @@ distributor:
   receivers:
     otlp:
       protocols:
-        grpc: {}   # default gRPC 4317
+        grpc: {} # default gRPC 4317
 
 storage:
   trace:

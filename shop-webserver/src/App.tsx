@@ -6,11 +6,11 @@ import { IconCopy, IconCheck } from "@tabler/icons-react";
 
 function StatusBadge({ status, pending }: { status?: string; pending?: boolean }) {
     const normalized = (status || "").toLowerCase();
-    if (pending) return <Badge color="orange" variant="light" leftSection={<Loader size="xs" type="oval" />}>Pending</Badge>;
-    if (normalized.includes("fail") || normalized.includes("error")) return <Badge color="red" variant="light">Failed</Badge>;
-    if (normalized.includes("complete")) return <Badge color="teal" variant="light">Completed</Badge>;
-    if (normalized.includes("create")) return <Badge color="cyan" variant="light">Created</Badge>;
-    return <Badge color="blue" variant="light">{status || "Created"}</Badge>;
+    if (pending) return <Badge w={100} color="orange" variant="light" leftSection={<Loader size={10} type="oval" color="yellow" />}>Pending</Badge>;
+    if (normalized.includes("fail") || normalized.includes("error")) return <Badge w={100} color="red" variant="light">Failed</Badge>;
+    if (normalized.includes("complete")) return <Badge w={100} color="teal" variant="light">Completed</Badge>;
+    if (normalized.includes("create")) return <Badge w={100} color="cyan" variant="light">Created</Badge>;
+    return <Badge w={100} color="blue" variant="light">{status || "Created"}</Badge>;
 }
 
 function useSocket(userId: string) {
@@ -183,7 +183,7 @@ export default function App() {
                         <Group justify="space-between" py="sm">
                             <Title order={3}>Your Orders</Title>
                             <Group>
-                                <Badge color={connected ? "green" : "gray"} variant="light">
+                                <Badge color={connected ? "green" : "red"} variant="light">
                                     {connected ? "Connected" : "Disconnected"}
                                 </Badge>
                                 <Button onClick={createOrder}>Create Order</Button>

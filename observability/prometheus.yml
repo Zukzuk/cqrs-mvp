@@ -1,10 +1,27 @@
 scrape_configs:
+
+  # Scrapes the Prometheus exporter in the OTel collector on port 9464.
+  # This is where the OTLP → Prometheus metrics come out.
   - job_name: otel-collector
     static_configs: [{ targets: ['otel-collector:9464'] }]
 
+  # Scrapes the OTel collector’s own internal metrics on port 8888.
+  # Optional but useful to monitor the collector itself (queue length, dropped metrics, etc.).
   - job_name: otel-collector-internal
     static_configs: [{ targets: ['otel-collector:8888'] }]
 
+  # Scrapes the RabbitMQ management plugin’s Prometheus endpoint on 15692.
+  # Gives queue, connection and consumer metrics for “connected containers”.
   - job_name: rabbitmq
     static_configs:
       - targets: ['broker-service:15692']
+
+  # Scrapes the /metrics endpoint we exposed (port 9100 per service).
+  # This captures the bus_* counters and histogram from each of the CQRS services.
+  - job_name: 'services'
+    static_configs:
+      - targets:
+        - shop-bff-service:9100
+        - shop-projection-service:9100
+        - order-service:9100
+        - order-eventstore-service:9100

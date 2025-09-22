@@ -1,6 +1,7 @@
 import { Server, Socket, Namespace } from 'socket.io'
 import { RabbitMQBroker } from '@daveloper/broker'
-import { userAuth } from './auth'
+import { trace } from '@daveloper/opentelemetry';
+import { userAuth } from '../auth'
 
 export function registerWebClient(
     io: Server,
@@ -25,7 +26,12 @@ export function registerWebClient(
          */
         socket.on('command', async (raw, ack) => {
             console.log('⬅️ [bff-socket] recieving command from client:', raw)
-            raw.payload.userId = userId
+            raw.payload.userId = userId;
+
+            const span = trace.getActiveSpan();
+            span?.setAttribute('messaging.message.conversation_id', raw.correlationId);
+            span?.setAttribute('user.id', userId);
+
             try {
                 await broker.send('commands', raw)
                 console.log('✅ [bff-broker] command published')

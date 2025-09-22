@@ -1,0 +1,409 @@
+{
+    "annotations": {
+        "list": []
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": null,
+    "links": [],
+    "liveNow": false,
+    "panels": [
+        {
+            "type": "row",
+            "title": "1) Connected containers",
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 0
+            },
+            "id": 1000
+        },
+        {
+            "type": "timeseries",
+            "title": "RabbitMQ: Consumers per queue",
+            "id": 1001,
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 1
+            },
+            "options": {
+                "legend": {
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "mode": "single"
+                }
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "expr": "rabbitmq_consumers",
+                    "legendFormat": "{{queue}}"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "none"
+                },
+                "overrides": []
+            }
+        },
+        {
+            "type": "stat",
+            "title": "RabbitMQ: Active connections",
+            "id": 1002,
+            "gridPos": {
+                "h": 8,
+                "w": 6,
+                "x": 12,
+                "y": 1
+            },
+            "options": {
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ]
+                }
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "expr": "sum(rabbitmq_connections)"
+                }
+            ]
+        },
+        {
+            "type": "stat",
+            "title": "Scrape status (services up)",
+            "id": 1003,
+            "gridPos": {
+                "h": 8,
+                "w": 6,
+                "x": 18,
+                "y": 1
+            },
+            "options": {
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ]
+                }
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "expr": "sum(up{job=~\"services\"})"
+                }
+            ]
+        },
+        {
+            "type": "row",
+            "title": "2) Live transport",
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 9
+            },
+            "id": 2000
+        },
+        {
+            "type": "timeseries",
+            "title": "Bus: messages OUT (increase over 5m)",
+            "id": 2001,
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 10
+            },
+            "options": {
+                "legend": {
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "mode": "multi"
+                }
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "expr": "sum by (kind,type) (increase(bus_messages_out_total[5m]))",
+                    "legendFormat": "{{kind}} {{type}}"
+                }
+            ]
+        },
+        {
+            "type": "timeseries",
+            "title": "Bus: messages IN (increase over 5m, ack vs fail)",
+            "id": 2002,
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 10
+            },
+            "options": {
+                "legend": {
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "mode": "multi"
+                }
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "expr": "sum by (kind,type,ack) (increase(bus_messages_in_total[5m]))",
+                    "legendFormat": "{{kind}} {{type}} ack={{ack}}"
+                }
+            ]
+        },
+        {
+            "type": "timeseries",
+            "title": "Bus: end-to-end latency (P50/P90/P99) — 5m",
+            "id": 2003,
+            "gridPos": {
+                "h": 8,
+                "w": 24,
+                "x": 0,
+                "y": 18
+            },
+            "options": {
+                "legend": {
+                    "showLegend": true
+                }
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "expr": "histogram_quantile(0.5, sum by (le) (rate(bus_e2e_latency_ms_bucket[5m])))",
+                    "legendFormat": "p50"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "expr": "histogram_quantile(0.9, sum by (le) (rate(bus_e2e_latency_ms_bucket[5m])))",
+                    "legendFormat": "p90"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "expr": "histogram_quantile(0.99, sum by (le) (rate(bus_e2e_latency_ms_bucket[5m])))",
+                    "legendFormat": "p99"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ms"
+                },
+                "overrides": []
+            }
+        },
+        {
+            "type": "row",
+            "title": "Debug (raw counters)",
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 26
+            },
+            "id": 2100
+        },
+        {
+            "type": "table",
+            "title": "Raw counters — OUT (top 10)",
+            "id": 2101,
+            "gridPos": {
+                "h": 6,
+                "w": 12,
+                "x": 0,
+                "y": 27
+            },
+            "options": {
+                "showHeader": true
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "expr": "topk(10, bus_messages_out_total)"
+                }
+            ]
+        },
+        {
+            "type": "table",
+            "title": "Raw counters — IN (top 10)",
+            "id": 2102,
+            "gridPos": {
+                "h": 6,
+                "w": 12,
+                "x": 12,
+                "y": 27
+            },
+            "options": {
+                "showHeader": true
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "expr": "topk(10, bus_messages_in_total)"
+                }
+            ]
+        },
+        {
+            "type": "row",
+            "title": "3) Correlation trail",
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 33
+            },
+            "id": 3000
+        },
+        {
+            "type": "traces",
+            "title": "Recent traces (last 1h)",
+            "id": 3003,
+            "gridPos": {
+                "h": 12,
+                "w": 24,
+                "x": 0,
+                "y": 49
+            },
+            "datasource": {
+                "type": "grafana-tempo-datasource",
+                "uid": "${DS_TEMPO}"
+            },
+            "targets": [
+                {
+                    "queryType": "traceql",
+                    "query": "{}",
+                    "search": {
+                        "limit": 50,
+                        "minDuration": "",
+                        "maxDuration": ""
+                    }
+                }
+            ],
+            "options": {
+                "showSearch": true,
+                "showTable": true,
+                "showTraceGraph": false
+            }
+        },
+        {
+            "type": "traces",
+            "title": "Trace Explorer — by correlationId",
+            "id": 3002,
+            "gridPos": {
+                "h": 15,
+                "w": 24,
+                "x": 0,
+                "y": 34
+            },
+            "datasource": {
+                "type": "grafana-tempo-datasource",
+                "uid": "${DS_TEMPO}"
+            },
+            "targets": [
+                {
+                    "queryType": "traceql",
+                    "query": "{ span.attributes[\"messaging.message.conversation_id\"] = \"${corrId}\" }"
+                }
+            ],
+            "options": {
+                "showSearch": true,
+                "showTable": true,
+                "showTraceGraph": true
+            }
+        }
+    ],
+    "refresh": "5s",
+    "schemaVersion": 38,
+    "style": "dark",
+    "tags": [
+        "cqrs",
+        "rabbitmq",
+        "otel"
+    ],
+    "templating": {
+        "list": [
+            {
+                "name": "DS_PROMETHEUS",
+                "type": "datasource",
+                "query": "prometheus",
+                "label": "Prometheus",
+                "current": {
+                    "selected": true
+                },
+                "hide": 2
+            },
+            {
+                "name": "DS_TEMPO",
+                "type": "datasource",
+                "query": "tempo",
+                "label": "Tempo",
+                "current": {
+                    "selected": true
+                },
+                "hide": 2
+            },
+            {
+                "name": "corrId",
+                "type": "textbox",
+                "label": "Correlation ID",
+                "query": "",
+                "current": {
+                    "text": "",
+                    "value": ""
+                }
+            }
+        ]
+    },
+    "time": {
+        "from": "now-1h",
+        "to": "now"
+    },
+    "timezone": "",
+    "title": "CQRS Bus — 1•2•3 (MVP)",
+    "version": 2,
+    "weekStart": ""
+}

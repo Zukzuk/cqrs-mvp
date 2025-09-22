@@ -1,5 +1,6 @@
 import { IOrderCreatedEvent } from '@daveloper/interfaces';
 import { mapOrderCreated } from '@daveloper/denormalizers';
+import { trace } from '@daveloper/opentelemetry';
 import { OrderRepository } from './repository';
 import { Socket } from 'socket.io-client';
 
@@ -10,6 +11,11 @@ export class OrderDenormalizer {
   ) { }
 
   async handle(evt: IOrderCreatedEvent): Promise<void> {
+    trace.getActiveSpan()?.setAttribute(
+      'messaging.message.conversation_id', 
+      evt.correlationId
+    );
+
     const { userId } = evt.payload;
     const view = mapOrderCreated(evt);
 

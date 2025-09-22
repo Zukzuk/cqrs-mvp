@@ -1,5 +1,5 @@
 import { Namespace, Server, Socket } from 'socket.io';
-import { serviceAuth } from './auth';
+import { serviceAuth } from '../auth';
 
 export function registerShopProjection(
     projectionNs: Namespace,
@@ -19,9 +19,17 @@ export function registerShopProjection(
         });
 
         socket.on('order_update', (order: { userId: string;[key: string]: any }) => {
-            console.log('⬅️ [bff-socket] recieving order_update');
-            io.to(order.userId).emit('order_update', order);
-            console.log(`➡️ [bff-socket] sending order_update → user=${order.userId}`);
+            console.log('⬅️ [bff-socket] receiving order_update');
+
+            // --- Random delay between 0.5s and 2.5s ---
+            const minMs = 500;
+            const maxMs = 2500;
+            const delay = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
+
+            setTimeout(() => {
+                io.to(order.userId).emit('order_update', order);
+                console.log(`➡️ [bff-socket] sending order_update → user=${order.userId} (delayed ${delay} ms)`);
+            }, delay);
         });
 
         socket.on('disconnect', (reason) =>

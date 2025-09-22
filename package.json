@@ -27,7 +27,7 @@
     "mongoui": "ts-node observability/mongoui/src/index.ts",
     "visualize": "ts-node observability/visualize/src/index.ts",
     "generate": "ts-node observability/visualize/src/generate.ts",
-    "concat": "node scripts/concat-code.js",
+    "codebase": "node scripts/codebase.js",
     "clean": "node scripts/clean.js"
   }
 }

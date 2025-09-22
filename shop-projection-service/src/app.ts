@@ -4,10 +4,15 @@ import { MongoClient } from 'mongodb';
 import { io as Client } from 'socket.io-client';
 import { RabbitMQBroker } from '@daveloper/broker';
 import { IOrderCreatedEvent, IShopView } from '@daveloper/interfaces';
+import { startMetricsServer } from '@daveloper/opentelemetry';
 import { OrderRepository } from './repository';
 import { OrderDenormalizer } from './denormalizer';
 
 (async () => {
+  // expose Prometheus /metrics for this container
+  startMetricsServer(Number(process.env.OTEL_METRICS_PORT) || 9100);
+
+  // MongoDB connection
   const mongoClient = new MongoClient(process.env.MONGO_URL!);
   await mongoClient.connect();
   const db = mongoClient.db('shop_projection');

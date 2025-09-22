@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 
 const rootDir = "./";                           // startmap
-const outputFile = "./scripts/concat-code.txt"; // outputbestand
+const outputFile = "./scripts/codebase.txt"; // outputbestand
 
 // Mappen negeren (exacte mapnamen)
 const ignoreDirs = new Set([

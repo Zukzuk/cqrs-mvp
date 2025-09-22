@@ -3,6 +3,7 @@ import { Repository } from './repository';
 import { Order } from './orderAggregate';
 import { OrderCreated } from './events';
 import { IBroker, IOrderCreatedEvent } from '@daveloper/interfaces';
+import { trace } from '@daveloper/opentelemetry';
 
 export class CommandHandler {
   constructor(
@@ -11,6 +12,11 @@ export class CommandHandler {
   ) { }
 
   async handle(cmd: CreateOrder) {
+    trace.getActiveSpan()?.setAttribute(
+      'messaging.message.conversation_id', 
+      cmd.correlationId,
+    );
+
     const order = await this.repo.load(
       cmd.payload.userId,
       () => new Order()

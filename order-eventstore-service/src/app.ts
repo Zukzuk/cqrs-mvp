@@ -2,17 +2,24 @@ import express from 'express';
 import { MongoClient } from 'mongodb';
 import { IDomainEvent, ICounterDoc, IStoredEvent } from '@daveloper/interfaces';
 import { MongoEventStore } from '@daveloper/eventstore';
+import { startMetricsServer } from '@daveloper/opentelemetry';
 
 async function bootstrap() {
+    // expose Prometheus /metrics for this container
+    startMetricsServer(Number(process.env.OTEL_METRICS_PORT) || 9100);
+
+    // MongoDB connection
     const mongoUrl = process.env.MONGO_URL!;
     const client = new MongoClient(mongoUrl);
     await client.connect();
 
+    // EventStore setup
     const db = client.db(process.env.MONGO_DB_NAME || 'eventstore');
     const eventsColl = db.collection<IStoredEvent>('events');
     const countersColl = db.collection<ICounterDoc>('event_counters');
     const eventStore = new MongoEventStore(eventsColl, countersColl);
 
+    // Express app setup
     const app = express();
     app.use(express.json());
 
@@ -63,6 +70,7 @@ async function bootstrap() {
         }
     });
 
+    // Start server
     app.listen(+process.env.PORT! || 4001, () => console.log('🚀 OrderEventstoreService listening on port 4001'));
 }
 

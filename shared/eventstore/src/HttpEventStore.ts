@@ -1,10 +1,14 @@
 import fetch from 'node-fetch';
 import { IDomainEvent, IEventStore, IStoredEvent } from '@daveloper/interfaces';
+import { trace } from '@daveloper/opentelemetry';
 
 export class HttpEventStore implements IEventStore {
-  constructor(private baseUrl: string) {}
+  constructor(private baseUrl: string) { }
 
   async appendToStream(streamId: string, events: IDomainEvent[]): Promise<void> {
+    const corr = Array.isArray(events) && events[0]?.correlationId;
+    if (corr) trace.getActiveSpan()?.setAttribute('messaging.message.conversation_id', corr);
+
     const res = await fetch(`${this.baseUrl}/streams/${streamId}/events`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

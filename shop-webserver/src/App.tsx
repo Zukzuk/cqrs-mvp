@@ -177,7 +177,7 @@ export default function App() {
 
     return (
         <MantineProvider defaultColorScheme="light">
-            <AppShell padding="md">
+            <AppShell padding="md" header={{ height: 60 }}>
                 <AppShell.Header>
                     <Container size="lg">
                         <Group justify="space-between" py="sm">

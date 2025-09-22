@@ -10,12 +10,6 @@ interface GroupNode {
   services: string[];
 }
 
-/**
- * List of IDs for Otel injectors to be used in relationships.
- * This is populated during rendering and used to create relationships later.
- */
-const otelInjectIds: string[] = [];
-
 /** Label keys used in ComposeService.annotations */
 const LABEL_KEYS = {
   GROUP: 'structurizr.group',
@@ -84,7 +78,12 @@ function buildGroupTree(services: Record<string, ComposeService>): { root: Group
 /**
  * Renders a single container declaration in DSL.
  */
-function renderContainer(svcKey: string, svc: ComposeService, indentLevel = 3): string {
+function renderContainer(
+  svcKey: string, 
+  svc: ComposeService, 
+  indentLevel = 3, 
+  inObservability = false
+): string {
   const indent = '  '.repeat(indentLevel);
 
   const id = svcKey.replace(/-/g, '_');
@@ -104,27 +103,42 @@ function renderContainer(svcKey: string, svc: ComposeService, indentLevel = 3): 
   }
 
   if (type === 'database') {
-    return [`${indent}${id} = container "${name}" "${description}" "${technology} [${port}]"" {`,
-            `${indent}  tags "Database"`,
+    const tags = inObservability ? `"DatabaseObservability"` : `"Database"`;
+    return [`${indent}${id} = container "${name}" "${description}" "${technology} [${port}]" {`,
+            `${indent}  tags ${tags}`,
             `${indent}}`]
       .map(line => line + '\n')
       .join('');
   }
 
   if (type === 'telemetry') {
-    return [`${indent}${id} = container "${name}" "${description}" "${technology} [${port}]"" {`,
+    if (name.toLowerCase().includes('grafana') || name.toLowerCase().includes('prometheus')) {
+      // IDs for the generated User container
+      const userId = `${id}_user`;
+      // Telemetry container is accessed by users (e.g. Grafana, Prometheus)
+      return [`${indent}${id} = container "${name}" "${description}" "${technology} [${port}]" {`,
+            `${indent}  tags "Observability"`,
+            `${indent}}`,
+            `${indent}${userId} = container "${name}_User" "End user interacting via browser" "Person" {`,
+            `${indent}  tags "PersonObservability"`,
+            `${indent}}`,
+            `${indent}${userId} -> ${id} "uses"`]
+      .map(line => line + '\n')
+      .join('');
+    }
+    
+    return [`${indent}${id} = container "${name}" "${description}" "${technology} [${port}]" {`,
             `${indent}  tags "Observability"`,
             `${indent}}`]
       .map(line => line + '\n')
       .join('');
   }
 
-  // Special handling for webserver
   else if (type === 'webserver') {
     // IDs for the generated Browser and User containers
     const serverId = `${id}_server`;
     const userId = `${id}_user`;
-
+    // Webserver serves a webclient (browser) to users
     return [`${indent}${id} = container "${name} SPA" "${description_website}" "Browser, Socket.io.min [URL]" {`,
             `${indent}  tags "Webclient"`,
             `${indent}}`,
@@ -144,26 +158,27 @@ function renderContainer(svcKey: string, svc: ComposeService, indentLevel = 3): 
 /**
  * Recursively renders groups and their services.
  */
-function renderGroups(node: GroupNode, groupName: string, depth: number, services: Record<string, ComposeService>): string {
+function renderGroups(
+  node: GroupNode, 
+  groupName: string, 
+  depth: number, 
+  services: Record<string, ComposeService>, 
+  inObservability = false
+): string {
   const indent = '  '.repeat(depth);
   let result = `\n${indent}group ".${groupName}" {\n`;
 
-  if (depth === 3 && groupName !== 'Observability' && groupName !== 'Event Platform') {
-    const id = groupName.replace(' ', '_').toLowerCase();
-    otelInjectIds.push(id);
-    result += `${indent}  otel_inject_${id} = container "Otel ${groupName}" "Catch OTLP and send data to Otel Collector" "Code injection" {\n`;
-    result += `${indent}    tags "Injector"\n`;
-    result += `${indent}  }\n`;
-  }
+  // Are we (or any ancestor) inside Observability?
+  const hereOrAboveIsObs = inObservability || groupName === 'Observability';
 
-  // Render child services
+  // render services
   for (const svcKey of node.services) {
-    result += renderContainer(svcKey, services[svcKey], depth + 1);
+    result += renderContainer(svcKey, services[svcKey], depth + 1, hereOrAboveIsObs);
   }
-
-  // Render nested groups
+  
+  // recurse into child groups
   for (const [childName, childNode] of node.children) {
-    result += renderGroups(childNode, childName, depth + 1, services);
+    result += renderGroups(childNode, childName, depth + 1, services, hereOrAboveIsObs);
   }
 
   result += `${indent}}\n`;
@@ -212,17 +227,22 @@ export function buildDsl(compose: ComposeFile): string {
     .map(svcKey => renderContainer(svcKey, compose.services[svcKey], 3))
     .join('');
 
-  let dependencySection = renderDependencies(compose.services);
-  dependencySection += otelInjectIds.map(id => `      otel_inject_${id} -> otel_collector "report metrics and traces"\n`).join('');
+  const dependencySection = renderDependencies(compose.services);
 
   // check https://docs.structurizr.com/ui/diagrams/notation
   // check https://www.w3schools.com/cssref/css_colors.php
   const footer = [`    }`,
                   `  }\n`,
                   `  views {`,
-                  `    container shop container_view "Container Diagram" {`,
+                  `    container shop "app-all" "App + Obs" {`,
                   `      include *`,
                   `    }`,
+                  ``,
+                  `    container shop "app-only" "App only" {`,
+                  `      include *`,
+                  `      exclude "element.tag==Observability || element.tag==DatabaseObservability || element.tag==PersonObservability"`,
+                  `    }`,
+                  ``,
                   `    styles {`,
                   `      element * {`,
                   `        shape roundedbox`,
@@ -232,10 +252,6 @@ export function buildDsl(compose: ComposeFile): string {
                   `        shape hexagon`,
                   `        background "tomato"`,
                   `      }`,
-                  `      element "Injector" {`,
-                  `        shape ellipse`,
-                  `        background "black"`,
-                  `      }`,
                   `      element "Observability" {`,
                   `        shape roundedbox`,
                   `        background "darkorange"`,
@@ -244,11 +260,19 @@ export function buildDsl(compose: ComposeFile): string {
                   `        shape cylinder`,
                   `        background "orchid"`,
                   `      }`,
+                  `      element "DatabaseObservability" {`,
+                  `        shape cylinder`,
+                  `        background "orchid"`,
+                  `      }`,
                   `      element "Webclient" {`,
                   `        shape webbrowser`,
                   `        background "seagreen"`,
                   `      }`,
                   `      element "Person" {`,
+                  `        background "seagreen"`,
+                  `      }`,
+                  `      element "PersonObservability" {`,
+                  `        shape person`,
                   `        background "seagreen"`,
                   `      }`,
                   `    }`,

@@ -15,21 +15,27 @@ services:
     command: ["--config=/etc/otelcol/config.yaml"]
     volumes:
       - ./observability/opentelemetry/otel-collector.yaml:/etc/otelcol/config.yaml:ro
-    depends_on:
-      - otel-tempo
     expose:
       - "4317" # OTLP gRPC
       - "4318" # OTLP HTTP
     ports:
       - "9464:9464" # Prometheus scrape van collector-metrics
+    depends_on:
+      - order-service
+      - order-eventstore-service
+      - shop-bff-service
+      - shop-projection-service
     labels:
-      structurizr.name: "OpenTelemetry Collector"
+      structurizr.name: "OTel Collector"
       structurizr.description: "Recieve OTLP and save and/or expose it"
       structurizr.technology: "OpenTelemetry Collector"
       structurizr.port: "9464"
       structurizr.group: "Observability"
       structurizr.type: "telemetry"
-      structurizr.depends_on.tempo: "export traces"
+      structurizr.depends_on.order-service: "sdk metrics/traces (otel:4318)"
+      structurizr.depends_on.order-eventstore-service: "sdk metrics/traces (otel:4318)"
+      structurizr.depends_on.shop-bff-service: "sdk metrics/traces (otel:4318)"
+      structurizr.depends_on.shop-projection-service: "sdk metrics/traces (otel:4318)"
 
   otel-prometheus:
     profiles: ["obs"]
@@ -43,21 +49,31 @@ services:
     depends_on:
       - otel-collector
       - broker-service
+      - order-service
+      - order-eventstore-service
+      - shop-bff-service
+      - shop-projection-service
     labels:
       structurizr.name: "Prometheus"
-      structurizr.description: "Scrape data from OTel Collector en RabbitMQ"
+      structurizr.description: "Scrape data from OTel sdk en RabbitMQ"
       structurizr.technology: "Prometheus"
       structurizr.port: "${PROMETHEUS_PORT}"
       structurizr.group: "Observability"
       structurizr.type: "telemetry"
-      structurizr.depends_on.otel-collector: "get metrics"
-      structurizr.depends_on.broker-service: "scrape metrics"
+      structurizr.depends_on.otel-collector: "scrapes metrics (otel:9464 otel:8888)"
+      structurizr.depends_on.broker-service: "scrape metrics (broker:15692)"
+      structurizr.depends_on.order-service: "scrape metrics (/metrics:9100)"
+      structurizr.depends_on.order-eventstore-service: "scrape metrics (/metrics:9100)"
+      structurizr.depends_on.shop-bff-service: "scrape metrics (/metrics:9100)"
+      structurizr.depends_on.shop-projection-service: "scrape metrics (/metrics:9100)"
 
   otel-tempo:
     profiles: ["obs"]
     image: grafana/tempo:2.6.1
     container_name: otel-tempo
     command: ["-config.file=/etc/tempo/config.yaml"]
+    depends_on:
+      - otel-collector
     volumes:
       - ./observability/tempo.yaml:/etc/tempo/config.yaml:ro
       - tempo_data:/var/tempo
@@ -70,6 +86,7 @@ services:
       structurizr.port: "${TEMPO_HTTP_PORT}"
       structurizr.group: "Observability"
       structurizr.type: "database"
+      structurizr.depends_on.otel-collector: "gets metrics/traces (otel:4318)"
 
   otel-grafana:
     profiles: ["obs"]
@@ -94,8 +111,8 @@ services:
       structurizr.port: "${GRAFANA_PORT}"
       structurizr.group: "Observability"
       structurizr.type: "telemetry"
-      structurizr.depends_on.prometheus: "get metrics"
-      structurizr.depends_on.tempo: "explore traces"
+      structurizr.depends_on.otel-prometheus: "explore metrics (prom:9090)"
+      structurizr.depends_on.otel-tempo: "explore traces (tempo:3200)"
   
   shop-bff-service:
     profiles: ["obs"]

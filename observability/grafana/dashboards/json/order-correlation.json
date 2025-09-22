@@ -403,7 +403,7 @@
         "to": "now"
     },
     "timezone": "",
-    "title": "CQRS Bus — 1•2•3 (MVP)",
+    "title": "Order Correlation",
     "version": 2,
     "weekStart": ""
 }

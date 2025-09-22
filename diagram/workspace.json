@@ -4,7 +4,7 @@
   "documentation" : { },
   "id" : 1,
   "lastModifiedAgent" : "structurizr-ui",
-  "lastModifiedDate" : "2025-09-22T09:46:54Z",
+  "lastModifiedDate" : "2025-09-22T14:48:40Z",
   "model" : {
     "properties" : {
       "structurizr.groupSeparator" : "::"
@@ -22,28 +22,10 @@
         "tags" : "Element,Container,Broker",
         "technology" : "RabbitMQ [4672]"
       }, {
-        "description" : "Catch OTLP and send data to Otel Collector",
-        "documentation" : { },
-        "group" : ".Order Domain",
-        "id" : "3",
-        "name" : "Otel Order Domain",
-        "properties" : {
-          "structurizr.dsl.identifier" : "otel_inject_order_domain"
-        },
-        "relationships" : [ {
-          "description" : "report metrics and traces",
-          "destinationId" : "7",
-          "id" : "34",
-          "sourceId" : "3",
-          "tags" : "Relationship"
-        } ],
-        "tags" : "Element,Container,Injector",
-        "technology" : "Code injection"
-      }, {
         "description" : "Subscribes to certain Commands, protects the DomainLogic, emits DomainEvents to the broker",
         "documentation" : { },
         "group" : ".Order Domain",
-        "id" : "4",
+        "id" : "3",
         "name" : "Order Application",
         "properties" : {
           "structurizr.dsl.identifier" : "order_service"
@@ -51,14 +33,14 @@
         "relationships" : [ {
           "description" : "subscribe to certain Commands, publish DomainEvents",
           "destinationId" : "2",
-          "id" : "21",
-          "sourceId" : "4",
+          "id" : "23",
+          "sourceId" : "3",
           "tags" : "Relationship"
         }, {
           "description" : "fetch streams, commit DomainEvents",
-          "destinationId" : "6",
-          "id" : "22",
-          "sourceId" : "4",
+          "destinationId" : "5",
+          "id" : "24",
+          "sourceId" : "3",
           "tags" : "Relationship"
         } ],
         "tags" : "Element,Container",
@@ -67,27 +49,27 @@
         "description" : "Append only journal for DomainEvents",
         "documentation" : { },
         "group" : ".Order Domain::.Event Store",
-        "id" : "5",
+        "id" : "4",
         "name" : "Order EventStore Database",
         "properties" : {
           "structurizr.dsl.identifier" : "order_eventstore_db"
         },
-        "tags" : "Element,Container,{,Database",
+        "tags" : "Element,Container,Database",
         "technology" : "MongoDB [default]"
       }, {
         "description" : "Durable, append-only event journal",
         "documentation" : { },
         "group" : ".Order Domain::.Event Store",
-        "id" : "6",
+        "id" : "5",
         "name" : "Order EventStore",
         "properties" : {
           "structurizr.dsl.identifier" : "order_eventstore_service"
         },
         "relationships" : [ {
           "description" : "read, write",
-          "destinationId" : "5",
-          "id" : "20",
-          "sourceId" : "6",
+          "destinationId" : "4",
+          "id" : "22",
+          "sourceId" : "5",
           "tags" : "Relationship"
         } ],
         "tags" : "Element,Container",
@@ -96,102 +78,169 @@
         "description" : "Recieve OTLP and save and/or expose it",
         "documentation" : { },
         "group" : ".Observability",
-        "id" : "7",
-        "name" : "OpenTelemetry Collector",
+        "id" : "6",
+        "name" : "OTel Collector",
         "properties" : {
           "structurizr.dsl.identifier" : "otel_collector"
         },
         "relationships" : [ {
-          "description" : "depends_on",
-          "destinationId" : "10",
-          "id" : "23",
-          "sourceId" : "7",
+          "description" : "sdk metrics/traces (otel:4318)",
+          "destinationId" : "5",
+          "id" : "25",
+          "sourceId" : "6",
+          "tags" : "Relationship"
+        }, {
+          "description" : "sdk metrics/traces (otel:4318)",
+          "destinationId" : "3",
+          "id" : "26",
+          "sourceId" : "6",
+          "tags" : "Relationship"
+        }, {
+          "description" : "sdk metrics/traces (otel:4318)",
+          "destinationId" : "14",
+          "id" : "27",
+          "sourceId" : "6",
+          "tags" : "Relationship"
+        }, {
+          "description" : "sdk metrics/traces (otel:4318)",
+          "destinationId" : "16",
+          "id" : "28",
+          "sourceId" : "6",
           "tags" : "Relationship"
         } ],
-        "tags" : "Element,Container,{,Observability",
+        "tags" : "Element,Container,Observability",
         "technology" : "OpenTelemetry Collector [9464]"
       }, {
         "description" : "Dashboards and explore traces and metrics",
         "documentation" : { },
         "group" : ".Observability",
-        "id" : "8",
+        "id" : "7",
         "name" : "Grafana",
         "properties" : {
           "structurizr.dsl.identifier" : "otel_grafana"
         },
         "relationships" : [ {
-          "description" : "depends_on",
-          "destinationId" : "9",
-          "id" : "24",
-          "sourceId" : "8",
+          "description" : "explore metrics (prom:9090)",
+          "destinationId" : "10",
+          "id" : "29",
+          "sourceId" : "7",
           "tags" : "Relationship"
         }, {
-          "description" : "depends_on",
-          "destinationId" : "10",
-          "id" : "25",
+          "description" : "explore traces (tempo:3200)",
+          "destinationId" : "13",
+          "id" : "30",
+          "sourceId" : "7",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,Observability",
+        "technology" : "Grafana [8300]"
+      }, {
+        "description" : "End user interacting via browser",
+        "documentation" : { },
+        "group" : ".Observability",
+        "id" : "8",
+        "name" : "Grafana_User",
+        "properties" : {
+          "structurizr.dsl.identifier" : "otel_grafana_user"
+        },
+        "relationships" : [ {
+          "description" : "uses",
+          "destinationId" : "7",
+          "id" : "9",
           "sourceId" : "8",
           "tags" : "Relationship"
         } ],
-        "tags" : "Element,Container,{,Observability",
-        "technology" : "Grafana [8300]"
+        "tags" : "Element,Container,PersonObservability",
+        "technology" : "Person"
       }, {
-        "description" : "Scrape data from OTel Collector en RabbitMQ",
+        "description" : "Scrape data from OTel sdk en RabbitMQ",
         "documentation" : { },
         "group" : ".Observability",
-        "id" : "9",
+        "id" : "10",
         "name" : "Prometheus",
         "properties" : {
           "structurizr.dsl.identifier" : "otel_prometheus"
         },
         "relationships" : [ {
-          "description" : "scrape metrics",
+          "description" : "scrape metrics (broker:15692)",
           "destinationId" : "2",
-          "id" : "26",
-          "sourceId" : "9",
+          "id" : "31",
+          "sourceId" : "10",
           "tags" : "Relationship"
         }, {
-          "description" : "get metrics",
-          "destinationId" : "7",
-          "id" : "27",
-          "sourceId" : "9",
+          "description" : "scrape metrics (/metrics:9100)",
+          "destinationId" : "5",
+          "id" : "32",
+          "sourceId" : "10",
+          "tags" : "Relationship"
+        }, {
+          "description" : "scrape metrics (/metrics:9100)",
+          "destinationId" : "3",
+          "id" : "33",
+          "sourceId" : "10",
+          "tags" : "Relationship"
+        }, {
+          "description" : "scrapes metrics (otel:9464 otel:8888)",
+          "destinationId" : "6",
+          "id" : "34",
+          "sourceId" : "10",
+          "tags" : "Relationship"
+        }, {
+          "description" : "scrape metrics (/metrics:9100)",
+          "destinationId" : "14",
+          "id" : "35",
+          "sourceId" : "10",
+          "tags" : "Relationship"
+        }, {
+          "description" : "scrape metrics (/metrics:9100)",
+          "destinationId" : "16",
+          "id" : "36",
+          "sourceId" : "10",
           "tags" : "Relationship"
         } ],
-        "tags" : "Element,Container,{,Observability",
+        "tags" : "Element,Container,Observability",
         "technology" : "Prometheus [8900]"
+      }, {
+        "description" : "End user interacting via browser",
+        "documentation" : { },
+        "group" : ".Observability",
+        "id" : "11",
+        "name" : "Prometheus_User",
+        "properties" : {
+          "structurizr.dsl.identifier" : "otel_prometheus_user"
+        },
+        "relationships" : [ {
+          "description" : "uses",
+          "destinationId" : "10",
+          "id" : "12",
+          "sourceId" : "11",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,PersonObservability",
+        "technology" : "Person"
       }, {
         "description" : "Persistance for traces",
         "documentation" : { },
         "group" : ".Observability",
-        "id" : "10",
+        "id" : "13",
         "name" : "Tempo",
         "properties" : {
           "structurizr.dsl.identifier" : "otel_tempo"
         },
-        "tags" : "Element,Container,{,Database",
-        "technology" : "Grafana Tempo [8200]"
-      }, {
-        "description" : "Catch OTLP and send data to Otel Collector",
-        "documentation" : { },
-        "group" : ".Shop",
-        "id" : "11",
-        "name" : "Otel Shop",
-        "properties" : {
-          "structurizr.dsl.identifier" : "otel_inject_shop"
-        },
         "relationships" : [ {
-          "description" : "report metrics and traces",
-          "destinationId" : "7",
-          "id" : "35",
-          "sourceId" : "11",
+          "description" : "gets metrics/traces (otel:4318)",
+          "destinationId" : "6",
+          "id" : "37",
+          "sourceId" : "13",
           "tags" : "Relationship"
         } ],
-        "tags" : "Element,Container,Injector",
-        "technology" : "Code injection"
+        "tags" : "Element,Container,DatabaseObservability",
+        "technology" : "Grafana Tempo [8200]"
       }, {
         "description" : "Exposes and guards WebSocket/APIs, publishes Commands to the broker, forwards Queries to projections, listens for Payloads from projections and forwards them to web clients",
         "documentation" : { },
         "group" : ".Shop",
-        "id" : "12",
+        "id" : "14",
         "name" : "Shop BFF",
         "properties" : {
           "structurizr.dsl.identifier" : "shop_bff_service"
@@ -199,8 +248,8 @@
         "relationships" : [ {
           "description" : "publish Commands",
           "destinationId" : "2",
-          "id" : "28",
-          "sourceId" : "12",
+          "id" : "38",
+          "sourceId" : "14",
           "tags" : "Relationship"
         } ],
         "tags" : "Element,Container",
@@ -209,25 +258,25 @@
         "description" : "Read DB for denormalized views",
         "documentation" : { },
         "group" : ".Shop::.Projection",
-        "id" : "13",
+        "id" : "15",
         "name" : "Shop Projection Database",
         "properties" : {
           "structurizr.dsl.identifier" : "shop_projection_db"
         },
         "relationships" : [ {
           "description" : "seed script via fetch streams",
-          "destinationId" : "6",
-          "id" : "29",
-          "sourceId" : "13",
+          "destinationId" : "5",
+          "id" : "39",
+          "sourceId" : "15",
           "tags" : "Relationship"
         } ],
-        "tags" : "Element,Container,{,Database",
+        "tags" : "Element,Container,Database",
         "technology" : "Node.js, MongoDB [default]"
       }, {
         "description" : "Handles fetches, subscribes to DomainEvents, denormalizes and upserts Payloads, pushes Payloads to bff",
         "documentation" : { },
         "group" : ".Shop::.Projection",
-        "id" : "14",
+        "id" : "16",
         "name" : "Shop Projection",
         "properties" : {
           "structurizr.dsl.identifier" : "shop_projection_service"
@@ -235,20 +284,20 @@
         "relationships" : [ {
           "description" : "subscribe to certain DomainEvents",
           "destinationId" : "2",
-          "id" : "30",
-          "sourceId" : "14",
+          "id" : "40",
+          "sourceId" : "16",
           "tags" : "Relationship"
         }, {
           "description" : "listen for Queries and push Payloads",
-          "destinationId" : "12",
-          "id" : "31",
-          "sourceId" : "14",
+          "destinationId" : "14",
+          "id" : "41",
+          "sourceId" : "16",
           "tags" : "Relationship"
         }, {
           "description" : "fetch data, upsert data",
-          "destinationId" : "13",
-          "id" : "32",
-          "sourceId" : "14",
+          "destinationId" : "15",
+          "id" : "42",
+          "sourceId" : "16",
           "tags" : "Relationship"
         } ],
         "tags" : "Element,Container",
@@ -257,16 +306,16 @@
         "description" : "Web interface, connects to bff via wss, sends Queries and Commands to bff, renders incoming Payloads",
         "documentation" : { },
         "group" : ".Shop::.Website",
-        "id" : "15",
+        "id" : "17",
         "name" : "Shop Frontend SPA",
         "properties" : {
           "structurizr.dsl.identifier" : "shop_webserver"
         },
         "relationships" : [ {
           "description" : "send Commands and Queries, listen for Payloads",
-          "destinationId" : "12",
-          "id" : "33",
-          "sourceId" : "15",
+          "destinationId" : "14",
+          "id" : "43",
+          "sourceId" : "17",
           "tags" : "Relationship"
         } ],
         "tags" : "Element,Container,Webclient",
@@ -275,16 +324,16 @@
         "description" : "Serves static files",
         "documentation" : { },
         "group" : ".Shop::.Website",
-        "id" : "16",
+        "id" : "18",
         "name" : "Shop Frontend Server",
         "properties" : {
           "structurizr.dsl.identifier" : "shop_webserver_server"
         },
         "relationships" : [ {
           "description" : "serves",
-          "destinationId" : "15",
-          "id" : "18",
-          "sourceId" : "16",
+          "destinationId" : "17",
+          "id" : "20",
+          "sourceId" : "18",
           "tags" : "Relationship"
         } ],
         "tags" : "Element,Container",
@@ -293,16 +342,16 @@
         "description" : "End user interacting via browser",
         "documentation" : { },
         "group" : ".Shop::.Website",
-        "id" : "17",
+        "id" : "19",
         "name" : "User",
         "properties" : {
           "structurizr.dsl.identifier" : "shop_webserver_user"
         },
         "relationships" : [ {
           "description" : "uses",
-          "destinationId" : "15",
-          "id" : "19",
-          "sourceId" : "17",
+          "destinationId" : "17",
+          "id" : "21",
+          "sourceId" : "19",
           "tags" : "Relationship"
         } ],
         "tags" : "Element,Container,Person",
@@ -320,12 +369,12 @@
   },
   "name" : "Name",
   "properties" : {
-    "structurizr.dsl" : "d29ya3NwYWNlIHsKICBtb2RlbCAiY3Fycy1tdnAiIHsKICAgIHByb3BlcnRpZXMgewogICAgICBzdHJ1Y3R1cml6ci5ncm91cFNlcGFyYXRvciAiOjoiCiAgICB9CgogICAgc2hvcCA9IHNvZnR3YXJlU3lzdGVtICJDUVJTLUVTIFN5c3RlbSAoTVZQKSIgewoKICAgICAgZ3JvdXAgIi5FdmVudCBQbGF0Zm9ybSIgewogICAgICAgIGJyb2tlcl9zZXJ2aWNlID0gY29udGFpbmVyICJCcm9rZXIiICJQcm92aWRlcyBhIHJvYnVzdCBtZXNzYWdpbmcgYnJva2VyIHdpdGggbWFuYWdlbWVudCBVSSIgIlJhYmJpdE1RIFs0NjcyXSIgewogICAgICAgICAgdGFncyAiQnJva2VyIgogICAgICAgIH0KICAgICAgfQoKICAgICAgZ3JvdXAgIi5PcmRlciBEb21haW4iIHsKICAgICAgICBvdGVsX2luamVjdF9vcmRlcl9kb21haW4gPSBjb250YWluZXIgIk90ZWwgT3JkZXIgRG9tYWluIiAiQ2F0Y2ggT1RMUCBhbmQgc2VuZCBkYXRhIHRvIE90ZWwgQ29sbGVjdG9yIiAiQ29kZSBpbmplY3Rpb24iIHsKICAgICAgICAgIHRhZ3MgIkluamVjdG9yIgogICAgICAgIH0KICAgICAgICBvcmRlcl9zZXJ2aWNlID0gY29udGFpbmVyICJPcmRlciBBcHBsaWNhdGlvbiIgIlN1YnNjcmliZXMgdG8gY2VydGFpbiBDb21tYW5kcywgcHJvdGVjdHMgdGhlIERvbWFpbkxvZ2ljLCBlbWl0cyBEb21haW5FdmVudHMgdG8gdGhlIGJyb2tlciIgIk5vZGUuanMsIEV4cHJlc3MgWzQwMDBdIgoKICAgICAgICBncm91cCAiLkV2ZW50IFN0b3JlIiB7CiAgICAgICAgICBvcmRlcl9ldmVudHN0b3JlX2RiID0gY29udGFpbmVyICJPcmRlciBFdmVudFN0b3JlIERhdGFiYXNlIiAiQXBwZW5kIG9ubHkgam91cm5hbCBmb3IgRG9tYWluRXZlbnRzIiAiTW9uZ29EQiBbZGVmYXVsdF0iIiB7CiAgICAgICAgICAgIHRhZ3MgIkRhdGFiYXNlIgogICAgICAgICAgfQogICAgICAgICAgb3JkZXJfZXZlbnRzdG9yZV9zZXJ2aWNlID0gY29udGFpbmVyICJPcmRlciBFdmVudFN0b3JlIiAiRHVyYWJsZSwgYXBwZW5kLW9ubHkgZXZlbnQgam91cm5hbCIgIk5vZGUuanMsIEV4cHJlc3MgWzQwMDFdIgogICAgICAgIH0KICAgICAgfQoKICAgICAgZ3JvdXAgIi5PYnNlcnZhYmlsaXR5IiB7CiAgICAgICAgb3RlbF9jb2xsZWN0b3IgPSBjb250YWluZXIgIk9wZW5UZWxlbWV0cnkgQ29sbGVjdG9yIiAiUmVjaWV2ZSBPVExQIGFuZCBzYXZlIGFuZC9vciBleHBvc2UgaXQiICJPcGVuVGVsZW1ldHJ5IENvbGxlY3RvciBbOTQ2NF0iIiB7CiAgICAgICAgICB0YWdzICJPYnNlcnZhYmlsaXR5IgogICAgICAgIH0KICAgICAgICBvdGVsX2dyYWZhbmEgPSBjb250YWluZXIgIkdyYWZhbmEiICJEYXNoYm9hcmRzIGFuZCBleHBsb3JlIHRyYWNlcyBhbmQgbWV0cmljcyIgIkdyYWZhbmEgWzgzMDBdIiIgewogICAgICAgICAgdGFncyAiT2JzZXJ2YWJpbGl0eSIKICAgICAgICB9CiAgICAgICAgb3RlbF9wcm9tZXRoZXVzID0gY29udGFpbmVyICJQcm9tZXRoZXVzIiAiU2NyYXBlIGRhdGEgZnJvbSBPVGVsIENvbGxlY3RvciBlbiBSYWJiaXRNUSIgIlByb21ldGhldXMgWzg5MDBdIiIgewogICAgICAgICAgdGFncyAiT2JzZXJ2YWJpbGl0eSIKICAgICAgICB9CiAgICAgICAgb3RlbF90ZW1wbyA9IGNvbnRhaW5lciAiVGVtcG8iICJQZXJzaXN0YW5jZSBmb3IgdHJhY2VzIiAiR3JhZmFuYSBUZW1wbyBbODIwMF0iIiB7CiAgICAgICAgICB0YWdzICJEYXRhYmFzZSIKICAgICAgICB9CiAgICAgIH0KCiAgICAgIGdyb3VwICIuU2hvcCIgewogICAgICAgIG90ZWxfaW5qZWN0X3Nob3AgPSBjb250YWluZXIgIk90ZWwgU2hvcCIgIkNhdGNoIE9UTFAgYW5kIHNlbmQgZGF0YSB0byBPdGVsIENvbGxlY3RvciIgIkNvZGUgaW5qZWN0aW9uIiB7CiAgICAgICAgICB0YWdzICJJbmplY3RvciIKICAgICAgICB9CiAgICAgICAgc2hvcF9iZmZfc2VydmljZSA9IGNvbnRhaW5lciAiU2hvcCBCRkYiICJFeHBvc2VzIGFuZCBndWFyZHMgV2ViU29ja2V0L0FQSXMsIHB1Ymxpc2hlcyBDb21tYW5kcyB0byB0aGUgYnJva2VyLCBmb3J3YXJkcyBRdWVyaWVzIHRvIHByb2plY3Rpb25zLCBsaXN0ZW5zIGZvciBQYXlsb2FkcyBmcm9tIHByb2plY3Rpb25zIGFuZCBmb3J3YXJkcyB0aGVtIHRvIHdlYiBjbGllbnRzIiAiTm9kZS5qcywgRXhwcmVzcywgU29ja2V0LmlvIFszMDAwXSIKCiAgICAgICAgZ3JvdXAgIi5Qcm9qZWN0aW9uIiB7CiAgICAgICAgICBzaG9wX3Byb2plY3Rpb25fZGIgPSBjb250YWluZXIgIlNob3AgUHJvamVjdGlvbiBEYXRhYmFzZSIgIlJlYWQgREIgZm9yIGRlbm9ybWFsaXplZCB2aWV3cyIgIk5vZGUuanMsIE1vbmdvREIgW2RlZmF1bHRdIiIgewogICAgICAgICAgICB0YWdzICJEYXRhYmFzZSIKICAgICAgICAgIH0KICAgICAgICAgIHNob3BfcHJvamVjdGlvbl9zZXJ2aWNlID0gY29udGFpbmVyICJTaG9wIFByb2plY3Rpb24iICJIYW5kbGVzIGZldGNoZXMsIHN1YnNjcmliZXMgdG8gRG9tYWluRXZlbnRzLCBkZW5vcm1hbGl6ZXMgYW5kIHVwc2VydHMgUGF5bG9hZHMsIHB1c2hlcyBQYXlsb2FkcyB0byBiZmYiICJOb2RlLmpzLCBFeHByZXNzLCBTb2NrZXQuaW8tY2xpZW50IFszMDAyXSIKICAgICAgICB9CgogICAgICAgIGdyb3VwICIuV2Vic2l0ZSIgewogICAgICAgICAgc2hvcF93ZWJzZXJ2ZXIgPSBjb250YWluZXIgIlNob3AgRnJvbnRlbmQgU1BBIiAiV2ViIGludGVyZmFjZSwgY29ubmVjdHMgdG8gYmZmIHZpYSB3c3MsIHNlbmRzIFF1ZXJpZXMgYW5kIENvbW1hbmRzIHRvIGJmZiwgcmVuZGVycyBpbmNvbWluZyBQYXlsb2FkcyIgIkJyb3dzZXIsIFNvY2tldC5pby5taW4gW1VSTF0iIHsKICAgICAgICAgICAgdGFncyAiV2ViY2xpZW50IgogICAgICAgICAgfQogICAgICAgICAgc2hvcF93ZWJzZXJ2ZXJfc2VydmVyID0gY29udGFpbmVyICJTaG9wIEZyb250ZW5kIFNlcnZlciIgIlNlcnZlcyBzdGF0aWMgZmlsZXMiICJOZ2lueCBbMzAwMV0iCiAgICAgICAgICBzaG9wX3dlYnNlcnZlcl91c2VyID0gY29udGFpbmVyICJVc2VyIiAiRW5kIHVzZXIgaW50ZXJhY3RpbmcgdmlhIGJyb3dzZXIiICJQZXJzb24iIHsKICAgICAgICAgICAgdGFncyAiUGVyc29uIgogICAgICAgICAgfQogICAgICAgICAgc2hvcF93ZWJzZXJ2ZXJfc2VydmVyIC0+IHNob3Bfd2Vic2VydmVyICJzZXJ2ZXMiCiAgICAgICAgICBzaG9wX3dlYnNlcnZlcl91c2VyIC0+IHNob3Bfd2Vic2VydmVyICJ1c2VzIgogICAgICAgIH0KICAgICAgfQoKCiAgICAgIG9yZGVyX2V2ZW50c3RvcmVfc2VydmljZSAtPiBvcmRlcl9ldmVudHN0b3JlX2RiICJyZWFkLCB3cml0ZSIKICAgICAgb3JkZXJfc2VydmljZSAtPiBicm9rZXJfc2VydmljZSAic3Vic2NyaWJlIHRvIGNlcnRhaW4gQ29tbWFuZHMsIHB1Ymxpc2ggRG9tYWluRXZlbnRzIgogICAgICBvcmRlcl9zZXJ2aWNlIC0+IG9yZGVyX2V2ZW50c3RvcmVfc2VydmljZSAiZmV0Y2ggc3RyZWFtcywgY29tbWl0IERvbWFpbkV2ZW50cyIKICAgICAgb3RlbF9jb2xsZWN0b3IgLT4gb3RlbF90ZW1wbyAiZGVwZW5kc19vbiIKICAgICAgb3RlbF9ncmFmYW5hIC0+IG90ZWxfcHJvbWV0aGV1cyAiZGVwZW5kc19vbiIKICAgICAgb3RlbF9ncmFmYW5hIC0+IG90ZWxfdGVtcG8gImRlcGVuZHNfb24iCiAgICAgIG90ZWxfcHJvbWV0aGV1cyAtPiBicm9rZXJfc2VydmljZSAic2NyYXBlIG1ldHJpY3MiCiAgICAgIG90ZWxfcHJvbWV0aGV1cyAtPiBvdGVsX2NvbGxlY3RvciAiZ2V0IG1ldHJpY3MiCiAgICAgIHNob3BfYmZmX3NlcnZpY2UgLT4gYnJva2VyX3NlcnZpY2UgInB1Ymxpc2ggQ29tbWFuZHMiCiAgICAgIHNob3BfcHJvamVjdGlvbl9kYiAtPiBvcmRlcl9ldmVudHN0b3JlX3NlcnZpY2UgInNlZWQgc2NyaXB0IHZpYSBmZXRjaCBzdHJlYW1zIgogICAgICBzaG9wX3Byb2plY3Rpb25fc2VydmljZSAtPiBicm9rZXJfc2VydmljZSAic3Vic2NyaWJlIHRvIGNlcnRhaW4gRG9tYWluRXZlbnRzIgogICAgICBzaG9wX3Byb2plY3Rpb25fc2VydmljZSAtPiBzaG9wX2JmZl9zZXJ2aWNlICJsaXN0ZW4gZm9yIFF1ZXJpZXMgYW5kIHB1c2ggUGF5bG9hZHMiCiAgICAgIHNob3BfcHJvamVjdGlvbl9zZXJ2aWNlIC0+IHNob3BfcHJvamVjdGlvbl9kYiAiZmV0Y2ggZGF0YSwgdXBzZXJ0IGRhdGEiCiAgICAgIHNob3Bfd2Vic2VydmVyIC0+IHNob3BfYmZmX3NlcnZpY2UgInNlbmQgQ29tbWFuZHMgYW5kIFF1ZXJpZXMsIGxpc3RlbiBmb3IgUGF5bG9hZHMiCiAgICAgIG90ZWxfaW5qZWN0X29yZGVyX2RvbWFpbiAtPiBvdGVsX2NvbGxlY3RvciAicmVwb3J0IG1ldHJpY3MgYW5kIHRyYWNlcyIKICAgICAgb3RlbF9pbmplY3Rfc2hvcCAtPiBvdGVsX2NvbGxlY3RvciAicmVwb3J0IG1ldHJpY3MgYW5kIHRyYWNlcyIKICAgIH0KICB9CgogIHZpZXdzIHsKICAgIGNvbnRhaW5lciBzaG9wIGNvbnRhaW5lcl92aWV3ICJDb250YWluZXIgRGlhZ3JhbSIgewogICAgICBpbmNsdWRlICoKICAgIH0KICAgIHN0eWxlcyB7CiAgICAgIGVsZW1lbnQgKiB7CiAgICAgICAgc2hhcGUgcm91bmRlZGJveAogICAgICAgIGJhY2tncm91bmQgInJveWFsYmx1ZSIKICAgICAgfQogICAgICBlbGVtZW50ICJCcm9rZXIiIHsKICAgICAgICBzaGFwZSBoZXhhZ29uCiAgICAgICAgYmFja2dyb3VuZCAidG9tYXRvIgogICAgICB9CiAgICAgIGVsZW1lbnQgIkluamVjdG9yIiB7CiAgICAgICAgc2hhcGUgZWxsaXBzZQogICAgICAgIGJhY2tncm91bmQgImJsYWNrIgogICAgICB9CiAgICAgIGVsZW1lbnQgIk9ic2VydmFiaWxpdHkiIHsKICAgICAgICBzaGFwZSByb3VuZGVkYm94CiAgICAgICAgYmFja2dyb3VuZCAiZGFya29yYW5nZSIKICAgICAgfQogICAgICBlbGVtZW50ICJEYXRhYmFzZSIgewogICAgICAgIHNoYXBlIGN5bGluZGVyCiAgICAgICAgYmFja2dyb3VuZCAib3JjaGlkIgogICAgICB9CiAgICAgIGVsZW1lbnQgIldlYmNsaWVudCIgewogICAgICAgIHNoYXBlIHdlYmJyb3dzZXIKICAgICAgICBiYWNrZ3JvdW5kICJzZWFncmVlbiIKICAgICAgfQogICAgICBlbGVtZW50ICJQZXJzb24iIHsKICAgICAgICBiYWNrZ3JvdW5kICJzZWFncmVlbiIKICAgICAgfQogICAgfQogICAgdGhlbWUgZGVmYXVsdAogIH0KfQ=="
+    "structurizr.dsl" : "d29ya3NwYWNlIHsKICBtb2RlbCAiY3Fycy1tdnAiIHsKICAgIHByb3BlcnRpZXMgewogICAgICBzdHJ1Y3R1cml6ci5ncm91cFNlcGFyYXRvciAiOjoiCiAgICB9CgogICAgc2hvcCA9IHNvZnR3YXJlU3lzdGVtICJDUVJTLUVTIFN5c3RlbSAoTVZQKSIgewoKICAgICAgZ3JvdXAgIi5FdmVudCBQbGF0Zm9ybSIgewogICAgICAgIGJyb2tlcl9zZXJ2aWNlID0gY29udGFpbmVyICJCcm9rZXIiICJQcm92aWRlcyBhIHJvYnVzdCBtZXNzYWdpbmcgYnJva2VyIHdpdGggbWFuYWdlbWVudCBVSSIgIlJhYmJpdE1RIFs0NjcyXSIgewogICAgICAgICAgdGFncyAiQnJva2VyIgogICAgICAgIH0KICAgICAgfQoKICAgICAgZ3JvdXAgIi5PcmRlciBEb21haW4iIHsKICAgICAgICBvcmRlcl9zZXJ2aWNlID0gY29udGFpbmVyICJPcmRlciBBcHBsaWNhdGlvbiIgIlN1YnNjcmliZXMgdG8gY2VydGFpbiBDb21tYW5kcywgcHJvdGVjdHMgdGhlIERvbWFpbkxvZ2ljLCBlbWl0cyBEb21haW5FdmVudHMgdG8gdGhlIGJyb2tlciIgIk5vZGUuanMsIEV4cHJlc3MgWzQwMDBdIgoKICAgICAgICBncm91cCAiLkV2ZW50IFN0b3JlIiB7CiAgICAgICAgICBvcmRlcl9ldmVudHN0b3JlX2RiID0gY29udGFpbmVyICJPcmRlciBFdmVudFN0b3JlIERhdGFiYXNlIiAiQXBwZW5kIG9ubHkgam91cm5hbCBmb3IgRG9tYWluRXZlbnRzIiAiTW9uZ29EQiBbZGVmYXVsdF0iIHsKICAgICAgICAgICAgdGFncyAiRGF0YWJhc2UiCiAgICAgICAgICB9CiAgICAgICAgICBvcmRlcl9ldmVudHN0b3JlX3NlcnZpY2UgPSBjb250YWluZXIgIk9yZGVyIEV2ZW50U3RvcmUiICJEdXJhYmxlLCBhcHBlbmQtb25seSBldmVudCBqb3VybmFsIiAiTm9kZS5qcywgRXhwcmVzcyBbNDAwMV0iCiAgICAgICAgfQogICAgICB9CgogICAgICBncm91cCAiLk9ic2VydmFiaWxpdHkiIHsKICAgICAgICBvdGVsX2NvbGxlY3RvciA9IGNvbnRhaW5lciAiT1RlbCBDb2xsZWN0b3IiICJSZWNpZXZlIE9UTFAgYW5kIHNhdmUgYW5kL29yIGV4cG9zZSBpdCIgIk9wZW5UZWxlbWV0cnkgQ29sbGVjdG9yIFs5NDY0XSIgewogICAgICAgICAgdGFncyAiT2JzZXJ2YWJpbGl0eSIKICAgICAgICB9CiAgICAgICAgb3RlbF9ncmFmYW5hID0gY29udGFpbmVyICJHcmFmYW5hIiAiRGFzaGJvYXJkcyBhbmQgZXhwbG9yZSB0cmFjZXMgYW5kIG1ldHJpY3MiICJHcmFmYW5hIFs4MzAwXSIgewogICAgICAgICAgdGFncyAiT2JzZXJ2YWJpbGl0eSIKICAgICAgICB9CiAgICAgICAgb3RlbF9ncmFmYW5hX3VzZXIgPSBjb250YWluZXIgIkdyYWZhbmFfVXNlciIgIkVuZCB1c2VyIGludGVyYWN0aW5nIHZpYSBicm93c2VyIiAiUGVyc29uIiB7CiAgICAgICAgICB0YWdzICJQZXJzb25PYnNlcnZhYmlsaXR5IgogICAgICAgIH0KICAgICAgICBvdGVsX2dyYWZhbmFfdXNlciAtPiBvdGVsX2dyYWZhbmEgInVzZXMiCiAgICAgICAgb3RlbF9wcm9tZXRoZXVzID0gY29udGFpbmVyICJQcm9tZXRoZXVzIiAiU2NyYXBlIGRhdGEgZnJvbSBPVGVsIHNkayBlbiBSYWJiaXRNUSIgIlByb21ldGhldXMgWzg5MDBdIiB7CiAgICAgICAgICB0YWdzICJPYnNlcnZhYmlsaXR5IgogICAgICAgIH0KICAgICAgICBvdGVsX3Byb21ldGhldXNfdXNlciA9IGNvbnRhaW5lciAiUHJvbWV0aGV1c19Vc2VyIiAiRW5kIHVzZXIgaW50ZXJhY3RpbmcgdmlhIGJyb3dzZXIiICJQZXJzb24iIHsKICAgICAgICAgIHRhZ3MgIlBlcnNvbk9ic2VydmFiaWxpdHkiCiAgICAgICAgfQogICAgICAgIG90ZWxfcHJvbWV0aGV1c191c2VyIC0+IG90ZWxfcHJvbWV0aGV1cyAidXNlcyIKICAgICAgICBvdGVsX3RlbXBvID0gY29udGFpbmVyICJUZW1wbyIgIlBlcnNpc3RhbmNlIGZvciB0cmFjZXMiICJHcmFmYW5hIFRlbXBvIFs4MjAwXSIgewogICAgICAgICAgdGFncyAiRGF0YWJhc2VPYnNlcnZhYmlsaXR5IgogICAgICAgIH0KICAgICAgfQoKICAgICAgZ3JvdXAgIi5TaG9wIiB7CiAgICAgICAgc2hvcF9iZmZfc2VydmljZSA9IGNvbnRhaW5lciAiU2hvcCBCRkYiICJFeHBvc2VzIGFuZCBndWFyZHMgV2ViU29ja2V0L0FQSXMsIHB1Ymxpc2hlcyBDb21tYW5kcyB0byB0aGUgYnJva2VyLCBmb3J3YXJkcyBRdWVyaWVzIHRvIHByb2plY3Rpb25zLCBsaXN0ZW5zIGZvciBQYXlsb2FkcyBmcm9tIHByb2plY3Rpb25zIGFuZCBmb3J3YXJkcyB0aGVtIHRvIHdlYiBjbGllbnRzIiAiTm9kZS5qcywgRXhwcmVzcywgU29ja2V0LmlvIFszMDAwXSIKCiAgICAgICAgZ3JvdXAgIi5Qcm9qZWN0aW9uIiB7CiAgICAgICAgICBzaG9wX3Byb2plY3Rpb25fZGIgPSBjb250YWluZXIgIlNob3AgUHJvamVjdGlvbiBEYXRhYmFzZSIgIlJlYWQgREIgZm9yIGRlbm9ybWFsaXplZCB2aWV3cyIgIk5vZGUuanMsIE1vbmdvREIgW2RlZmF1bHRdIiB7CiAgICAgICAgICAgIHRhZ3MgIkRhdGFiYXNlIgogICAgICAgICAgfQogICAgICAgICAgc2hvcF9wcm9qZWN0aW9uX3NlcnZpY2UgPSBjb250YWluZXIgIlNob3AgUHJvamVjdGlvbiIgIkhhbmRsZXMgZmV0Y2hlcywgc3Vic2NyaWJlcyB0byBEb21haW5FdmVudHMsIGRlbm9ybWFsaXplcyBhbmQgdXBzZXJ0cyBQYXlsb2FkcywgcHVzaGVzIFBheWxvYWRzIHRvIGJmZiIgIk5vZGUuanMsIEV4cHJlc3MsIFNvY2tldC5pby1jbGllbnQgWzMwMDJdIgogICAgICAgIH0KCiAgICAgICAgZ3JvdXAgIi5XZWJzaXRlIiB7CiAgICAgICAgICBzaG9wX3dlYnNlcnZlciA9IGNvbnRhaW5lciAiU2hvcCBGcm9udGVuZCBTUEEiICJXZWIgaW50ZXJmYWNlLCBjb25uZWN0cyB0byBiZmYgdmlhIHdzcywgc2VuZHMgUXVlcmllcyBhbmQgQ29tbWFuZHMgdG8gYmZmLCByZW5kZXJzIGluY29taW5nIFBheWxvYWRzIiAiQnJvd3NlciwgU29ja2V0LmlvLm1pbiBbVVJMXSIgewogICAgICAgICAgICB0YWdzICJXZWJjbGllbnQiCiAgICAgICAgICB9CiAgICAgICAgICBzaG9wX3dlYnNlcnZlcl9zZXJ2ZXIgPSBjb250YWluZXIgIlNob3AgRnJvbnRlbmQgU2VydmVyIiAiU2VydmVzIHN0YXRpYyBmaWxlcyIgIk5naW54IFszMDAxXSIKICAgICAgICAgIHNob3Bfd2Vic2VydmVyX3VzZXIgPSBjb250YWluZXIgIlVzZXIiICJFbmQgdXNlciBpbnRlcmFjdGluZyB2aWEgYnJvd3NlciIgIlBlcnNvbiIgewogICAgICAgICAgICB0YWdzICJQZXJzb24iCiAgICAgICAgICB9CiAgICAgICAgICBzaG9wX3dlYnNlcnZlcl9zZXJ2ZXIgLT4gc2hvcF93ZWJzZXJ2ZXIgInNlcnZlcyIKICAgICAgICAgIHNob3Bfd2Vic2VydmVyX3VzZXIgLT4gc2hvcF93ZWJzZXJ2ZXIgInVzZXMiCiAgICAgICAgfQogICAgICB9CgoKICAgICAgb3JkZXJfZXZlbnRzdG9yZV9zZXJ2aWNlIC0+IG9yZGVyX2V2ZW50c3RvcmVfZGIgInJlYWQsIHdyaXRlIgogICAgICBvcmRlcl9zZXJ2aWNlIC0+IGJyb2tlcl9zZXJ2aWNlICJzdWJzY3JpYmUgdG8gY2VydGFpbiBDb21tYW5kcywgcHVibGlzaCBEb21haW5FdmVudHMiCiAgICAgIG9yZGVyX3NlcnZpY2UgLT4gb3JkZXJfZXZlbnRzdG9yZV9zZXJ2aWNlICJmZXRjaCBzdHJlYW1zLCBjb21taXQgRG9tYWluRXZlbnRzIgogICAgICBvdGVsX2NvbGxlY3RvciAtPiBvcmRlcl9ldmVudHN0b3JlX3NlcnZpY2UgInNkayBtZXRyaWNzL3RyYWNlcyAob3RlbDo0MzE4KSIKICAgICAgb3RlbF9jb2xsZWN0b3IgLT4gb3JkZXJfc2VydmljZSAic2RrIG1ldHJpY3MvdHJhY2VzIChvdGVsOjQzMTgpIgogICAgICBvdGVsX2NvbGxlY3RvciAtPiBzaG9wX2JmZl9zZXJ2aWNlICJzZGsgbWV0cmljcy90cmFjZXMgKG90ZWw6NDMxOCkiCiAgICAgIG90ZWxfY29sbGVjdG9yIC0+IHNob3BfcHJvamVjdGlvbl9zZXJ2aWNlICJzZGsgbWV0cmljcy90cmFjZXMgKG90ZWw6NDMxOCkiCiAgICAgIG90ZWxfZ3JhZmFuYSAtPiBvdGVsX3Byb21ldGhldXMgImV4cGxvcmUgbWV0cmljcyAocHJvbTo5MDkwKSIKICAgICAgb3RlbF9ncmFmYW5hIC0+IG90ZWxfdGVtcG8gImV4cGxvcmUgdHJhY2VzICh0ZW1wbzozMjAwKSIKICAgICAgb3RlbF9wcm9tZXRoZXVzIC0+IGJyb2tlcl9zZXJ2aWNlICJzY3JhcGUgbWV0cmljcyAoYnJva2VyOjE1NjkyKSIKICAgICAgb3RlbF9wcm9tZXRoZXVzIC0+IG9yZGVyX2V2ZW50c3RvcmVfc2VydmljZSAic2NyYXBlIG1ldHJpY3MgKC9tZXRyaWNzOjkxMDApIgogICAgICBvdGVsX3Byb21ldGhldXMgLT4gb3JkZXJfc2VydmljZSAic2NyYXBlIG1ldHJpY3MgKC9tZXRyaWNzOjkxMDApIgogICAgICBvdGVsX3Byb21ldGhldXMgLT4gb3RlbF9jb2xsZWN0b3IgInNjcmFwZXMgbWV0cmljcyAob3RlbDo5NDY0IG90ZWw6ODg4OCkiCiAgICAgIG90ZWxfcHJvbWV0aGV1cyAtPiBzaG9wX2JmZl9zZXJ2aWNlICJzY3JhcGUgbWV0cmljcyAoL21ldHJpY3M6OTEwMCkiCiAgICAgIG90ZWxfcHJvbWV0aGV1cyAtPiBzaG9wX3Byb2plY3Rpb25fc2VydmljZSAic2NyYXBlIG1ldHJpY3MgKC9tZXRyaWNzOjkxMDApIgogICAgICBvdGVsX3RlbXBvIC0+IG90ZWxfY29sbGVjdG9yICJnZXRzIG1ldHJpY3MvdHJhY2VzIChvdGVsOjQzMTgpIgogICAgICBzaG9wX2JmZl9zZXJ2aWNlIC0+IGJyb2tlcl9zZXJ2aWNlICJwdWJsaXNoIENvbW1hbmRzIgogICAgICBzaG9wX3Byb2plY3Rpb25fZGIgLT4gb3JkZXJfZXZlbnRzdG9yZV9zZXJ2aWNlICJzZWVkIHNjcmlwdCB2aWEgZmV0Y2ggc3RyZWFtcyIKICAgICAgc2hvcF9wcm9qZWN0aW9uX3NlcnZpY2UgLT4gYnJva2VyX3NlcnZpY2UgInN1YnNjcmliZSB0byBjZXJ0YWluIERvbWFpbkV2ZW50cyIKICAgICAgc2hvcF9wcm9qZWN0aW9uX3NlcnZpY2UgLT4gc2hvcF9iZmZfc2VydmljZSAibGlzdGVuIGZvciBRdWVyaWVzIGFuZCBwdXNoIFBheWxvYWRzIgogICAgICBzaG9wX3Byb2plY3Rpb25fc2VydmljZSAtPiBzaG9wX3Byb2plY3Rpb25fZGIgImZldGNoIGRhdGEsIHVwc2VydCBkYXRhIgogICAgICBzaG9wX3dlYnNlcnZlciAtPiBzaG9wX2JmZl9zZXJ2aWNlICJzZW5kIENvbW1hbmRzIGFuZCBRdWVyaWVzLCBsaXN0ZW4gZm9yIFBheWxvYWRzIgogICAgfQogIH0KCiAgdmlld3MgewogICAgY29udGFpbmVyIHNob3AgImFwcC1hbGwiICJBcHAgKyBPYnMiIHsKICAgICAgaW5jbHVkZSAqCiAgICB9CgogICAgY29udGFpbmVyIHNob3AgImFwcC1vbmx5IiAiQXBwIG9ubHkiIHsKICAgICAgaW5jbHVkZSAqCiAgICAgIGV4Y2x1ZGUgImVsZW1lbnQudGFnPT1PYnNlcnZhYmlsaXR5IHx8IGVsZW1lbnQudGFnPT1EYXRhYmFzZU9ic2VydmFiaWxpdHkgfHwgZWxlbWVudC50YWc9PVBlcnNvbk9ic2VydmFiaWxpdHkiCiAgICB9CgogICAgc3R5bGVzIHsKICAgICAgZWxlbWVudCAqIHsKICAgICAgICBzaGFwZSByb3VuZGVkYm94CiAgICAgICAgYmFja2dyb3VuZCAicm95YWxibHVlIgogICAgICB9CiAgICAgIGVsZW1lbnQgIkJyb2tlciIgewogICAgICAgIHNoYXBlIGhleGFnb24KICAgICAgICBiYWNrZ3JvdW5kICJ0b21hdG8iCiAgICAgIH0KICAgICAgZWxlbWVudCAiT2JzZXJ2YWJpbGl0eSIgewogICAgICAgIHNoYXBlIHJvdW5kZWRib3gKICAgICAgICBiYWNrZ3JvdW5kICJkYXJrb3JhbmdlIgogICAgICB9CiAgICAgIGVsZW1lbnQgIkRhdGFiYXNlIiB7CiAgICAgICAgc2hhcGUgY3lsaW5kZXIKICAgICAgICBiYWNrZ3JvdW5kICJvcmNoaWQiCiAgICAgIH0KICAgICAgZWxlbWVudCAiRGF0YWJhc2VPYnNlcnZhYmlsaXR5IiB7CiAgICAgICAgc2hhcGUgY3lsaW5kZXIKICAgICAgICBiYWNrZ3JvdW5kICJvcmNoaWQiCiAgICAgIH0KICAgICAgZWxlbWVudCAiV2ViY2xpZW50IiB7CiAgICAgICAgc2hhcGUgd2ViYnJvd3NlcgogICAgICAgIGJhY2tncm91bmQgInNlYWdyZWVuIgogICAgICB9CiAgICAgIGVsZW1lbnQgIlBlcnNvbiIgewogICAgICAgIGJhY2tncm91bmQgInNlYWdyZWVuIgogICAgICB9CiAgICAgIGVsZW1lbnQgIlBlcnNvbk9ic2VydmFiaWxpdHkiIHsKICAgICAgICBzaGFwZSBwZXJzb24KICAgICAgICBiYWNrZ3JvdW5kICJzZWFncmVlbiIKICAgICAgfQogICAgfQogICAgdGhlbWUgZGVmYXVsdAogIH0KfQ=="
   },
   "views" : {
     "configuration" : {
       "branding" : { },
-      "lastSavedView" : "container_view",
+      "lastSavedView" : "app-all",
       "metadataSymbols" : "SquareBrackets",
       "styles" : {
         "elements" : [ {
@@ -337,10 +386,6 @@
           "shape" : "Hexagon",
           "tag" : "Broker"
         }, {
-          "background" : "#000000",
-          "shape" : "Ellipse",
-          "tag" : "Injector"
-        }, {
           "background" : "#ff8c00",
           "shape" : "RoundedBox",
           "tag" : "Observability"
@@ -349,95 +394,101 @@
           "shape" : "Cylinder",
           "tag" : "Database"
         }, {
+          "background" : "#da70d6",
+          "shape" : "Cylinder",
+          "tag" : "DatabaseObservability"
+        }, {
           "background" : "#2e8b57",
           "shape" : "WebBrowser",
           "tag" : "Webclient"
         }, {
           "background" : "#2e8b57",
           "tag" : "Person"
+        }, {
+          "background" : "#2e8b57",
+          "shape" : "Person",
+          "tag" : "PersonObservability"
         } ]
       },
       "terminology" : { },
       "themes" : [ "https://static.structurizr.com/themes/default/theme.json" ]
     },
     "containerViews" : [ {
-      "description" : "Container Diagram",
+      "description" : "App + Obs",
       "dimensions" : {
-        "height" : 4083,
-        "width" : 4993
+        "height" : 3448,
+        "width" : 4180
       },
       "elements" : [ {
         "id" : "2",
-        "x" : 3135,
-        "y" : 1405
+        "x" : 1865,
+        "y" : 1386
       }, {
         "id" : "3",
-        "x" : 3365,
-        "y" : 200
+        "x" : 1865,
+        "y" : 1386
       }, {
         "id" : "4",
-        "x" : 3335,
-        "y" : 590
+        "x" : 1865,
+        "y" : 1386
       }, {
         "id" : "5",
-        "x" : 4207,
-        "y" : 190
+        "x" : 1865,
+        "y" : 1386
       }, {
         "id" : "6",
-        "x" : 4107,
-        "y" : 580
+        "x" : 1865,
+        "y" : 1386
       }, {
         "id" : "7",
-        "x" : 820,
-        "y" : 880
+        "x" : 1865,
+        "y" : 1386
       }, {
         "id" : "8",
-        "x" : 80,
-        "y" : 1450
-      }, {
-        "id" : "9",
-        "x" : 820,
-        "y" : 1450
+        "x" : 1865,
+        "y" : 1386
       }, {
         "id" : "10",
-        "x" : 85,
-        "y" : 870
+        "x" : 1865,
+        "y" : 1386
       }, {
         "id" : "11",
-        "x" : 2490,
-        "y" : 2230
-      }, {
-        "id" : "12",
-        "x" : 3038,
-        "y" : 2225
+        "x" : 1865,
+        "y" : 1386
       }, {
         "id" : "13",
-        "x" : 4118,
-        "y" : 2675
+        "x" : 1865,
+        "y" : 1386
       }, {
         "id" : "14",
-        "x" : 3773,
-        "y" : 2215
+        "x" : 1865,
+        "y" : 1386
       }, {
         "id" : "15",
-        "x" : 3040,
-        "y" : 2835
+        "x" : 1865,
+        "y" : 1386
       }, {
         "id" : "16",
-        "x" : 3040,
-        "y" : 3265
+        "x" : 1865,
+        "y" : 1386
       }, {
         "id" : "17",
-        "x" : 2470,
-        "y" : 2800
+        "x" : 1865,
+        "y" : 1386
+      }, {
+        "id" : "18",
+        "x" : 1865,
+        "y" : 1386
+      }, {
+        "id" : "19",
+        "x" : 1865,
+        "y" : 1386
       } ],
       "externalSoftwareSystemBoundariesVisible" : false,
-      "key" : "container_view",
+      "key" : "app-all",
       "order" : 1,
       "relationships" : [ {
-        "id" : "18"
-      }, {
-        "id" : "19"
+        "id" : "12"
       }, {
         "id" : "20"
       }, {
@@ -470,6 +521,106 @@
         "id" : "34"
       }, {
         "id" : "35"
+      }, {
+        "id" : "36"
+      }, {
+        "id" : "37"
+      }, {
+        "id" : "38"
+      }, {
+        "id" : "39"
+      }, {
+        "id" : "40"
+      }, {
+        "id" : "41"
+      }, {
+        "id" : "42"
+      }, {
+        "id" : "43"
+      }, {
+        "id" : "9"
+      } ],
+      "softwareSystemId" : "1"
+    }, {
+      "description" : "App only",
+      "dimensions" : {
+        "height" : 3448,
+        "width" : 4180
+      },
+      "elements" : [ {
+        "id" : "2",
+        "x" : 1990,
+        "y" : 875
+      }, {
+        "id" : "3",
+        "x" : 3325,
+        "y" : 386
+      }, {
+        "id" : "4",
+        "x" : 3525,
+        "y" : 180
+      }, {
+        "id" : "5",
+        "x" : 3525,
+        "y" : 180
+      }, {
+        "id" : "8",
+        "x" : 260,
+        "y" : 1050
+      }, {
+        "id" : "11",
+        "x" : 260,
+        "y" : 1050
+      }, {
+        "id" : "14",
+        "x" : 1900,
+        "y" : 2685
+      }, {
+        "id" : "15",
+        "x" : 1900,
+        "y" : 2685
+      }, {
+        "id" : "16",
+        "x" : 1900,
+        "y" : 2685
+      }, {
+        "id" : "17",
+        "x" : 1900,
+        "y" : 2685
+      }, {
+        "id" : "18",
+        "x" : 1900,
+        "y" : 2685
+      }, {
+        "id" : "19",
+        "x" : 1900,
+        "y" : 2685
+      } ],
+      "externalSoftwareSystemBoundariesVisible" : false,
+      "key" : "app-only",
+      "order" : 2,
+      "relationships" : [ {
+        "id" : "20"
+      }, {
+        "id" : "21"
+      }, {
+        "id" : "22"
+      }, {
+        "id" : "23"
+      }, {
+        "id" : "24"
+      }, {
+        "id" : "38"
+      }, {
+        "id" : "39"
+      }, {
+        "id" : "40"
+      }, {
+        "id" : "41"
+      }, {
+        "id" : "42"
+      }, {
+        "id" : "43"
       } ],
       "softwareSystemId" : "1"
     } ]

@@ -8,6 +8,7 @@
     "shared/interfaces",
     "shared/**",
     "observability/**",
+    "calendar-service",
     "order-eventstore-service",
     "order-service",
     "shop-bff-service",

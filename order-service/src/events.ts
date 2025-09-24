@@ -1,9 +1,9 @@
-import { IOrderCreatedEvent } from '@daveloper/interfaces';
+import { IOrderCreatedEvent } from "@daveloper/interfaces";
 
 export class OrderCreated implements IOrderCreatedEvent {
-  readonly type = 'OrderCreated';
+  readonly type = 'OrderCreated' as const;
   constructor(
-    public payload: { orderId: string; userId: string, total: number },
+    public payload: IOrderCreatedEvent["payload"],
     public correlationId: string,
   ) { }
 }

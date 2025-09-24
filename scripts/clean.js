@@ -7,6 +7,7 @@ const patterns = [
   'node_modules',
   'dist',
   'package-lock.json',
+  'scripts/*.txt',
   '**/node_modules',
   '**/dist',
   '**/package-lock.json',

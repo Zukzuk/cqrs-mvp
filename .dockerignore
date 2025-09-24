@@ -8,3 +8,5 @@
 npm-debug.log
 *.tsbuildinfo
 .git
+.DS_Store
+.vscode

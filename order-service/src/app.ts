@@ -3,10 +3,10 @@ import http from 'http';
 import { RabbitMQBroker } from '@daveloper/broker';
 import { HttpEventStore } from '@daveloper/eventstore';
 import { startMetricsServer } from '@daveloper/opentelemetry';
-import { Repository } from './repository';
-import { CommandHandler } from './commandHandler';
+import { Repository } from './aggregate/Repository';
+import { CommandHandler } from './aggregate/CommandHandler';
 import { CreateOrder } from './commands';
-import { Order } from './orderAggregate';
+import { Order } from './aggregate/OrderAggregate';
 
 (async () => {
   // expose Prometheus /metrics for this container
@@ -26,17 +26,21 @@ import { Order } from './orderAggregate';
    * Commands go point-to-point: send() directly into the commands queue 
    * and consumeQueue() asserts and reads that same queue. There’s exactly one queue, one handler.
    */
-  await broker.consumeQueue<CreateOrder>(
+  await broker.consumeQueue(
     'commands',
     async (cmd: CreateOrder) => {
       console.log('📨 [order-broker] recieving command', cmd.type);
       try {
-        await handler.handle(cmd);
-        console.log('✅ [order-handler] command successfully handled', cmd.type);
-      } catch (err: any) {
+        switch (cmd?.type) {
+          case 'CreateOrder': return handler.handle(new CreateOrder(cmd.payload, cmd.correlationId));
+          default:
+            throw new Error(`Unknown command type: ${cmd?.type}`);
+        }
+      } catch (err) {
         console.error('❌ [order-handler] command handling failed:', err);
       }
     }
+
   );
 
   // HTTP server (for health checks, metrics, etc)

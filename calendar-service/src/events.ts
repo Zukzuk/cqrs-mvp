@@ -1,22 +1,38 @@
-import {
-  IDomainEvent,
-  CalendarCreatedPayload, TimeslotScheduledPayload,
-  ScheduleRemovedPayload, CalendarRemovedPayload
-} from './types';
+import { 
+  ICalendarCreatedEvent, 
+  ICalendarRemovedEvent, 
+  IScheduledTimeslotRemovedEvent, 
+  ITimeslotScheduledEvent,
+} from "@daveloper/interfaces";
 
-export class CalendarCreated implements IDomainEvent<'CalendarCreated', CalendarCreatedPayload> {
+export class CalendarCreated implements ICalendarCreatedEvent {
   readonly type = 'CalendarCreated' as const;
-  constructor(public payload: CalendarCreatedPayload, public correlationId: string) { }
+  constructor(
+    public payload: ICalendarCreatedEvent["payload"],
+    public correlationId: string
+  ) {}
 }
-export class TimeslotScheduled implements IDomainEvent<'TimeslotScheduled', TimeslotScheduledPayload> {
+
+export class TimeslotScheduled implements ITimeslotScheduledEvent {
   readonly type = 'TimeslotScheduled' as const;
-  constructor(public payload: TimeslotScheduledPayload, public correlationId: string) { }
+  constructor(
+    public payload: ITimeslotScheduledEvent["payload"],
+    public correlationId: string
+  ) {}
 }
-export class ScheduleRemoved implements IDomainEvent<'ScheduleRemoved', ScheduleRemovedPayload> {
-  readonly type = 'ScheduleRemoved' as const;
-  constructor(public payload: ScheduleRemovedPayload, public correlationId: string) { }
+
+export class ScheduledTimeslotRemoved implements IScheduledTimeslotRemovedEvent {
+  readonly type = 'ScheduledTimeslotRemoved' as const;
+  constructor(
+    public payload: IScheduledTimeslotRemovedEvent["payload"],
+    public correlationId: string
+  ) {}
 }
-export class CalendarRemoved implements IDomainEvent<'CalendarRemoved', CalendarRemovedPayload> {
+
+export class CalendarRemoved implements ICalendarRemovedEvent {
   readonly type = 'CalendarRemoved' as const;
-  constructor(public payload: CalendarRemovedPayload, public correlationId: string) { }
+  constructor(
+    public payload: ICalendarRemovedEvent["payload"],
+    public correlationId: string
+  ) {}
 }

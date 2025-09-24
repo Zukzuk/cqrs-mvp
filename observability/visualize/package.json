@@ -2,12 +2,10 @@
   "name": "@daveloper/visualize",
   "version": "1.0.0",
   "description": "Automates C4 diagramming through docker-compose interpretation",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "visualize": "ts-node src/index.ts",
-    "generate": "ts-node src/generate.ts"
+    "viz": "ts-node src/viz.ts",
+    "viz:gen": "ts-node src/gen.ts"
   },
   "dependencies": {
     "js-yaml": "^4.1.0"

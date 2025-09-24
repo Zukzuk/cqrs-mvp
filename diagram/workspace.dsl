@@ -12,6 +12,17 @@ workspace {
         }
       }
 
+      group ".Calendar Domain" {
+        calendar_service = container "Calendar Application" "Subscribes to certain Commands, protects the DomainLogic, emits DomainEvents to the broker" "Node.js, Express [4010]"
+
+        group ".Event Store" {
+          calendar_eventstore_db = container "Calendar EventStore Database" "Append only journal for DomainEvents" "MongoDB [default]" {
+            tags "Database"
+          }
+          calendar_eventstore_service = container "Calendar EventStore" "Durable, append-only event journal" "Node.js, Express [4011]"
+        }
+      }
+
       group ".Order Domain" {
         order_service = container "Order Application" "Subscribes to certain Commands, protects the DomainLogic, emits DomainEvents to the broker" "Node.js, Express [4000]"
 
@@ -70,9 +81,14 @@ workspace {
       }
 
 
+      calendar_eventstore_service -> calendar_eventstore_db "read, write"
+      calendar_service -> broker_service "subscribe to certain Commands, publish DomainEvents"
+      calendar_service -> calendar_eventstore_service "fetch streams, commit DomainEvents"
       order_eventstore_service -> order_eventstore_db "read, write"
       order_service -> broker_service "subscribe to certain Commands, publish DomainEvents"
       order_service -> order_eventstore_service "fetch streams, commit DomainEvents"
+      otel_collector -> calendar_eventstore_service "sdk metrics/traces (otel:4318)"
+      otel_collector -> calendar_service "sdk metrics/traces (otel:4318)"
       otel_collector -> order_eventstore_service "sdk metrics/traces (otel:4318)"
       otel_collector -> order_service "sdk metrics/traces (otel:4318)"
       otel_collector -> shop_bff_service "sdk metrics/traces (otel:4318)"
@@ -80,6 +96,8 @@ workspace {
       otel_grafana -> otel_prometheus "explore metrics (prom:9090)"
       otel_grafana -> otel_tempo "explore traces (tempo:3200)"
       otel_prometheus -> broker_service "scrape metrics (broker:15692)"
+      otel_prometheus -> calendar_eventstore_service "scrape metrics (/metrics:9100)"
+      otel_prometheus -> calendar_service "scrape metrics (/metrics:9100)"
       otel_prometheus -> order_eventstore_service "scrape metrics (/metrics:9100)"
       otel_prometheus -> order_service "scrape metrics (/metrics:9100)"
       otel_prometheus -> otel_collector "scrapes metrics (otel:9464 otel:8888)"

@@ -65,7 +65,7 @@ import {
   const app = express();
   app.get('/health', (_req, res) => res.status(200).json({ status: 'ok' }));
   const server = http.createServer(app);
-  server.listen(Number(process.env.PORT) || 4100, () =>
+  server.listen(Number(process.env.PORT) || 4010, () =>
     console.log('🚀 CalendarApplicationService up'),
   );
 })();

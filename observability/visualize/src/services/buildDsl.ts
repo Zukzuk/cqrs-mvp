@@ -1,5 +1,3 @@
-import fs from 'fs';
-import path from 'path';
 import { ComposeFile, ComposeService } from './loadCompose';
 
 /**
@@ -283,20 +281,4 @@ export function buildDsl(compose: ComposeFile): string {
     .join('');
 
   return header + groupSections + ungroupedSections + dependencySection + footer;
-}
-
-/**
- * Writes the DSL text to disk under `<rootDir>/diagram`.
- */
-export async function writeDsl(dsl: string, projectName: string, rootDir: string): Promise<string> {
-  const outputDir = path.join(rootDir, 'diagram');
-  fs.mkdirSync(outputDir, { recursive: true });
-
-  const fileName = `${projectName}-diagram.dsl`;
-  const filePath = path.join(outputDir, fileName);
-
-  fs.writeFileSync(filePath, dsl, { encoding: 'utf-8' });
-  console.log(`✅ DSL generated: ${filePath}`);
-
-  return fileName;
 }

@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
 
-export function launchStructurizrUI(
+export function launchDocker(
   dslText: string,
 ): void {
   // Ensure './diagram' directory exists in the current working directory

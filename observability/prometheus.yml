@@ -25,3 +25,5 @@ scrape_configs:
         - shop-projection-service:9100
         - order-service:9100
         - order-eventstore-service:9100
+        - calendar-service:9100
+        - calendar-eventstore-service:9100

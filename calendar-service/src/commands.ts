@@ -1,8 +1,9 @@
-import { 
+import {
   ICreateCalendarCommand,
-  IRemoveCalendarCommand, 
+  IRemoveCalendarCommand,
   IRemoveScheduledTimeslotCommand,
   IScheduleTimeslotCommand,
+  IRescheduleTimeslotCommand,
 } from '@daveloper/interfaces';
 
 export class CreateCalendar implements ICreateCalendarCommand {
@@ -17,6 +18,14 @@ export class ScheduleTimeslot implements IScheduleTimeslotCommand {
   readonly type = 'ScheduleTimeslot' as const;
   constructor(
     public payload: IScheduleTimeslotCommand["payload"],
+    public correlationId: string
+  ) { }
+}
+
+export class RescheduleTimeslot implements IRescheduleTimeslotCommand {
+  readonly type = 'RescheduleTimeslot' as const;
+  constructor(
+    public payload: IRescheduleTimeslotCommand["payload"], 
     public correlationId: string
   ) { }
 }

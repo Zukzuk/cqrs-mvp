@@ -1,4 +1,4 @@
-import { TCommandUnion, TDomainEventUnion, TAllDomainEventTypes } from './index';
+import { TCommandUnion, TDomainEventUnion, TDomainEventTypes } from './index';
 
 export interface ICommandHandler<T = any> { (message: T): Promise<void>; }
 
@@ -14,7 +14,7 @@ export interface IBroker {
       durable: boolean;
       exchange: string;
       autoDelete: boolean;
-      routingKeys: TAllDomainEventTypes[];  // only keys from the entire set of domain‐event types
+      routingKeys: TDomainEventTypes[];  // only keys from the entire set of domain‐event types
     }
   ): Promise<() => Promise<void>>;
 

@@ -1,12 +1,7 @@
-// Calendar related types
+import { ViolationReason } from "./calendar/Types";
 
-export type Timeslot = {
-  timeslotId: string;
-  title: string;
-  start: ISODateTime;
-  end: ISODateTime;
-  location?: string;
-  description?: string;
-};
+// A violation carries a typed reason + human message.
+export type Violation = Readonly<{ reason: ViolationReason; message: string }>;
 
-export type ISODateTime = string; // must be valid ISO-8601
+// Rules return `null` when OK, or a `Violation` when they fail.
+export type RuleResult = Violation | null;

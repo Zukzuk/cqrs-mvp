@@ -1,7 +1,27 @@
-import { Timeslot } from '@daveloper/interfaces';
+import { RuleResult, Timeslot } from '@daveloper/interfaces';
 import { AggregateRoot } from './AggregateRoot';
-import { CalendarCreated, CalendarRemoved, ScheduledTimeslotRemoved, TimeslotScheduled } from '../events';
 import { ScheduleTimeslot } from '../commands';
+import {
+  CalendarCreated,
+  CalendarRemoved,
+  TimeslotScheduled,
+  TimeslotRescheduled,
+  ScheduledTimeslotRemoved,
+  CalendarCreationFailed,
+  TimeslotSchedulingFailed,
+  TimeslotReschedulingFailed,
+  ScheduledTimeslotRemovalFailed,
+  CalendarRemovalFailed,
+} from '../events';
+import {
+  calendarMustExist,
+  calendarMustNotExist,
+  calendarMustNotBeRemoved,
+  timeRangeValid,
+  timeslotMustNotExist,
+  timeslotMustExist,
+  noCalendarOverlap,
+} from './BusinessRules';
 
 export class Calendar extends AggregateRoot {
   public id!: string; // calendarId == userId (MVP)
@@ -9,65 +29,104 @@ export class Calendar extends AggregateRoot {
   private removed = false;
   private timeslots = new Map<string, Timeslot>();
 
-  // ------------- Commands -------------
+  scheduleTimeslot(payload: ScheduleTimeslot["payload"], correlationId: string) {
+    const base = { calendarId: payload.calendarId, timeslotId: payload.timeslotId };
 
-  createCalendar(calendarId: string, correlationId: string) {
-    if (this.removed) throw new Error('Calendar has been removed');
-    if (this.exists) return; // idempotent
-    
-    this.apply(new CalendarCreated({ 
-      calendarId 
-    }, correlationId));
+    let v: RuleResult;
+
+    v = calendarMustExist(this.exists, this.removed);
+    if (v) return this.apply(new TimeslotSchedulingFailed({ ...base, ...v }, correlationId));
+
+    v = timeRangeValid(payload.start, payload.end);
+    if (v) return this.apply(new TimeslotSchedulingFailed({ ...base, ...v }, correlationId));
+
+    v = timeslotMustNotExist(this.timeslots.has(payload.timeslotId));
+    if (v) return this.apply(new TimeslotSchedulingFailed({ ...base, ...v }, correlationId));
+
+    v = noCalendarOverlap(payload.start, payload.end, this.timeslots);
+    if (v) return this.apply(new TimeslotSchedulingFailed({ ...base, ...v }, correlationId));
+
+    this.apply(new TimeslotScheduled({ ...payload }, correlationId));
   }
 
-  scheduleTimeslot(p: ScheduleTimeslot["payload"], correlationId: string) {
-    if (!this.exists || this.removed) throw new Error('Calendar does not exist');
-    if (p.start >= p.end) throw new Error('Invalid time range');
+  rescheduleTimeslot(
+    payload: { calendarId: string; timeslotId: string; start: string; end: string },
+    correlationId: string
+  ) {
+    const base = { calendarId: payload.calendarId, timeslotId: payload.timeslotId };
 
-    const isUpdate = this.timeslots.has(p.timeslotId);
-    // MVP: allow overlaps; you can add overlap detection later if needed.
+    let v: RuleResult;
 
-    this.apply(new TimeslotScheduled({
-      calendarId: p.calendarId,
-      timeslotId: p.timeslotId,
-      title: p.title,
-      start: p.start,
-      end: p.end,
-      location: p.location,
-      description: p.description,
-      isUpdate
-    }, correlationId));
+    v = calendarMustExist(this.exists, this.removed);
+    if (v) return this.apply(new TimeslotReschedulingFailed({ ...base, ...v }, correlationId));
+
+    v = timeRangeValid(payload.start, payload.end);
+    if (v) return this.apply(new TimeslotReschedulingFailed({ ...base, ...v }, correlationId));
+
+    v = timeslotMustExist(this.timeslots.has(payload.timeslotId));
+    if (v) return this.apply(new TimeslotReschedulingFailed({ ...base, ...v }, correlationId));
+
+    v = noCalendarOverlap(payload.start, payload.end, this.timeslots, payload.timeslotId);
+    if (v) return this.apply(new TimeslotReschedulingFailed({ ...base, ...v }, correlationId));
+
+    this.apply(new TimeslotRescheduled({ ...payload }, correlationId));
+  }
+
+  createCalendar(calendarId: string, correlationId: string) {
+    let v: RuleResult;
+
+    v = calendarMustNotBeRemoved(this.removed);
+    if (v) return this.apply(new CalendarCreationFailed({ calendarId, ...v }, correlationId));
+
+    v = calendarMustNotExist(this.exists);
+    if (v) return this.apply(new CalendarCreationFailed({ calendarId, ...v }, correlationId));
+
+    this.apply(new CalendarCreated({ calendarId }, correlationId));
   }
 
   removeSchedule(calendarId: string, timeslotId: string, correlationId: string) {
-    if (!this.exists || this.removed) throw new Error('Calendar does not exist');
-    if (!this.timeslots.has(timeslotId)) return; // idempotent
-    
-    this.apply(new ScheduledTimeslotRemoved({ 
-      calendarId, 
-      timeslotId 
-    }, correlationId));
+    let v: RuleResult;
+
+    v = calendarMustExist(this.exists, this.removed);
+    if (v) return this.apply(new ScheduledTimeslotRemovalFailed({ calendarId, timeslotId, ...v }, correlationId));
+
+    v = timeslotMustExist(this.timeslots.has(timeslotId));
+    if (v) return this.apply(new ScheduledTimeslotRemovalFailed({ calendarId, timeslotId, ...v }, correlationId));
+
+    this.apply(new ScheduledTimeslotRemoved({ calendarId, timeslotId }, correlationId));
   }
 
   removeCalendar(calendarId: string, correlationId: string) {
-    if (!this.exists) return; // idempotent
-    if (this.removed) return; // idempotent
-    
-    this.apply(new CalendarRemoved({ 
-      calendarId 
-    }, correlationId));
+    let v: RuleResult;
+
+    v = calendarMustExist(this.exists, this.removed);
+    if (v) return this.apply(new CalendarRemovalFailed({ calendarId, ...v }, correlationId));
+
+    if (this.removed) {
+      return this.apply(new CalendarRemovalFailed({
+        calendarId, reason: 'Removed', message: 'Calendar already removed'
+      }, correlationId));
+    }
+
+    this.apply(new CalendarRemoved({ calendarId }, correlationId));
   }
 
-  // ------------- Event appliers -------------
-  
+  // Event Appliers
+
   private onCalendarCreated(e: CalendarCreated & { type: 'CalendarCreated' }) {
     this.id = e.payload.calendarId;
     this.exists = true;
-  }
 
+  }
   private onTimeslotScheduled(e: TimeslotScheduled & { type: 'TimeslotScheduled' }) {
     const { timeslotId, ...rest } = e.payload;
     this.timeslots.set(timeslotId, { timeslotId, ...rest });
+  }
+
+  private onTimeslotRescheduled(e: TimeslotRescheduled & { type: 'TimeslotRescheduled' }) {
+    const existing = this.timeslots.get(e.payload.timeslotId);
+    if (!existing) return; // defensive
+    this.timeslots.set(e.payload.timeslotId, { ...existing, start: e.payload.start, end: e.payload.end });
   }
 
   private onScheduledTimeslotRemoved(e: ScheduledTimeslotRemoved & { type: 'ScheduledTimeslotRemoved' }) {

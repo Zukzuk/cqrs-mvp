@@ -27,7 +27,7 @@ import { Order } from './aggregate/OrderAggregate';
    * and consumeQueue() asserts and reads that same queue. There’s exactly one queue, one handler.
    */
   await broker.consumeQueue(
-    'commands',
+    'commands.orders',
     async (cmd: CreateOrder) => {
       console.log('📨 [order-broker] recieving command', cmd.type);
       try {

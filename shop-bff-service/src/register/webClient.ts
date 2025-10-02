@@ -33,7 +33,7 @@ export function registerWebClient(
             span?.setAttribute('user.id', userId);
 
             try {
-                await broker.send('commands', raw)
+                await broker.send('commands.orders', raw)
                 console.log('✅ [bff-broker] command published')
                 ack?.({ status: 'ok' })
             } catch (e: any) {

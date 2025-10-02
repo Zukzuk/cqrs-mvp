@@ -27,7 +27,7 @@ import {
   const dispatcher = buildDispatcher(repo, broker);
 
   // consume commands
-  await broker.consumeQueue<TCalendarCommandUnion>('commands', async (cmd: any) => {
+  await broker.consumeQueue<TCalendarCommandUnion>('commands.calendars', async (cmd: any) => {
     await trace.getTracer('calendar').startActiveSpan('Dispatch', async (span) => {
       try {
         // add attributes

@@ -1,0 +1,12 @@
+# Ignore all node_modules (at any depth)
+**/node_modules
+
+# Ignore all dist folders (if you don’t need them in the builder stage)
+**/dist
+
+# Optional, but recommended:
+npm-debug.log
+*.tsbuildinfo
+.git
+.DS_Store
+.vscode

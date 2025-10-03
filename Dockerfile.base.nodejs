@@ -1,17 +1,40 @@
-FROM node:22-alpine AS base
-
-# handy tools
-RUN apk add --no-cache bash curl \
- && curl -fsSL https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -o /usr/local/bin/wait-for-it \
- && chmod +x /usr/local/bin/wait-for-it
-
-WORKDIR /usr/src/app
-
-# Copy the workspace manifest + all necessary folders
-COPY package*.json tsconfig.base.json ./
-COPY shared/ ./shared
+# --- build image ---
+FROM node:22-alpine AS build
+WORKDIR /usr/src
+COPY package.json package-lock.json tsconfig*.json .env ./
 COPY observability/opentelemetry/ ./observability/opentelemetry
+COPY shared/ ./shared
 
-RUN npm install
+# Install dependencies and build shared packages
+RUN npm ci \
+    --workspace observability/opentelemetry \
+    --workspace shared \
+    --include-workspace-root=true
+RUN npm run build --workspace observability/opentelemetry
+RUN npm run build --workspace shared
 
-RUN npm run build
+# Add shared tools
+RUN apk add --no-cache bash curl \
+    && curl -fsSL https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh \
+    -o /usr/local/bin/wait-for-it && chmod +x /usr/local/bin/wait-for-it
+
+# --- base image ---
+FROM node:22-alpine
+WORKDIR /usr/src
+COPY package.json package-lock.json tsconfig*.json .env ./
+COPY --from=build /usr/local/bin/wait-for-it /usr/local/bin/wait-for-it
+
+COPY --from=build /usr/src/shared/broker/package.json ./shared/broker/package.json
+COPY --from=build /usr/src/shared/broker/dist ./shared/broker/dist
+
+COPY --from=build /usr/src/shared/denormalizers/package.json ./shared/denormalizers/package.json
+COPY --from=build /usr/src/shared/denormalizers/dist ./shared/denormalizers/dist
+
+COPY --from=build /usr/src/shared/eventstore/package.json ./shared/eventstore/package.json
+COPY --from=build /usr/src/shared/eventstore/dist ./shared/eventstore/dist
+
+COPY --from=build /usr/src/shared/interfaces/package.json ./shared/interfaces/package.json
+COPY --from=build /usr/src/shared/interfaces/dist ./shared/interfaces/dist
+
+COPY --from=build /usr/src/observability/opentelemetry/package.json ./observability/opentelemetry/package.json
+COPY --from=build /usr/src/observability/opentelemetry/dist ./observability/opentelemetry/dist

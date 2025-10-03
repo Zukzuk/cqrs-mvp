@@ -1,0 +1,105 @@
+services:
+  
+  shop-bff-service:
+    build:
+      context: shop/shop-bff-service
+      dockerfile: Dockerfile
+    container_name: shop-bff-service
+    labels:
+      structurizr.name: "Shop BFF"
+      structurizr.description: "Exposes and guards WebSocket/APIs, publishes Commands to the broker, forwards Queries to projections, listens for Payloads from projections and forwards them to web clients"
+      structurizr.technology: "Node.js, Express, Socket.io"
+      structurizr.port: "${SHOP_BFF_PORT}"
+      structurizr.group: "Shop"
+      structurizr.depends_on.broker-service: "publish Commands"
+    depends_on:
+      - broker-service
+    ports:
+      - "${SHOP_BFF_PORT}:3000"
+    environment:
+      - BROKER_URL=amqp://guest:guest@broker-service:5672
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  shop-webserver:
+    build:
+      context: shop/shop-webserver
+      dockerfile: Dockerfile
+    container_name: shop-webserver
+    labels:
+      structurizr.name: "Shop Frontend"
+      structurizr.description: "Serves static files"
+      structurizr.description_website: "Web interface, connects to bff via wss, sends Queries and Commands to bff, renders incoming Payloads"
+      structurizr.technology: "Nginx"
+      structurizr.port: "${SHOP_WEB_PORT}"
+      structurizr.group: "Shop::Website"
+      structurizr.type: "webserver"
+      structurizr.depends_on.shop-bff-service: "send Commands and Queries, listen for Payloads"
+    depends_on:
+      - shop-bff-service
+    ports:
+      - "${SHOP_WEB_PORT}:3001"
+
+  shop-projection-service:
+    build:
+      context: shop/shop-projection-service
+      dockerfile: Dockerfile
+    container_name: shop-projection-service
+    labels:
+      structurizr.name: "Shop Projection"
+      structurizr.description: "Handles fetches, subscribes to DomainEvents, denormalizes and upserts Payloads, pushes Payloads to bff"
+      structurizr.technology: "Node.js, Express, Socket.io-client"
+      structurizr.port: "${SHOP_PROJECTION_PORT}"
+      structurizr.group: "Shop::Projection"
+      structurizr.depends_on.broker-service: "subscribe to certain DomainEvents"
+      structurizr.depends_on.shop-bff-service: "listen for Queries and push Payloads"
+      structurizr.depends_on.shop-projection-db: "fetch data, upsert data"
+    depends_on:
+      - broker-service
+      - shop-bff-service
+      - shop-projection-db
+    ports:
+      - "${SHOP_PROJECTION_PORT}:3002"
+    environment:
+      - BROKER_URL=amqp://guest:guest@broker-service:5672
+      - MONGO_URL=mongodb://shop-projection-db:27017
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  shop-projection-db:
+    build:
+      context: shop/shop-projection-db
+      dockerfile: Dockerfile
+    container_name: shop-projection-db
+    labels:
+      structurizr.name: "Shop Projection Database"
+      structurizr.description: "Read DB for denormalized views"
+      structurizr.technology: "Node.js, MongoDB"
+      structurizr.port: "default"
+      structurizr.group: "Shop::Projection"
+      structurizr.type: "database"
+      structurizr.depends_on.order-eventstore-service: "seed script via fetch streams"
+    depends_on:
+      - order-eventstore-service
+    volumes:
+      - shop_projection_data:/data/db
+      - shop_projection_config:/data/configdb
+      - ./mongo.conf:/etc/mongo/mongo.conf:ro
+    environment:
+      - MONGO_URL=mongodb://127.0.0.1:27017 # via loopback
+      - EVENTSTORE_URL=http://order-eventstore-service:4001 # for seed script
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  shop_projection_data:
+  shop_projection_config:

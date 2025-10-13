@@ -1,5 +1,6 @@
+# Root compose file for generic infra services
 services:
-
+  
   broker-service:
     image: rabbitmq:3-management
     container_name: broker-service

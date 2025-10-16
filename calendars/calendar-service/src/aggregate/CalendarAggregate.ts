@@ -35,18 +35,18 @@ export class Calendar extends AggregateRoot {
     let v: RuleResult;
 
     v = calendarMustExist(this.exists, this.removed);
-    if (v) return this.apply(new TimeslotSchedulingFailed({ ...base, ...v }, correlationId));
+    if (v) return this.raise(new TimeslotSchedulingFailed({ ...base, ...v }, correlationId));
 
     v = timeRangeValid(payload.start, payload.end);
-    if (v) return this.apply(new TimeslotSchedulingFailed({ ...base, ...v }, correlationId));
+    if (v) return this.raise(new TimeslotSchedulingFailed({ ...base, ...v }, correlationId));
 
     v = timeslotMustNotExist(this.timeslots.has(payload.timeslotId));
-    if (v) return this.apply(new TimeslotSchedulingFailed({ ...base, ...v }, correlationId));
+    if (v) return this.raise(new TimeslotSchedulingFailed({ ...base, ...v }, correlationId));
 
     v = noCalendarOverlap(payload.start, payload.end, this.timeslots);
-    if (v) return this.apply(new TimeslotSchedulingFailed({ ...base, ...v }, correlationId));
+    if (v) return this.raise(new TimeslotSchedulingFailed({ ...base, ...v }, correlationId));
 
-    this.apply(new TimeslotScheduled({ ...payload }, correlationId));
+    this.raise(new TimeslotScheduled({ ...payload }, correlationId));
   }
 
   rescheduleTimeslot(
@@ -58,57 +58,57 @@ export class Calendar extends AggregateRoot {
     let v: RuleResult;
 
     v = calendarMustExist(this.exists, this.removed);
-    if (v) return this.apply(new TimeslotReschedulingFailed({ ...base, ...v }, correlationId));
+    if (v) return this.raise(new TimeslotReschedulingFailed({ ...base, ...v }, correlationId));
 
     v = timeRangeValid(payload.start, payload.end);
-    if (v) return this.apply(new TimeslotReschedulingFailed({ ...base, ...v }, correlationId));
+    if (v) return this.raise(new TimeslotReschedulingFailed({ ...base, ...v }, correlationId));
 
     v = timeslotMustExist(this.timeslots.has(payload.timeslotId));
-    if (v) return this.apply(new TimeslotReschedulingFailed({ ...base, ...v }, correlationId));
+    if (v) return this.raise(new TimeslotReschedulingFailed({ ...base, ...v }, correlationId));
 
     v = noCalendarOverlap(payload.start, payload.end, this.timeslots, payload.timeslotId);
-    if (v) return this.apply(new TimeslotReschedulingFailed({ ...base, ...v }, correlationId));
+    if (v) return this.raise(new TimeslotReschedulingFailed({ ...base, ...v }, correlationId));
 
-    this.apply(new TimeslotRescheduled({ ...payload }, correlationId));
+    this.raise(new TimeslotRescheduled({ ...payload }, correlationId));
   }
 
   createCalendar(calendarId: string, correlationId: string) {
     let v: RuleResult;
 
     v = calendarMustNotBeRemoved(this.removed);
-    if (v) return this.apply(new CalendarCreationFailed({ calendarId, ...v }, correlationId));
+    if (v) return this.raise(new CalendarCreationFailed({ calendarId, ...v }, correlationId));
 
     v = calendarMustNotExist(this.exists);
-    if (v) return this.apply(new CalendarCreationFailed({ calendarId, ...v }, correlationId));
+    if (v) return this.raise(new CalendarCreationFailed({ calendarId, ...v }, correlationId));
 
-    this.apply(new CalendarCreated({ calendarId }, correlationId));
+    this.raise(new CalendarCreated({ calendarId }, correlationId));
   }
 
   removeSchedule(calendarId: string, timeslotId: string, correlationId: string) {
     let v: RuleResult;
 
     v = calendarMustExist(this.exists, this.removed);
-    if (v) return this.apply(new ScheduledTimeslotRemovalFailed({ calendarId, timeslotId, ...v }, correlationId));
+    if (v) return this.raise(new ScheduledTimeslotRemovalFailed({ calendarId, timeslotId, ...v }, correlationId));
 
     v = timeslotMustExist(this.timeslots.has(timeslotId));
-    if (v) return this.apply(new ScheduledTimeslotRemovalFailed({ calendarId, timeslotId, ...v }, correlationId));
+    if (v) return this.raise(new ScheduledTimeslotRemovalFailed({ calendarId, timeslotId, ...v }, correlationId));
 
-    this.apply(new ScheduledTimeslotRemoved({ calendarId, timeslotId }, correlationId));
+    this.raise(new ScheduledTimeslotRemoved({ calendarId, timeslotId }, correlationId));
   }
 
   removeCalendar(calendarId: string, correlationId: string) {
     let v: RuleResult;
 
     v = calendarMustExist(this.exists, this.removed);
-    if (v) return this.apply(new CalendarRemovalFailed({ calendarId, ...v }, correlationId));
+    if (v) return this.raise(new CalendarRemovalFailed({ calendarId, ...v }, correlationId));
 
     if (this.removed) {
-      return this.apply(new CalendarRemovalFailed({
+      return this.raise(new CalendarRemovalFailed({
         calendarId, reason: 'Removed', message: 'Calendar already removed'
       }, correlationId));
     }
 
-    this.apply(new CalendarRemoved({ calendarId }, correlationId));
+    this.raise(new CalendarRemoved({ calendarId }, correlationId));
   }
 
   // Event Appliers
@@ -116,8 +116,8 @@ export class Calendar extends AggregateRoot {
   private onCalendarCreated(e: CalendarCreated & { type: 'CalendarCreated' }) {
     this.id = e.payload.calendarId;
     this.exists = true;
-
   }
+
   private onTimeslotScheduled(e: TimeslotScheduled & { type: 'TimeslotScheduled' }) {
     const { timeslotId, ...rest } = e.payload;
     this.timeslots.set(timeslotId, { timeslotId, ...rest });
@@ -125,7 +125,7 @@ export class Calendar extends AggregateRoot {
 
   private onTimeslotRescheduled(e: TimeslotRescheduled & { type: 'TimeslotRescheduled' }) {
     const existing = this.timeslots.get(e.payload.timeslotId);
-    if (!existing) return; // defensive
+    if (!existing) return;
     this.timeslots.set(e.payload.timeslotId, { ...existing, start: e.payload.start, end: e.payload.end });
   }
 

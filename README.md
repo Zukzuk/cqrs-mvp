@@ -2,55 +2,64 @@
 
 A minimal, hexagonal-architecture example showcasing CQRS and Event Sourcing for an order & projection platform.
 
-## Domain:
+### Domain
+- Defines aggregates & domain events
+- Pure business rules, no infra dependencies
 
-Defines Order aggregate & DomainEvent types
+### Application
+- Command handler loads aggregates, applies commands
+- Persists via `IEventStore`, publishes via `IBroker`
 
-Pure business rules, no infra dependencies
+### Infrastructure
+- Adapters for RabbitMQ (shared/broker), Mongo, HTTP
+- Event-store service journals domain events (append-only)
+- Projection service rehydrates on startup and tails live events
 
-## Application:
+> This keeps core logic clean, testable, and ready to swap any backing technology.
 
-CommandHandler loads aggregates, applies commands,
-persists via IEventStore, publishes to RabbitMQ
-
-## Infrastructure:
-
-Adapters for RabbitMQ (shared/broker), Mongo, HTTP
-
-event-store service subscribes to all domain-events and journals them in memory (or later a real DB)
-
-shop-projection-service rehydrates from event-store on startup and tails live events
-
-### This keeps your core logic clean, testable, and ready to swap any backing technology.
-
----
-## Run
+## Development
 
 ```bash
-npm run start:all
+npm run up
 ```
 
----
-## C4 Arhitectural visualization (Structurizr))
+## How It Works
 
-Generate a 1to1 C4 diagram based on the actual `docker-compose.yml`
+### Core Concepts
+- **Commands (write intent):** Requests to change state, validated by **Aggregates**.
+- **Aggregates:** Enforce invariants and emit **Domain Events**; never mutate shared state directly.
+- **Events (facts):** Immutable, append-only; the source of truth.
+
+### Streams & Ordering
+- **Stream (per aggregate):** Each aggregate has a `streamId` (**string**). Its events are appended to that stream in order (causal history).
+- **Global sequence:** Every stored event also gets a system-wide, monotonically increasing **`sequence`**. This provides a single, total order across all streams for consumers.
+
+### Read/Write Separation
+- **Write model (Domain):** Commands → Aggregates → Events (correctness & invariants).
+- **Read model (Reflection/Projection):** Consumes events and **denormalizes** them into query-optimized views. No decisions—only derivation from events.
+
+### Projection Mechanics
+- **Idempotence:** Projections must tolerate replays; use upserts and deterministic mappings.
+- **High-watermark:** Each projector stores the last fully applied global `sequence` and resumes from the next one on restart.
+- **Batching (pagination):** Projections read the global feed **in pages** (N events per call). Batching is a transport concern only; semantics remain identical. Always apply events **in ascending `sequence`**, then advance the checkpoint.
+
+### Consistency & Concurrency
+- **Eventual consistency:** Read models converge after consuming new events.
+- **Optimistic concurrency (optional):** May be enforced with expected stream versions during append; otherwise rely on serialized command handling.
+- **Immutability:** Corrections create new events; history is never rewritten.
+
+### Extending & Swapping
+
+- **Persistence:** Provide a Postgres/Mongo `IEventStore` implementation (library or service).
+- **Broker:** Swap RabbitMQ for Kafka by implementing `IBroker`.
+- **Read models:** Add projection services that subscribe only to relevant event types (routing keys).
+- **Resilience:** Projectors (re)hydrate by calling the event store’s global feed with `from` and an optional `limit` (pagination), apply in order, and advance the **high-watermark**.
+
+> Keep domain & application layers pure; let adapters handle all technical plumbing.
+
+## C4 Architectural visualization (Structurizr)
+
+Generate a 1:1 C4 diagram from the actual `docker-compose.yml`:
 ```bash
-npm run dsl
+npm run viz
 ```
-
-Inspect it with Structurizr UI
-```bash
-npm run visualize
-```
-
-## Extending & Swapping
-
-Persistence: drop in a Postgres/Mongo-based IEventStore in event-store/ or as a library.
-
-Broker: swap RabbitMQ for Kafka by implementing the same IBroker interface.
-
-Read Model: add new projection services binding only to the events they care about (routingKeys).
-
-Snapshots: have projection services call GET /events?from=<timestamp> on the Event Store to catch up after restarts.
-
-This setup keeps your domain & application layers pure, with all technical “plumbing” living in infrastructure adapters—making your core logic clean, testable, and ready to swap any backing technology.

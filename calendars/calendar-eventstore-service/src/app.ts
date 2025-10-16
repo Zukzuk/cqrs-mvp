@@ -4,7 +4,6 @@ import { IDomainEvent, ICounterDoc, IStoredEvent } from '@daveloper/interfaces';
 import { MongoEventStore } from '@daveloper/eventstore';
 import { startMetricsServer } from '@daveloper/opentelemetry';
 
-
 async function bootstrap() {
     // Expose Prometheus /metrics for this container (separate port from order service)
     startMetricsServer(Number(process.env.OTEL_METRICS_PORT) || 9102);
@@ -62,9 +61,10 @@ async function bootstrap() {
     // Load all events (optionally from global position)
     app.get('/events', async (req, res) => {
         const from = req.query.from as string | undefined;
+        const limit = req.query.limit ? Number(req.query.limit) : undefined;
 
         try {
-            const events = await eventStore.loadAllEvents(from);
+            const events = await eventStore.loadAllEvents(from, limit);
             res.json(events);
         } catch (err) {
             console.error(err);

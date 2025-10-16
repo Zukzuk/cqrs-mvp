@@ -5,7 +5,7 @@ import { HttpEventStore } from '@daveloper/eventstore';
 import { startMetricsServer } from '@daveloper/opentelemetry';
 import { Repository } from './aggregate/Repository';
 import { CommandHandler } from './aggregate/CommandHandler';
-import { CreateOrder } from './commands';
+import { CreateOrder, ShipOrder } from './commands';
 import { Order } from './aggregate/OrderAggregate';
 
 (async () => {
@@ -28,19 +28,21 @@ import { Order } from './aggregate/OrderAggregate';
    */
   await broker.consumeQueue(
     'commands.orders',
-    async (cmd: CreateOrder) => {
+    async (cmd: CreateOrder | ShipOrder) => {
       console.log('📨 [order-broker] recieving command', cmd.type);
       try {
         switch (cmd?.type) {
           case 'CreateOrder': return handler.handle(new CreateOrder(cmd.payload, cmd.correlationId));
-          default:
-            throw new Error(`Unknown command type: ${cmd?.type}`);
+          case 'ShipOrder': return handler.handle(new ShipOrder(cmd.payload, cmd.correlationId));
+          default: {
+            const t = (cmd as any)?.type;
+            throw new Error(`Unknown command type: ${t}`);
+          }
         }
       } catch (err) {
         console.error('❌ [order-handler] command handling failed:', err);
       }
     }
-
   );
 
   // HTTP server (for health checks, metrics, etc)

@@ -1,8 +1,7 @@
 import { MongoClient } from 'mongodb';
 import fetch from 'node-fetch';
 import { IShopView, IStoredEvent } from '@daveloper/interfaces';
-import { mapOrderCreated } from '@daveloper/denormalizers';
-
+import { mapOrderCreated, mapOrderShipped } from '@daveloper/denormalizers';
 
 interface ProjectionMeta {
   _id: string;
@@ -32,7 +31,7 @@ async function seed() {
   while (true) {
     const url = `${EVENTSTORE_URL}/events?from=${cursor}&limit=100`;
     const res = await fetch(url);
-    
+
     if (!res.ok) {
       const body = await res.text();
       console.error(`❌ [shop-projection-seeder] fetch ${res.status}:`, body);
@@ -48,7 +47,9 @@ async function seed() {
     console.log(`🟡 [shop-projection-seeder] got ${batch.length} events; first seq=${batch[0].sequence}`);
 
     for (const evt of batch) {
-      const view = mapOrderCreated(evt);
+      let view = undefined;
+      if (evt.type === 'OrderCreated') view = mapOrderCreated(evt);
+      if (evt.type === 'OrderShipped') view = mapOrderShipped(evt);
       if (view) {
         await orders.updateOne(
           { orderId: view.orderId },

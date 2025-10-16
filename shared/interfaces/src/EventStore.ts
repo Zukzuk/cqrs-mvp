@@ -14,5 +14,5 @@ export interface ICounterDoc {
 export interface IEventStore {
     appendToStream(streamId: string, events: IDomainEvent[]): Promise<void>;
     loadStream(streamId: string, from?: string): Promise<IStoredEvent[]>;
-    loadAllEvents(from?: string): Promise<IStoredEvent[]>;
+    loadAllEvents(from?: string, limit?: number): Promise<IStoredEvent[]>;
 }

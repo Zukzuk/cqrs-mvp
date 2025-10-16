@@ -6,5 +6,14 @@ export interface IOrderCreatedEvent extends IDomainEvent<{
     total: number;
   }> { readonly type: 'OrderCreated'; }
 
+export interface IOrderShippedEvent extends IDomainEvent<{
+    orderId: string;
+    userId: string;
+    shippedAt: string; // ISO date
+    carrier: string;
+    trackingNumber: string;
+  }> { readonly type: 'OrderShipped'; }
+
 export type TOrderEventUnion =
-  IOrderCreatedEvent;
+  IOrderCreatedEvent
+  | IOrderShippedEvent;

@@ -15,8 +15,8 @@ async function bootstrap() {
 
     // EventStore setup
     const db = client.db(process.env.MONGO_DB_NAME || 'eventstore');
-    const eventsColl = db.collection<IStoredEvent>('events');
-    const countersColl = db.collection<ICounterDoc>('event_counters');
+    const eventsColl = db.collection<IStoredEvent>(process.env.MONGO_EVENTS_COLLECTION || 'events');
+    const countersColl = db.collection<ICounterDoc>(process.env.MONGO_COUNTERS_COLLECTION || 'event_counters');
     const eventStore = new MongoEventStore(eventsColl, countersColl);
 
     // Express app setup
@@ -31,7 +31,7 @@ async function bootstrap() {
         const { streamId } = req.params;
         const events: IDomainEvent[] = req.body;
         if (!Array.isArray(events)) {
-            return res.status(400).json({ error: 'Body must be an array of IOrderCreatedEvent' });
+            return res.status(400).json({ error: 'Body must be an array of IDomainEvent' });
         }
 
         try {
@@ -60,9 +60,10 @@ async function bootstrap() {
     // Load all events
     app.get('/events', async (req, res) => {
         const from = req.query.from as string | undefined;
+        const limit = req.query.limit ? Number(req.query.limit) : undefined;
 
         try {
-            const events = await eventStore.loadAllEvents(from);
+            const events = await eventStore.loadAllEvents(from, limit);
             res.json(events);
         } catch (err) {
             console.error(err);

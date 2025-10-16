@@ -3,7 +3,7 @@ import http from 'http';
 import { MongoClient } from 'mongodb';
 import { io as Client } from 'socket.io-client';
 import { RabbitMQBroker } from '@daveloper/broker';
-import { IOrderCreatedEvent, IShopView } from '@daveloper/interfaces';
+import { IShopView, TOrderEventUnion } from '@daveloper/interfaces';
 import { startMetricsServer } from '@daveloper/opentelemetry';
 import { OrderRepository } from './repository';
 import { OrderDenormalizer } from './denormalizer';
@@ -46,7 +46,7 @@ import { OrderDenormalizer } from './denormalizer';
    * (often with ['#'] or a narrower set of keys) to get exactly the slice 
    * of the stream it needs.
    */
-  await broker.subscribe<IOrderCreatedEvent>(
+  await broker.subscribe<TOrderEventUnion>(
     async (evt) => {
       console.log('📨 [projection-broker] receiving event', evt.type);
       await denormalizer.handle(evt);
@@ -54,7 +54,7 @@ import { OrderDenormalizer } from './denormalizer';
     {
       queue: 'shop-projection-q', // Declare a queue
       exchange: 'domain-events', // Bind it to the "domain-events" exchange 
-      routingKeys: ['OrderCreated'], // Only use actual DomainEvent types
+      routingKeys: ['OrderCreated', 'OrderShipped'], // Only use actual DomainEvent types
       durable: true, // Ensure the queue is durable
       autoDelete: false, // Do not auto-delete the queue when no consumers are connected
     }

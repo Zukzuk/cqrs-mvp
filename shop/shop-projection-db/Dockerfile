@@ -9,7 +9,6 @@ WORKDIR /usr/src
 COPY . ./${SERVICE_PATH}
 RUN npm ci \
   --workspace ${SERVICE_PATH} \
-  --workspace observability/opentelemetry \
   --workspace shared \
   --include-workspace-root=false
 RUN npm run build --workspace ${SERVICE_PATH}
@@ -22,12 +21,10 @@ ENV SERVICE_PATH=${SERVICE_PATH}
 
 WORKDIR /opt/seeder
 COPY --from=build /usr/local/bin/wait-for-it /usr/local/bin/wait-for-it
-COPY --from=build /usr/src/shared /usr/src/shared
-COPY --from=build /usr/src/observability /usr/src/observability
-COPY --from=build /usr/src/node_modules /usr/src/node_modules
+COPY --from=build /usr/src/shared ./shared
+COPY --from=build /usr/src/node_modules ./node_modules
 COPY --from=build /usr/src/${SERVICE_PATH}/dist ./dist
-COPY --from=build /usr/src/${SERVICE_PATH}/package*.json ./
-COPY --from=build /usr/src/${SERVICE_PATH}/scripts/run-seed.sh /docker-entrypoint-initdb.d/01-run-seed.sh
+COPY --from=build /usr/src/${SERVICE_PATH}/entry/run-seed.sh /docker-entrypoint-initdb.d/01-run-seed.sh
 
 # install nodejs (needed for the seeding script)
 RUN apt-get update \

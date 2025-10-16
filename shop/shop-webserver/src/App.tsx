@@ -1,15 +1,34 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { MantineProvider, AppShell, Container, Group, Title, Button, Card, Table, Badge, Text, Loader, Tooltip, CopyButton, ActionIcon, rem } from "@mantine/core";
+import {
+    MantineProvider, AppShell, Container, Group, Title, Button, Card, Table, Badge, Text,
+    Loader, Tooltip, CopyButton, ActionIcon, rem
+} from "@mantine/core";
 import { io, Socket } from "socket.io-client";
 import { v4 as uuidv4 } from "uuid";
 import { IconCopy, IconCheck } from "@tabler/icons-react";
 
 function StatusBadge({ status, pending }: { status?: string; pending?: boolean }) {
     const normalized = (status || "").toLowerCase();
-    if (pending) return <Badge w={100} color="orange" variant="light" leftSection={<Loader size={10} type="oval" color="yellow" />}>Pending</Badge>;
-    if (normalized.includes("fail") || normalized.includes("error")) return <Badge w={100} color="red" variant="light">Failed</Badge>;
-    if (normalized.includes("complete")) return <Badge w={100} color="teal" variant="light">Completed</Badge>;
-    if (normalized.includes("create")) return <Badge w={100} color="cyan" variant="light">Created</Badge>;
+
+    if (pending) {
+        return (
+            <Badge w={100} color="orange" variant="light" leftSection={<Loader size={10} type="oval" />}>
+                Pending
+            </Badge>
+        );
+    }
+    if (normalized.includes("fail") || normalized.includes("error")) {
+        return <Badge w={100} color="red" variant="light">Failed</Badge>;
+    }
+    if (normalized.includes("ship")) {
+        return <Badge w={100} color="teal" variant="light">Shipped</Badge>;
+    }
+    if (normalized.includes("complete")) {
+        return <Badge w={100} color="teal" variant="light">Completed</Badge>;
+    }
+    if (normalized.includes("create")) {
+        return <Badge w={100} color="cyan" variant="light">Created</Badge>;
+    }
     return <Badge w={100} color="blue" variant="light">{status || "Created"}</Badge>;
 }
 
@@ -65,7 +84,10 @@ export default function App() {
     const byOrderIdRef = useRef<Map<string, number>>(new Map());
     const byCorrIdRef = useRef<Map<string, number>>(new Map());
 
-    const upsert = (input: Partial<Row>, { pending = false, reuseIndex = null as number | null } = {}) => {
+    const upsert = (
+        input: Partial<Row>,
+        { pending = false, reuseIndex = null as number | null } = {}
+    ) => {
         setRows(prev => {
             const list = [...prev];
             const now = Date.now();
@@ -148,32 +170,104 @@ export default function App() {
         });
     };
 
-    const tableRows = useMemo(() => rows.map((r) => (
-        <Table.Tr key={(r.correlationId || r.orderId || Math.random()).toString()}>
-            <Table.Td><Text style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" }}>{r.orderId != null ? `#${r.orderId}` : "#—"}</Text></Table.Td>
-            <Table.Td>{r.userId}</Table.Td>
-            <Table.Td><StatusBadge status={r.status} pending={r.pending} /></Table.Td>
-            <Table.Td>
-                {r.correlationId ? (
-                    <Group gap="xs" align="center" wrap="nowrap">
-                        <Text size="sm" style={{ maxWidth: rem(340), overflow: "hidden", textOverflow: "ellipsis", fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" }}>
-                            {r.correlationId}
+    // Emit ShipOrder for an existing orderId
+    const shipOrder = (orderId: number | string | null, correlationId: number) => {
+        if (orderId == null) return;
+        const cmd = {
+            type: "ShipOrder",
+            payload: {
+                orderId,
+                carrier: "DHL",
+                trackingNumber: `TRACK-${String(orderId)}`.slice(0, 20),
+                shippedAt: new Date().toISOString(),
+            },
+            correlationId,
+        };
+
+        const s = socket.current;
+        if (!s) return;
+
+        // optimistic pending flag so the user sees immediate feedback
+        upsert({ orderId, userId, status: "Pending", correlationId }, { pending: true });
+
+        s.emit("command", cmd, (ack: any) => {
+            if (ack && ack.status === "ok") {
+                // leave row as pending until projection pushes order_update with SHIPPED
+            } else {
+                upsert({ orderId, userId, status: "Failed", correlationId }, { pending: false });
+            }
+        });
+    };
+
+    const renderActions = (r: Row) => {
+        const normalized = (r.status || "").toUpperCase();
+
+        // Only show Ship button when the order is CREATED and not pending
+        const canShip = normalized.includes("CREATE") && !r.pending;
+
+        return (
+            <Group gap="xs" justify="flex-start" wrap="nowrap">
+                <Tooltip label={canShip ? "Mark as SHIPPED" : "No actions"}>
+                    <span>
+                        <Button
+                            size="xs"
+                            variant="light"
+                            disabled={!canShip}
+                            onClick={() => shipOrder(r.orderId, r.correlationId)}
+                        >
+                            Ship
+                        </Button>
+                    </span>
+                </Tooltip>
+            </Group>
+        );
+    };
+
+    const tableRows = useMemo(
+        () =>
+            rows.map((r) => (
+                <Table.Tr key={(r.correlationId || r.orderId || Math.random()).toString()}>
+                    <Table.Td>
+                        <Text style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" }}>
+                            {r.orderId != null ? `#${r.orderId}` : "#—"}
                         </Text>
-                        <CopyButton value={r.correlationId} timeout={1200}>
-                            {({ copied, copy }) => (
-                                <Tooltip label={copied ? "Copied" : "Copy"}>
-                                    <ActionIcon onClick={copy} variant="subtle" aria-label="Copy correlation id">
-                                        {copied ? <IconCheck size={16} /> : <IconCopy size={16} />}
-                                    </ActionIcon>
-                                </Tooltip>
-                            )}
-                        </CopyButton>
-                    </Group>
-                ) : <Text c="dimmed" size="sm">—</Text>}
-            </Table.Td>
-            <Table.Td><Text c="dimmed" size="sm">{new Date(r.updatedAt).toLocaleTimeString()}</Text></Table.Td>
-        </Table.Tr>
-    )), [rows]);
+                    </Table.Td>
+                    <Table.Td>{r.userId}</Table.Td>
+                    <Table.Td><StatusBadge status={r.status} pending={r.pending} /></Table.Td>
+                    <Table.Td>
+                        {r.correlationId ? (
+                            <Group gap="xs" align="center" wrap="nowrap">
+                                <Text
+                                    size="sm"
+                                    style={{
+                                        maxWidth: rem(340),
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+                                    }}
+                                >
+                                    {r.correlationId}
+                                </Text>
+                                <CopyButton value={r.correlationId} timeout={1200}>
+                                    {({ copied, copy }) => (
+                                        <Tooltip label={copied ? "Copied" : "Copy"}>
+                                            <ActionIcon onClick={copy} variant="subtle" aria-label="Copy correlation id">
+                                                {copied ? <IconCheck size={16} /> : <IconCopy size={16} />}
+                                            </ActionIcon>
+                                        </Tooltip>
+                                    )}
+                                </CopyButton>
+                            </Group>
+                        ) : (
+                            <Text c="dimmed" size="sm">—</Text>
+                        )}
+                    </Table.Td>
+                    <Table.Td><Text c="dimmed" size="sm">{new Date(r.updatedAt).toLocaleTimeString()}</Text></Table.Td>
+                    <Table.Td>{renderActions(r)}</Table.Td>
+                </Table.Tr>
+            )),
+        [rows]
+    );
 
     return (
         <MantineProvider defaultColorScheme="light">
@@ -209,12 +303,15 @@ export default function App() {
                                             <Table.Th>Status</Table.Th>
                                             <Table.Th>Correlation ID</Table.Th>
                                             <Table.Th>Updated</Table.Th>
+                                            <Table.Th>Actions</Table.Th>
                                         </Table.Tr>
                                     </Table.Thead>
                                     <Table.Tbody>
                                         {tableRows.length ? tableRows : (
                                             <Table.Tr>
-                                                <Table.Td colSpan={5}><Text c="dimmed">No orders yet. Create one to get started.</Text></Table.Td>
+                                                <Table.Td colSpan={6}>
+                                                    <Text c="dimmed">No orders yet. Create one to get started.</Text>
+                                                </Table.Td>
                                             </Table.Tr>
                                         )}
                                     </Table.Tbody>

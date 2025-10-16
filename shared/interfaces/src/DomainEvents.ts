@@ -4,7 +4,7 @@ import { TOrderEventUnion } from "./order/DomainEvents";
 // Root domain event interface
 
 export interface IDomainEvent<P = any> {
-  readonly type: string;
+  readonly type: TDomainEventTypes;
   readonly payload: P;
   readonly correlationId: string;
 }
@@ -16,5 +16,4 @@ export type TDomainEventUnion =
   | TCalendarEventUnion;
 
 // Union of all domain event "type" strings for convenience
-
 export type TDomainEventTypes = TDomainEventUnion['type'];

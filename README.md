@@ -2,6 +2,32 @@
 
 A minimal, **hexagonal-architecture** example showcasing **CQRS** (Command Query Responsibility Segregation) and **Event Sourcing** across multiple bounded contexts — _Order_ and _Calendar_ — each with their own event stores and message-based communication. The _Order_ domain also has a related projection - _Shop_.
 
+## 🧰 Development
+
+### Quick Start
+
+```bash
+npm run up
+```
+> Starts the full stack using Docker Compose (Order, Calendar, Shop, Broker, Observability)
+
+### Visualize Architecture (C4)
+```bash
+npm run viz
+```
+> Generates live **Structurizr C4 diagrams** directly from `docker-compose.yml`.
+
+## 📡  URLs
+
+| Service | URL | Purpose |
+|----------|-----|----------|
+| Website | [http://localhost:3000](http://localhost:3000) | React App
+| C4 View | [http://localhost:8000](http://localhost:8000) | Structurizr
+| RabbitMQ UI | [http://localhost:4672](http://localhost:4672) | Broker management |
+| Grafana | [http://localhost:8300](http://localhost:8300) | Dashboards |
+| Prometheus | [http://localhost:8900](http://localhost:8900) | Metrics |
+| Tempo | [http://localhost:8200](http://localhost:8200) | Traces |
+
 ## 🧩 Architecture Overview
 
 ### Domain Layer
@@ -83,23 +109,6 @@ This separation keeps all domain logic **pure, testable, and technology-agnostic
   - **Dashboards:** via Grafana
 - Exposes `/metrics` endpoint on each service (default port: `9100`)
 
-## 🧰 Development
-
-### Quick Start
-
-```bash
-npm run up
-```
-> Starts the full stack using Docker Compose (Order, Calendar, Shop, Broker, Observability)
-
-### Visualize Architecture (C4)
-```bash
-npm run viz
-```
-> Generates live **Structurizr C4 diagrams** directly from `docker-compose.yml`.
-
----
-
 ## 🧾 Available npm Scripts
 
 | Script | Description |
@@ -124,24 +133,6 @@ npm run viz
 | Read Models | Custom projections | Domain event subscription |
 
 All technology details are confined to the **infrastructure layer**, allowing you to evolve implementation freely without touching domain logic.
-
-## 📡 Observability URLs
-
-| Service | URL | Purpose |
-|----------|-----|----------|
-| RabbitMQ UI | [http://localhost:4672](http://localhost:4672) | Broker management |
-| Grafana | [http://localhost:8300](http://localhost:8300) | Dashboards |
-| Prometheus | [http://localhost:8900](http://localhost:8900) | Metrics |
-| Tempo | [http://localhost:8200](http://localhost:8200) | Traces |
-
-## 🧩 System Landscape
-
-Generated via Structurizr DSL — includes:
-- **Event Platform** (RabbitMQ)
-- **Calendar Domain**
-- **Order Domain**
-- **Shop Domain**
-- **Observability Stack**
 
 ---
 

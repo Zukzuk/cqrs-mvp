@@ -7,6 +7,9 @@ A minimal, **hexagonal-architecture** example showcasing **CQRS** (Command Query
 ### Quick Start
 
 ```bash
+git clone https://github.com/Zukzuk/cqrs-mvp.git
+cd cqrs-mvp
+npm i
 npm run up
 ```
 > Starts the full stack using Docker Compose (Order, Calendar, Shop, Broker, Observability)
@@ -16,6 +19,12 @@ npm run up
 npm run viz
 ```
 > Generates live **Structurizr C4 diagrams** directly from `docker-compose.yml`.
+
+### UI for MongoDB's
+```bash
+npm run mongoui
+```
+> Finds all MongoDB instances in the stack and makes them avaiable through http://localhost:8081,8082,... with admin/pass
 
 ## 📡  URLs
 

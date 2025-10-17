@@ -24,7 +24,7 @@ npm run viz
 ```bash
 npm run mongoui
 ```
-> Finds all MongoDB instances in the stack and makes them avaiable through http://localhost:8081,8082,... with admin/pass
+> Finds all MongoDB instances in the stack and makes them available http://localhost:8081,8082,... with admin/pass
 
 ## 📡  URLs
 

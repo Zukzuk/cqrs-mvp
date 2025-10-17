@@ -1,26 +1,26 @@
-import { RuleResult, Violation, ViolationReason } from "@daveloper/interfaces";
+import { TRuleResult, TViolation, TViolationReason } from "@daveloper/interfaces";
 
 // Helper to create a Violation object.
-const fail = (reason: ViolationReason, message: string): Violation => ({ reason, message });
+const fail = (reason: TViolationReason, message: string): TViolation => ({ reason, message });
 
 // Business Rules
 
-export const calendarMustNotBeRemoved = (removed: boolean): RuleResult =>
+export const calendarMustNotBeRemoved = (removed: boolean): TRuleResult =>
   removed ? fail('Removed', 'Calendar has been removed') : null;
 
-export const calendarMustExist = (exists: boolean, removed: boolean): RuleResult =>
+export const calendarMustExist = (exists: boolean, removed: boolean): TRuleResult =>
   (!exists || removed) ? fail(removed ? 'Removed' : 'NotFound', 'Calendar does not exist') : null;
 
-export const calendarMustNotExist = (exists: boolean): RuleResult =>
+export const calendarMustNotExist = (exists: boolean): TRuleResult =>
   exists ? fail('AlreadyExists', 'Calendar already exists') : null;
 
-export const timeRangeValid = (start: string, end: string): RuleResult =>
+export const timeRangeValid = (start: string, end: string): TRuleResult =>
   start < end ? null : fail('InvalidTimeRange', 'Start must be before end');
 
-export const timeslotMustNotExist = (hasTimeslot: boolean): RuleResult =>
+export const timeslotMustNotExist = (hasTimeslot: boolean): TRuleResult =>
   hasTimeslot ? fail('AlreadyExists', 'Timeslot already exists') : null;
 
-export const timeslotMustExist = (hasTimeslot: boolean): RuleResult =>
+export const timeslotMustExist = (hasTimeslot: boolean): TRuleResult =>
   hasTimeslot ? null : fail('NotFound', 'Timeslot does not exist');
 
 export const noCalendarOverlap = (
@@ -28,7 +28,7 @@ export const noCalendarOverlap = (
   end: string,
   timeslots: Map<string, { start: string; end: string }>,
   exceptTimeslotId?: string
-): RuleResult => {
+): TRuleResult => {
   for (const [id, ts] of timeslots.entries()) {
     // skip the timeslot being rescheduled
     if (exceptTimeslotId && id === exceptTimeslotId) continue;

@@ -31,5 +31,5 @@ export function startMetricsServer(port = Number(process.env.OTEL_METRICS_PORT ?
             res.end('ok');
         }
     });
-    server.listen(port, () => console.log(`[metrics] listening on :${port}`));
+    server.listen(port, () => console.log(`🚀 [metrics] listening on :${port}`));
 }

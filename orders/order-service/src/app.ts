@@ -3,11 +3,16 @@ import http from 'http';
 import { HttpEventStore } from '@daveloper/eventstore';
 import { RabbitMQBroker } from '@daveloper/broker';
 import { BaseRepository } from '@daveloper/cqrs';
+import { startMetricsServer } from '@daveloper/opentelemetry';
 import type { TOrderCommandUnion, TOrderEventUnion } from '@daveloper/interfaces';
 import { Order } from './aggregate/OrderAggregate';
 import { Dispatcher } from './handlers/Dispatcher';
 
-async function main() {
+
+async function main() {    
+  // expose Prometheus /metrics for this container
+  startMetricsServer(Number(process.env.OTEL_METRICS_PORT) || 9100);
+
   // setup broker, event store, repository, dispatcher
   const eventStore = new HttpEventStore(process.env.EVENTSTORE_URL!);
   const broker = new RabbitMQBroker(process.env.BROKER_URL!);
@@ -20,7 +25,6 @@ async function main() {
     console.log('📨 [order-broker] recieving command', cmd.type);
     try {
       await dispatcher.dispatch(cmd);
-      console.log('✅ [broker-queue] ACK commands.orders');
     } catch (err) {
       console.error('❌ [order-handler] command handling failed:', err);
       throw err;

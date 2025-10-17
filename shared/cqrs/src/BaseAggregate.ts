@@ -1,12 +1,12 @@
 import { AggregateRoot } from './AggregateRoot';
-import type { IDomainEvent, Rule, Violation } from '@daveloper/interfaces';
+import type { IDomainEvent, TRule, TViolation } from '@daveloper/interfaces';
 
 // Constructors that produce the domain event union `E`
 type SuccessCtor<P, E extends IDomainEvent> =
     new (payload: P, correlationId: string) => E;
 
 type FailedCtor<P, E extends IDomainEvent> =
-    new (payload: P & Violation, correlationId: string) => E;
+    new (payload: P & TViolation, correlationId: string) => E;
 
 /**
  * BaseAggregate adds a tiny, reusable helper to evaluate rules and raise either
@@ -19,7 +19,7 @@ export abstract class BaseAggregate<E extends IDomainEvent> extends AggregateRoo
         payload: P,
         correlationId: string,
         cfg: {
-            rules: Rule[];                             // lazy rules
+            rules: TRule[];                            // lazy rules
             SuccessEvent: SuccessCtor<P, E>;
             FailedEvent: FailedCtor<P, E>;
             stopOnFirstViolation?: boolean;            // default: emit ALL violations
@@ -27,7 +27,7 @@ export abstract class BaseAggregate<E extends IDomainEvent> extends AggregateRoo
     ): void {
         const { rules, SuccessEvent, FailedEvent, stopOnFirstViolation = false } = cfg;
 
-        const violations: Violation[] = [];
+        const violations: TViolation[] = [];
         for (const r of rules) {
             const v = r();
             if (v) {
@@ -38,6 +38,7 @@ export abstract class BaseAggregate<E extends IDomainEvent> extends AggregateRoo
 
         if (violations.length > 0) {
             for (const v of violations) {
+                console.log('🛑 [aggregate] Raising failed event due to violation:', v);
                 this.raise(new FailedEvent({ ...payload, ...v }, correlationId));
             }
             return;

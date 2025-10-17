@@ -1,5 +1,5 @@
 import { ICommand } from "../Commands";
-import { ISODateTime } from "../Types";
+import { TISODateTime } from "../Types";
 
 export interface ICreateCalendarCommand extends ICommand<{ 
     calendarId: string; // == userId (MVP)
@@ -9,8 +9,8 @@ export interface IScheduleTimeslotCommand extends ICommand<{
     calendarId: string;
     timeslotId: string; // client-generated id
     title: string;
-    start: ISODateTime;
-    end: ISODateTime;
+    start: TISODateTime;
+    end: TISODateTime;
     location?: string;
     description?: string;
   }> { readonly type: 'ScheduleTimeslot'; }
@@ -18,8 +18,8 @@ export interface IScheduleTimeslotCommand extends ICommand<{
 export interface IRescheduleTimeslotCommand extends ICommand<{
   calendarId: string;
   timeslotId: string; // must already exist
-  start: ISODateTime;
-  end: ISODateTime;
+  start: TISODateTime;
+  end: TISODateTime;
 }> { readonly type: 'RescheduleTimeslot'; }
 
 export interface IRemoveScheduledTimeslotCommand extends ICommand<{

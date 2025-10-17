@@ -1,11 +1,11 @@
-import type { ICreateOrderCommand, IShipOrderCommand, RuleResult, Violation } from '@daveloper/interfaces';
+import type { ICreateOrderCommand, IShipOrderCommand, TOrderStatus, TRuleResult, TViolation, TViolationReason } from '@daveloper/interfaces';
 
 // tiny helper, same style as Calendar
-const fail = (reason: Violation['reason'], message: string): Violation => ({ reason, message });
+const fail = (reason: TViolationReason, message: string): TViolation => ({ reason, message });
 
 // Payload rules (pure)
 
-export const createPayloadValid = (p: ICreateOrderCommand['payload']): RuleResult => {
+export const createPayloadValid = (p: ICreateOrderCommand['payload']): TRuleResult => {
     if (!p.orderId) return fail('InvalidArgument', 'Missing orderId');
     if (!p.userId) return fail('InvalidArgument', 'Missing userId');
     if (typeof p.total !== 'number' || p.total <= 0) {
@@ -14,7 +14,7 @@ export const createPayloadValid = (p: ICreateOrderCommand['payload']): RuleResul
     return null;
 };
 
-export const shipPayloadValid = (p: IShipOrderCommand['payload']): RuleResult => {
+export const shipPayloadValid = (p: IShipOrderCommand['payload']): TRuleResult => {
     if (!p.orderId) return fail('InvalidArgument', 'Missing orderId');
     if (!p.carrier) return fail('InvalidArgument', 'Missing carrier');
     if (!p.trackingNumber) return fail('InvalidArgument', 'Missing trackingNumber');
@@ -24,16 +24,16 @@ export const shipPayloadValid = (p: IShipOrderCommand['payload']): RuleResult =>
 
 // State rules (need aggregate state)
 
-export const orderMustNotExist = (exists: boolean): RuleResult =>
+export const orderMustNotExist = (exists: boolean): TRuleResult =>
     exists ? fail('AlreadyExists', 'Order already exists') : null;
 
-export const orderMustExist = (exists: boolean): RuleResult =>
+export const orderMustExist = (exists: boolean): TRuleResult =>
     exists ? null : fail('NotFound', 'Order does not exist');
 
-export const orderMustBeCreatable = (status: 'CREATED' | 'SHIPPED' | 'CANCELLED' | undefined): RuleResult =>
+export const orderMustBeCreatable = (status: TOrderStatus | undefined): TRuleResult =>
     status ? fail('AlreadyExists', 'Order already exists') : null;
 
-export const orderMustBeShippable = (status: 'CREATED' | 'SHIPPED' | 'CANCELLED' | undefined): RuleResult => {
+export const orderMustBeShippable = (status: TOrderStatus | undefined): TRuleResult => {
     if (status === 'CREATED') return null;
     if (status === 'SHIPPED') return fail('InvalidState', 'Order already shipped');
     if (status === 'CANCELLED') return fail('InvalidState', 'Order is cancelled');

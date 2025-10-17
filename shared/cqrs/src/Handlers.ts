@@ -20,7 +20,7 @@ export abstract class BaseHandler<
     abstract handle(cmd: Cmd): Promise<void>;
 }
 
-// ----- Dispatcher -----
+// Dispatcher 
 
 export type HandlerFor<
     Cmd extends ICommand,

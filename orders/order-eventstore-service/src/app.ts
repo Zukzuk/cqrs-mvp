@@ -1,4 +1,5 @@
 import express from 'express';
+import http from 'http';
 import { MongoClient } from 'mongodb';
 import { IDomainEvent, ICounterDoc, IStoredEvent } from '@daveloper/interfaces';
 import { MongoEventStore } from '@daveloper/eventstore';
@@ -22,9 +23,6 @@ async function bootstrap() {
     // Express app setup
     const app = express();
     app.use(express.json());
-
-    // Health check
-    app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
     // Append events
     app.post('/streams/:streamId/events', async (req, res) => {
@@ -72,7 +70,11 @@ async function bootstrap() {
     });
 
     // Start server
-    app.listen(+process.env.PORT! || 4001, () => console.log('🚀 OrderEventstoreService listening on port 4001'));
+    app.get('/health', (_req, res) => res.status(200).json({ status: 'ok' }));
+    const server = http.createServer(app);
+    server.listen(Number(process.env.PORT) || 4001, () =>
+        console.log('🚀 OrderApplicationService up'),
+    );
 }
 
 bootstrap().catch(err => {

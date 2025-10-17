@@ -1,16 +1,17 @@
 import { IDomainEvent } from "../DomainEvents";
-import { ViolationReason } from "../Types";
+import { TOrderStatus, TViolationReason } from "../Types";
 
 // Order Created Events
 
 export interface IOrderCreatedEvent extends IDomainEvent<{
   orderId: string;
   userId: string;
+  status: TOrderStatus;
   total: number;
 }> { readonly type: 'OrderCreated'; }
 
 export interface IOrderCreationFailedEvent extends IDomainEvent<IOrderCreatedEvent["payload"] & {
-  reason: ViolationReason;
+  reason: TViolationReason;
   message: string;
 }> { readonly type: 'OrderCreationFailed'; }
 
@@ -19,13 +20,14 @@ export interface IOrderCreationFailedEvent extends IDomainEvent<IOrderCreatedEve
 export interface IOrderShippedEvent extends IDomainEvent<{
   orderId: string;
   userId: string;
+  status: TOrderStatus;
   shippedAt?: string; // ISO date
   carrier: string;
   trackingNumber: string;
 }> { readonly type: 'OrderShipped'; }
 
 export interface IOrderShippingFailedEvent extends IDomainEvent<IOrderShippedEvent["payload"] & {
-  reason: ViolationReason;
+  reason: TViolationReason;
   message: string;
 }> { readonly type: 'OrderShippingFailed'; }
 

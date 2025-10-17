@@ -58,7 +58,7 @@ export class RabbitMQBroker implements IBroker {
       );
       // mark success for this command type
       endSpanOk(span);
-      console.log('📨 [send-command] sent command', command.type, 'queue=', queueName, 'corrId=', command.correlationId);
+      console.log('📨 [broker-send] send command', command.type, 'queue=', queueName, 'corrId=', command.correlationId);
     } catch (err) {
       endSpanErr(span, err);
       throw err;
@@ -93,7 +93,7 @@ export class RabbitMQBroker implements IBroker {
       });
       // mark success for this event type
       endSpanOk(span);
-      console.log('📨 [publish-domain-event] published', evt.type, 'corrId=', evt.correlationId);
+      console.log('📨 [broker-publish] domain-event published', evt.type, 'corrId=', evt.correlationId);
     } catch (err) {
       endSpanErr(span, err);
       throw err;
@@ -252,7 +252,7 @@ export class RabbitMQBroker implements IBroker {
       }
     );
 
-    console.log(`🚀 [broker-subscribe] consumer started, tag=${consumerTag}`);
+    console.log(`🍽️ [broker-subscribe] consumer started, tag=${consumerTag}`);
     return async () => {
       console.log(`🛑 [broker-subscribe] canceling consumer tag=${consumerTag}`);
       await this.subCh.cancel(consumerTag);

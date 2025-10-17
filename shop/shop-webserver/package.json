@@ -9,6 +9,7 @@
         "preview": "vite preview --port 5173"
     },
     "dependencies": {
+        "@daveloper/interfaces": "^1.0.0",
         "@mantine/core": "^7.12.2",
         "@mantine/notifications": "^7.12.2",
         "@tabler/icons-react": "^3.16.0",

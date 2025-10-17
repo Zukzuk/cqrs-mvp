@@ -34,6 +34,6 @@ import { registerShopProjection } from './register/shopProjection';
   registerWebClient(io, broker, shopProjectionNs);
 
   server.listen(3000, () =>
-    console.log('🚀 [http+wss+pubsub] BFF listening on port 3000')
+    console.log('🚀 Shop Backend for Frontend up')
   )
 })()

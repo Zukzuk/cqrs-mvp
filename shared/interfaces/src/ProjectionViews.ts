@@ -1,7 +1,9 @@
+import { TOrderStatus } from "./Types";
+
 export interface IShopView {
     orderId: string;
     userId: string;
-    status: 'CREATED' | 'SHIPPED' | 'CANCELED';
+    status: TOrderStatus;
     correlationId: string;
     total?: number;
     shippedAt?: string;

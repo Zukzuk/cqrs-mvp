@@ -6,6 +6,7 @@ import {
 import { io, Socket } from "socket.io-client";
 import { v4 as uuidv4 } from "uuid";
 import { IconCopy, IconCheck } from "@tabler/icons-react";
+import { TOrderStatus } from "@daveloper/interfaces";
 
 function StatusBadge({ status, pending }: { status?: string; pending?: boolean }) {
     const normalized = (status || "").toLowerCase();
@@ -69,7 +70,7 @@ function useSocket(userId: string) {
 type Row = {
     orderId: number | string | null;
     userId: string;
-    status: string;
+    status: TOrderStatus;
     correlationId?: string | null;
     pending?: boolean;
     updatedAt: number;
@@ -94,7 +95,7 @@ export default function App() {
             const item: Row = {
                 orderId: input.orderId ?? null,
                 userId: input.userId ?? userId,
-                status: (input.status as string) ?? (pending ? "Pending" : "Created"),
+                status: (input.status as string) ?? (pending ? "PENDING" : "CREATED"),
                 correlationId: input.correlationId ?? null,
                 pending,
                 updatedAt: now,
@@ -163,9 +164,9 @@ export default function App() {
 
         s.emit("command", cmd, (ack: any) => {
             if (ack && ack.status === "ok") {
-                upsert({ orderId: provisionalOrderId, userId, status: "Pending", correlationId }, { pending: true });
+                upsert({ orderId: provisionalOrderId, userId, status: "PENDING", correlationId }, { pending: true });
             } else {
-                upsert({ orderId: provisionalOrderId, userId, status: "Failed", correlationId }, { pending: false });
+                upsert({ orderId: provisionalOrderId, userId, status: "FAILED", correlationId }, { pending: false });
             }
         });
     };
@@ -188,13 +189,13 @@ export default function App() {
         if (!s) return;
 
         // optimistic pending flag so the user sees immediate feedback
-        upsert({ orderId, userId, status: "Pending", correlationId }, { pending: true });
+        upsert({ orderId, userId, status: "PENDING", correlationId }, { pending: true });
 
         s.emit("command", cmd, (ack: any) => {
             if (ack && ack.status === "ok") {
                 // leave row as pending until projection pushes order_update with SHIPPED
             } else {
-                upsert({ orderId, userId, status: "Failed", correlationId }, { pending: false });
+                upsert({ orderId, userId, status: "FAILED", correlationId }, { pending: false });
             }
         });
     };

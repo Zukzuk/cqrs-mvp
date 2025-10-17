@@ -1,5 +1,5 @@
 import { BaseAggregate } from '@daveloper/cqrs';
-import { TCalendarEventUnion, Timeslot } from '@daveloper/interfaces';
+import { TCalendarEventUnion, TTimeslot } from '@daveloper/interfaces';
 import {
   CalendarCreated,
   CalendarRemoved,
@@ -27,9 +27,33 @@ export class Calendar extends BaseAggregate<TCalendarEventUnion> {
   public id!: string;
   private exists = false;
   private removed = false;
-  private readonly timeslots = new Map<string, Timeslot>();
+  private readonly timeslots = new Map<string, TTimeslot>();
   
   // Commands
+
+  createCalendar(calendarId: string, correlationId: string) {
+    const payload = { calendarId };
+    this.aggregateAndRaiseEvents(payload, correlationId, {
+      rules: [
+        () => calendarMustNotBeRemoved(this.removed),
+        () => calendarMustNotExist(this.exists),
+      ],
+      SuccessEvent: CalendarCreated,
+      FailedEvent: CalendarCreationFailed,
+    });
+  }
+
+  removeCalendar(calendarId: string, correlationId: string) {
+    const payload = { calendarId };
+    this.aggregateAndRaiseEvents(payload, correlationId, {
+      rules: [
+        () => calendarMustExist(this.exists, this.removed),
+        () => calendarMustNotBeRemoved(this.removed),
+      ],
+      SuccessEvent: CalendarRemoved,
+      FailedEvent: CalendarRemovalFailed,
+    });
+  }
 
   scheduleTimeslot(payload: ScheduleTimeslot['payload'], correlationId: string) {
     this.aggregateAndRaiseEvents(payload, correlationId, {
@@ -60,18 +84,6 @@ export class Calendar extends BaseAggregate<TCalendarEventUnion> {
     });
   }
 
-  createCalendar(calendarId: string, correlationId: string) {
-    const payload = { calendarId };
-    this.aggregateAndRaiseEvents(payload, correlationId, {
-      rules: [
-        () => calendarMustNotBeRemoved(this.removed),
-        () => calendarMustNotExist(this.exists),
-      ],
-      SuccessEvent: CalendarCreated,
-      FailedEvent: CalendarCreationFailed,
-    });
-  }
-
   removeSchedule(calendarId: string, timeslotId: string, correlationId: string) {
     const payload = { calendarId, timeslotId };
     this.aggregateAndRaiseEvents(payload, correlationId, {
@@ -81,18 +93,6 @@ export class Calendar extends BaseAggregate<TCalendarEventUnion> {
       ],
       SuccessEvent: ScheduledTimeslotRemoved,
       FailedEvent: ScheduledTimeslotRemovalFailed,
-    });
-  }
-
-  removeCalendar(calendarId: string, correlationId: string) {
-    const payload = { calendarId };
-    this.aggregateAndRaiseEvents(payload, correlationId, {
-      rules: [
-        () => calendarMustExist(this.exists, this.removed),
-        () => calendarMustNotBeRemoved(this.removed),
-      ],
-      SuccessEvent: CalendarRemoved,
-      FailedEvent: CalendarRemovalFailed,
     });
   }
 

@@ -1,15 +1,17 @@
-export type ISODateTime = string; // must be valid ISO-8601
+export type TOrderStatus = 'PENDING' | 'FAILED' | 'CREATED' | 'SHIPPED' | 'CANCELLED';
 
-export type Timeslot = {
+export type TISODateTime = string; // must be valid ISO-8601
+
+export type TTimeslot = {
     timeslotId: string;
     title: string;
-    start: ISODateTime;
-    end: ISODateTime;
+    start: TISODateTime;
+    end: TISODateTime;
     location?: string;
     description?: string;
 };
 
-export type ViolationReason =
+export type TViolationReason =
     | 'AlreadyExists'
     | 'NotFound'
     | 'Removed'
@@ -21,10 +23,10 @@ export type ViolationReason =
     ;
 
 // A violation carries a typed reason + human message.
-export type Violation = Readonly<{ reason: ViolationReason; message: string }>;
+export type TViolation = Readonly<{ reason: TViolationReason; message: string }>;
 
 // Rules return `null` when OK, or a `Violation` when they fail.
-export type RuleResult = Violation | null;
+export type TRuleResult = TViolation | null;
 
 // Rule is lazy so callers can short-circuit
-export type Rule = () => RuleResult;
+export type TRule = () => TRuleResult;

@@ -70,5 +70,5 @@ import { OrderDenormalizer } from './denormalizer';
   const app = express();
   const server = http.createServer(app);
   app.get('/health', (_req, res) => res.status(200).json({ status: 'ok' }));
-  server.listen(3002, () => console.log('🚀 ShopProjectionService Listening on port 3002'));
+  server.listen(3002, () => console.log('🚀 ShopProjectionService up'));
 })();

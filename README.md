@@ -10,6 +10,13 @@ A minimal, **hexagonal-architecture** example showcasing **CQRS** (Command Query
 git clone https://github.com/Zukzuk/cqrs-mvp.git
 cd cqrs-mvp
 npm i
+npm run build
+```
+> Builds the full stack with Typescript/Vite
+
+### Run Stack
+
+```bash
 npm run up
 ```
 > Starts the full stack using Docker Compose (Order, Calendar, Shop, Broker, Observability)

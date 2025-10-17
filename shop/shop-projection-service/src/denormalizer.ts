@@ -28,7 +28,7 @@ export class OrderDenormalizer {
     console.log(`💾 [projection-denorm] saving order for user=${view.userId}`, view);
     await this.repository.save(view);
 
-    console.log('➡️ [projection-socket] sending order_update');
+    console.log('➡️ [projection-socket] sending order_update', view);
     this.socket.emit('order_update', view);
   }
 }

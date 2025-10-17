@@ -73,8 +73,8 @@ async function bootstrap() {
     });
 
     // Start server
-    const port = +process.env.PORT! || 4011;
-    app.listen(port, () => console.log(`🚀 CalendarEventstoreService listening on port ${port}`));
+    const port = process.env.PORT! || 4011;
+    app.listen(port, () => console.log('🚀 CalendarEventstoreService up'));
 }
 
 bootstrap().catch(err => {

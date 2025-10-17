@@ -1,5 +1,5 @@
 import { IDomainEvent } from "../DomainEvents";
-import { ISODateTime, ViolationReason } from "../Types";
+import { TISODateTime, TViolationReason } from "../Types";
 
 // Calendar Created Events
 export interface ICalendarCreatedEvent extends IDomainEvent<{
@@ -7,7 +7,7 @@ export interface ICalendarCreatedEvent extends IDomainEvent<{
 }> { readonly type: 'CalendarCreated'; }
 
 export interface ICalendarCreationFailedEvent extends IDomainEvent<ICalendarCreatedEvent["payload"] & { 
-  reason: ViolationReason; 
+  reason: TViolationReason; 
   message: string; 
 }> { readonly type: 'CalendarCreationFailed'; }
 
@@ -16,14 +16,14 @@ export interface ITimeslotScheduledEvent extends IDomainEvent<{
   calendarId: string
   timeslotId: string;
   title: string;
-  start: ISODateTime;
-  end: ISODateTime;
+  start: TISODateTime;
+  end: TISODateTime;
   location?: string;
   description?: string;
 }> { readonly type: 'TimeslotScheduled'; }
 
 export interface ITimeslotSchedulingFailedEvent extends IDomainEvent<ITimeslotScheduledEvent["payload"] & {
-  reason: ViolationReason; 
+  reason: TViolationReason; 
   message: string;
 }> { readonly type: 'TimeslotSchedulingFailed'; }
 
@@ -31,12 +31,12 @@ export interface ITimeslotSchedulingFailedEvent extends IDomainEvent<ITimeslotSc
 export interface ITimeslotRescheduledEvent extends IDomainEvent<{
   calendarId: string;
   timeslotId: string;
-  start: ISODateTime;
-  end: ISODateTime;
+  start: TISODateTime;
+  end: TISODateTime;
 }> { readonly type: 'TimeslotRescheduled'; }
 
 export interface ITimeslotReschedulingFailedEvent extends IDomainEvent<ITimeslotRescheduledEvent["payload"] & {
-  reason: ViolationReason; 
+  reason: TViolationReason; 
   message: string;
 }> { readonly type: 'TimeslotReschedulingFailed'; }
 
@@ -47,7 +47,7 @@ export interface IScheduledTimeslotRemovedEvent extends IDomainEvent<{
 }> { readonly type: 'ScheduledTimeslotRemoved'; }
 
 export interface IScheduledTimeslotRemovalFailedEvent extends IDomainEvent<IScheduledTimeslotRemovedEvent["payload"] & {
-  reason: ViolationReason; 
+  reason: TViolationReason; 
   message: string;
 }> { readonly type: 'ScheduledTimeslotRemovalFailed'; }
 
@@ -57,7 +57,7 @@ export interface ICalendarRemovedEvent extends IDomainEvent<{
 }> { readonly type: 'CalendarRemoved'; }
 
 export interface ICalendarRemovalFailedEvent extends IDomainEvent<ICalendarRemovedEvent["payload"] & {
-  reason: ViolationReason; 
+  reason: TViolationReason; 
   message: string;
 }> { readonly type: 'CalendarRemovalFailed'; }
 

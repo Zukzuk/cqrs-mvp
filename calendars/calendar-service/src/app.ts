@@ -6,8 +6,12 @@ import { TCalendarCommandUnion, TCalendarEventUnion } from '@daveloper/interface
 import { Calendar } from './aggregate/CalendarAggregate';
 import { BaseRepository } from '@daveloper/cqrs';
 import { Dispatcher } from './handlers/Dispatcher';
+import { startMetricsServer } from '@daveloper/opentelemetry';
 
 async function main() {
+  // expose Prometheus /metrics for this container
+  startMetricsServer(Number(process.env.OTEL_METRICS_PORT) || 9100);
+
   // setup broker, event store, repository, dispatcher
   const broker = new RabbitMQBroker(process.env.BROKER_URL!);
   await broker.init();
@@ -20,7 +24,6 @@ async function main() {
     console.log('📨 [calendar-broker] recieving command', cmd.type);
     try {
       await dispatcher.dispatch(cmd);
-      console.log('✅ [broker-queue] ACK commands.calendars');
     } catch (err) {
       console.error('❌ [calendar-handler] command handling failed:', err);
       throw err;

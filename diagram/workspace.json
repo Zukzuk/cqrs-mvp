@@ -3,8 +3,7 @@
   "description" : "Description",
   "documentation" : { },
   "id" : 1,
-  "lastModifiedAgent" : "structurizr-ui",
-  "lastModifiedDate" : "2025-10-13T08:41:24Z",
+  "lastModifiedDate" : "2025-10-17T10:07:01Z",
   "model" : {
     "properties" : {
       "structurizr.groupSeparator" : "::"
@@ -672,7 +671,6 @@
     "configuration" : {
       "branding" : { },
       "lastSavedView" : "containers-shop",
-      "metadataSymbols" : "SquareBrackets",
       "styles" : {
         "elements" : [ {
           "background" : "#4169e1",

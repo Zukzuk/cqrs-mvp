@@ -1,65 +1,148 @@
 # CQRS-ES Shop System (MVP)
 
-A minimal, hexagonal-architecture example showcasing CQRS and Event Sourcing for an order & projection platform.
+A minimal, **hexagonal-architecture** example showcasing **CQRS** (Command Query Responsibility Segregation) and **Event Sourcing** across multiple bounded contexts — _Order_ and _Calendar_ — each with their own event stores and message-based communication. The _Order_ domain also has a related projection - _Shop_.
 
-### Domain
-- Defines aggregates & domain events
-- Pure business rules, no infra dependencies
+## 🧩 Architecture Overview
 
-### Application
-- Command handler loads aggregates, applies commands
-- Persists via `IEventStore`, publishes via `IBroker`
+### Domain Layer
+- Defines **Aggregates** and **Domain Events**
+- Contains **pure business logic** (no infra dependencies)
+- Encapsulates validation and invariants through business rules
 
-### Infrastructure
-- Adapters for RabbitMQ (shared/broker), Mongo, HTTP
-- Event-store service journals domain events (append-only)
-- Projection service rehydrates on startup and tails live events
+### Application Layer
+- Command handlers **load aggregates**, apply commands, and emit new events
+- Uses `IEventStore` for persistence and `IBroker` for publishing domain events
 
-> This keeps core logic clean, testable, and ready to swap any backing technology.
+### Infrastructure Layer
+- Provides adapters for:
+  - **RabbitMQ** (`shared/broker`) for message transport
+  - **MongoDB** (`shared/eventstore`) for event persistence
+  - **HTTP** APIs for the EventStore service interface
+- Adds **observability** with Prometheus & OpenTelemetry instrumentation
 
-## Development
+This separation keeps all domain logic **pure, testable, and technology-agnostic**.
+
+## 🧱 Core Concepts
+
+| Concept | Description |
+|----------|--------------|
+| **Command** | Expresses an intent to change system state (validated by aggregates) |
+| **Aggregate** | Enforces business invariants, applies commands, and emits domain events |
+| **Event** | Immutable, factual record of what has happened |
+| **Stream** | Sequence of all events for a specific aggregate |
+| **Global sequence** | Monotonically increasing order across all streams, used for projections |
+| **Projection** | Consumes events to build read-optimized views; deterministic and idempotent |
+
+## ⚙️ Mechanics
+
+### Streams & Ordering
+- Each aggregate has its own stream (`streamId`)
+- Events are appended in causal order
+- A global sequence ensures a total order for consumers
+
+### Read/Write Separation
+- **Write model** → Commands → Aggregates → Events (ensures correctness)
+- **Read model** → Consumes events → Denormalized query models (ensures performance)
+
+### Projection Behavior
+- **Idempotent:** must handle replay and reprocessing
+- **Checkpointed:** each projector tracks a `high-watermark` sequence
+- **Batch-consistent:** always applies in strict ascending order
+
+### Consistency & Concurrency
+- **Eventual consistency** between write and read models
+- **Optimistic concurrency** via expected version or serialized commands
+- **Immutability:** no rewriting of history; corrections create new events
+
+## 🧠 Domains
+
+### 🧾 Orders
+- Domain Aggregate: `Order`
+- Commands: Create, Ship
+- Events: Created, Shipped (+ Failed variants)
+- EventStore: MongoDB-backed, append-only
+
+### 🗓️ Calendar
+- Domain Aggregate: `Calendar`
+- Commands: Create, Schedule, Reschedule, Remove
+- Events: CalendarCreated, TimeslotScheduled, etc.
+- EventStore: MongoDB-backed, append-only
+
+## 🪞 Projections
+
+### 🛒 Shop
+- **BFF Service:** gateway between frontend and backend (WebSocket + REST)
+- **Projection Service:** tails domain events and updates the read model
+- **Frontend SPA:** browser client communicating over WebSocket
+
+## 📊 Observability
+- **OpenTelemetry SDK** auto-instrumented across all Node.js services
+- Exports:
+  - **Traces:** to Grafana Tempo
+  - **Metrics:** to Prometheus
+  - **Dashboards:** via Grafana
+- Exposes `/metrics` endpoint on each service (default port: `9100`)
+
+## 🧰 Development
+
+### Quick Start
 
 ```bash
 npm run up
 ```
+> Starts the full stack using Docker Compose (Order, Calendar, Shop, Broker, Observability)
 
-## How It Works
-
-### Core Concepts
-- **Commands (write intent):** Requests to change state, validated by **Aggregates**.
-- **Aggregates:** Enforce invariants and emit **Domain Events**; never mutate shared state directly.
-- **Events (facts):** Immutable, append-only; the source of truth.
-
-### Streams & Ordering
-- **Stream (per aggregate):** Each aggregate has a `streamId` (**string**). Its events are appended to that stream in order (causal history).
-- **Global sequence:** Every stored event also gets a system-wide, monotonically increasing **`sequence`**. This provides a single, total order across all streams for consumers.
-
-### Read/Write Separation
-- **Write model (Domain):** Commands → Aggregates → Events (correctness & invariants).
-- **Read model (Reflection/Projection):** Consumes events and **denormalizes** them into query-optimized views. No decisions—only derivation from events.
-
-### Projection Mechanics
-- **Idempotence:** Projections must tolerate replays; use upserts and deterministic mappings.
-- **High-watermark:** Each projector stores the last fully applied global `sequence` and resumes from the next one on restart.
-- **Batching (pagination):** Projections read the global feed **in pages** (N events per call). Batching is a transport concern only; semantics remain identical. Always apply events **in ascending `sequence`**, then advance the checkpoint.
-
-### Consistency & Concurrency
-- **Eventual consistency:** Read models converge after consuming new events.
-- **Optimistic concurrency (optional):** May be enforced with expected stream versions during append; otherwise rely on serialized command handling.
-- **Immutability:** Corrections create new events; history is never rewritten.
-
-### Extending & Swapping
-
-- **Persistence:** Provide a Postgres/Mongo `IEventStore` implementation (library or service).
-- **Broker:** Swap RabbitMQ for Kafka by implementing `IBroker`.
-- **Read models:** Add projection services that subscribe only to relevant event types (routing keys).
-- **Resilience:** Projectors (re)hydrate by calling the event store’s global feed with `from` and an optional `limit` (pagination), apply in order, and advance the **high-watermark**.
-
-> Keep domain & application layers pure; let adapters handle all technical plumbing.
-
-## C4 Architectural visualization (Structurizr)
-
-Generate a 1:1 C4 diagram from the actual `docker-compose.yml`:
+### Visualize Architecture (C4)
 ```bash
 npm run viz
 ```
+> Generates live **Structurizr C4 diagrams** directly from `docker-compose.yml`.
+
+---
+
+## 🧾 Available npm Scripts
+
+| Script | Description |
+|---------|-------------|
+| `npm run build` | Build all shared and service workspaces |
+| `npm run up` | Bring up the full Docker stack (CQRS + ES + Observability) |
+| `npm run down` | Stop and remove containers |
+| `npm run viz` | Generate Structurizr C4 architecture visualization |
+| `npm run lint` | Run linting across all packages (if configured) |
+| `npm run clean` | Remove build artifacts |
+| `npm run test` | Run unit tests across workspaces (optional placeholder) |
+
+> Each service (Order, Calendar, Shop, etc.) also supports individual `npm run build` and `npm start` commands within its own workspace.
+
+## 🧭 Extending & Swapping
+
+| Component | Replaceable With | Interface |
+|------------|------------------|------------|
+| Event Store | Postgres, DynamoDB, EventStoreDB | `IEventStore` |
+| Broker | Kafka, NATS, Azure Service Bus | `IBroker` |
+| Observability | Datadog, New Relic | OpenTelemetry SDK |
+| Read Models | Custom projections | Domain event subscription |
+
+All technology details are confined to the **infrastructure layer**, allowing you to evolve implementation freely without touching domain logic.
+
+## 📡 Observability URLs
+
+| Service | URL | Purpose |
+|----------|-----|----------|
+| RabbitMQ UI | [http://localhost:4672](http://localhost:4672) | Broker management |
+| Grafana | [http://localhost:8300](http://localhost:8300) | Dashboards |
+| Prometheus | [http://localhost:8900](http://localhost:8900) | Metrics |
+| Tempo | [http://localhost:8200](http://localhost:8200) | Traces |
+
+## 🧩 System Landscape
+
+Generated via Structurizr DSL — includes:
+- **Event Platform** (RabbitMQ)
+- **Calendar Domain**
+- **Order Domain**
+- **Shop Domain**
+- **Observability Stack**
+
+---
+
+© 2025 — CQRS-ES Shop MVP by Daveloper

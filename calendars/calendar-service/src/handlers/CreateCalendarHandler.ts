@@ -1,25 +1,18 @@
-import { BaseHandler } from './BaseHandler';
-import { ICreateCalendarCommand } from '@daveloper/interfaces';
-import { trace } from '@daveloper/opentelemetry';
+import { BaseHandler, BaseRepository } from '@daveloper/cqrs';
+import { IBroker, ICreateCalendarCommand, TCalendarEventUnion } from '@daveloper/interfaces';
+import { Calendar } from '../aggregate/CalendarAggregate';
 
-export class CreateCalendarHandler extends BaseHandler<ICreateCalendarCommand> {
+export class CreateCalendarHandler extends BaseHandler<ICreateCalendarCommand, Calendar, TCalendarEventUnion> {
+    constructor(repo: BaseRepository<Calendar, TCalendarEventUnion>, broker: IBroker) {
+        super(repo, broker);
+    }
+
     async handle(cmd: ICreateCalendarCommand) {
-        await trace.getTracer('calendar').startActiveSpan('CreateCalendar', async (span: any) => {
-            try {
-                // Add attributes to span
-                span.setAttribute('calendar.id', cmd.payload.calendarId);
-                span.setAttribute('messaging.message.conversation_id', cmd.correlationId);
-                // Business logic
-                const calendar = await this.load(cmd.payload.calendarId);
-                calendar.createCalendar(cmd.payload.calendarId, cmd.correlationId);
-                // Persist and publish event
-                await this.saveAndPublish(calendar);
-            } catch (err) {
-                span.recordException(err as Error);
-                throw err;
-            } finally {
-                span.end();
-            }
-        });
+        // Business logic
+        const id = String(cmd.payload.calendarId);
+        const calendar = await this.repo.load(id, () => new Calendar());
+        calendar.createCalendar(cmd.payload.calendarId, cmd.correlationId);
+        // Persist and publish event
+        await this.saveAndPublish(calendar);
     }
 }

@@ -1,5 +1,5 @@
 import { ICommand } from "../Commands";
-import { ISODateTime } from "./Types";
+import { ISODateTime } from "../Types";
 
 export interface ICreateCalendarCommand extends ICommand<{ 
     calendarId: string; // == userId (MVP)

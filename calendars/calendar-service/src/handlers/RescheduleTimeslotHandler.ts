@@ -1,29 +1,18 @@
-import { BaseHandler } from './BaseHandler';
-import { IRescheduleTimeslotCommand } from '@daveloper/interfaces';
-import { trace } from '@daveloper/opentelemetry';
+import { BaseHandler, BaseRepository } from '@daveloper/cqrs';
+import { IBroker, IRescheduleTimeslotCommand, TCalendarEventUnion } from '@daveloper/interfaces';
+import { Calendar } from '../aggregate/CalendarAggregate';
 
-export class RescheduleTimeslotHandler extends BaseHandler<IRescheduleTimeslotCommand> {
+export class RescheduleTimeslotHandler extends BaseHandler<IRescheduleTimeslotCommand, Calendar, TCalendarEventUnion> {
+    constructor(repo: BaseRepository<Calendar, TCalendarEventUnion>, broker: IBroker) {
+        super(repo, broker);
+    }
+
     async handle(cmd: IRescheduleTimeslotCommand) {
-        await trace.getTracer('calendar').startActiveSpan(
-            'RescheduleTimeslot',
-            async (span: any) => {
-                try {
-                    // add attributes
-                    span.setAttribute('calendar.id', cmd.payload.calendarId);
-                    span.setAttribute('timeslot.id', cmd.payload.timeslotId);
-                    span.setAttribute('messaging.message.conversation_id', cmd.correlationId);
-                    // business logic
-                    const calendar = await this.load(cmd.payload.calendarId);
-                    calendar.rescheduleTimeslot(cmd.payload, cmd.correlationId);
-                    // persist and publish event
-                    await this.saveAndPublish(calendar);
-                } catch (err) {
-                    span.recordException(err as Error);
-                    throw err;
-                } finally {
-                    span.end();
-                }
-            }
-        );
+        // Business logic
+        const id = String(cmd.payload.calendarId);
+        const calendar = await this.repo.load(id, () => new Calendar());
+        calendar.rescheduleTimeslot(cmd.payload, cmd.correlationId);
+        // Persist and publish event
+        await this.saveAndPublish(calendar);
     }
 }

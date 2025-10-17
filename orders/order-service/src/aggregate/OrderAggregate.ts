@@ -1,41 +1,68 @@
-import { AggregateRoot } from './AggregateRoot';
-import { CreateOrder, ShipOrder } from '../commands';
-import { OrderCreated, OrderShipped } from '../events';
+import { BaseAggregate } from '@daveloper/cqrs';
+import type {
+  TOrderEventUnion,
+  IOrderCreatedEvent,
+  IOrderShippedEvent,
+  ICreateOrderCommand,
+  IShipOrderCommand,
+} from '@daveloper/interfaces';
+import {
+  OrderCreated,
+  OrderShipped,
+  OrderCreationFailed,
+  OrderShippingFailed,
+} from '../events';
+import {
+  orderMustNotExist,
+  orderMustExist,
+  createPayloadValid,
+  shipPayloadValid,
+  orderMustBeCreatable,
+  orderMustBeShippable,
+} from './BusinessRules';
 
-export class Order extends AggregateRoot {
-  public id!: string;
-  public userId!: string;
-  public total!: number;
-  public status!: 'CREATED' | 'SHIPPED';
+export class Order extends BaseAggregate<TOrderEventUnion> {
+  public id?: string;
+  public status?: 'CREATED' | 'SHIPPED' | 'CANCELLED';
+  public userId?: string;
+  public total?: number;
 
-  // ------------- Commands -------------
+  // Commands
 
-  createOrder(payload: CreateOrder["payload"], correlationId: string) {
-    this.raise(new OrderCreated({ ...payload }, correlationId));
+  createOrder(payload: ICreateOrderCommand['payload'], correlationId: string) {
+    this.aggregateAndRaiseEvents(payload, correlationId, {
+      rules: [
+        () => createPayloadValid(payload),
+        () => orderMustNotExist(!!this.id),
+        () => orderMustBeCreatable(this.status),
+      ],
+      SuccessEvent: OrderCreated,
+      FailedEvent: OrderCreationFailed,
+    });
   }
 
-  shipOrder(payload: ShipOrder["payload"], correlationId: string) {
-    if (!this.id) throw new Error('Cannot ship: order not loaded');
-    if (this.status !== 'CREATED') throw new Error(`Cannot ship: status=${this.status}`);
-    this.raise(new OrderShipped({
-      orderId: payload.orderId,
-      userId: this.userId,
-      shippedAt: payload.shippedAt ?? new Date().toISOString(),
-      carrier: payload.carrier,
-      trackingNumber: payload.trackingNumber,
-    }, correlationId));
+  shipOrder(payload: IShipOrderCommand['payload'], correlationId: string) {
+    this.aggregateAndRaiseEvents({ ...payload, userId: this.userId!} , correlationId, {
+      rules: [
+        () => shipPayloadValid(payload),
+        () => orderMustExist(!!this.id),
+        () => orderMustBeShippable(this.status),
+      ],
+      SuccessEvent: OrderShipped,
+      FailedEvent: OrderShippingFailed,
+    });
   }
 
-  // ---------- Event appliers ----------
+  // Event appliers
 
-  private onOrderCreated(e: OrderCreated & { type: 'OrderCreated' }) {
-    this.id = e.payload.orderId;
+  private onOrderCreated(e: IOrderCreatedEvent) {
+    this.id = String(e.payload.orderId);
     this.userId = e.payload.userId;
     this.total = e.payload.total;
     this.status = 'CREATED';
   }
 
-  private onOrderShipped(_e: OrderShipped & { type: 'OrderShipped' }) {
+  private onOrderShipped(_e: IOrderShippedEvent) {
     this.status = 'SHIPPED';
   }
 }

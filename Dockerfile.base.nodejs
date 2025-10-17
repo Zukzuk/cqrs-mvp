@@ -36,5 +36,8 @@ COPY --from=build /usr/src/shared/eventstore/dist ./shared/eventstore/dist
 COPY --from=build /usr/src/shared/interfaces/package.json ./shared/interfaces/package.json
 COPY --from=build /usr/src/shared/interfaces/dist ./shared/interfaces/dist
 
+COPY --from=build /usr/src/shared/cqrs/package.json ./shared/cqrs/package.json
+COPY --from=build /usr/src/shared/cqrs/dist ./shared/cqrs/dist
+
 COPY --from=build /usr/src/observability/opentelemetry/package.json ./observability/opentelemetry/package.json
 COPY --from=build /usr/src/observability/opentelemetry/dist ./observability/opentelemetry/dist

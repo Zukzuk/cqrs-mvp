@@ -7,7 +7,6 @@ export * from './order/DomainEvents';
 
 export * from './calendar/Commands';
 export * from './calendar/DomainEvents';
-export * from './calendar/Types';
 
 export * from './Broker';
 export * from './EventStore';

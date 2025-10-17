@@ -10,6 +10,7 @@
   "dependencies": {
     "@daveloper/broker": "^1.0.0",
     "@daveloper/interfaces": "^1.0.0",
+    "@daveloper/cqrs": "^1.0.0",
     "express": "^5.1.0"
   },
   "devDependencies": {

@@ -37,7 +37,7 @@ npm run mongoui
 
 | Service | URL | Purpose |
 |----------|-----|----------|
-| Website | [http://localhost:3000](http://localhost:3000) | React App
+| Website | [http://localhost:3001](http://localhost:3000) | React App
 | C4 View | [http://localhost:8000](http://localhost:8000) | Structurizr
 | RabbitMQ UI | [http://localhost:4672](http://localhost:4672) | Broker management |
 | Grafana | [http://localhost:8300](http://localhost:8300) | Dashboards |

@@ -15,7 +15,7 @@ RUN npm ci \
 RUN npm run build --workspace ${SERVICE_PATH}
 RUN npm prune --omit=dev --workspaces
 
-# --- runtime stage ---
+# --- prod image ---
 FROM node:22-alpine
 ARG SERVICE_PATH
 ENV SERVICE_PATH=${SERVICE_PATH}

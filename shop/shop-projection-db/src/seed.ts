@@ -1,6 +1,6 @@
 import { MongoClient } from 'mongodb';
 import fetch from 'node-fetch';
-import { IShopView, IStoredEvent } from '@daveloper/interfaces';
+import { ShopOrdersDocument, IStoredEvent } from '@daveloper/interfaces';
 import { mapOrderCreated, mapOrderShipped } from '@daveloper/denormalizers';
 
 interface ProjectionMeta {
@@ -20,7 +20,7 @@ async function seed() {
   await client.connect();
 
   const db = client.db(DB_NAME);
-  const orders = db.collection<IShopView>('orders');
+  const orders = db.collection<ShopOrdersDocument>('orders');
   const metaCol = db.collection<ProjectionMeta>('projection_meta');
 
   // load or initialize cursor for our "shop-orders" projection

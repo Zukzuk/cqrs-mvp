@@ -1,6 +1,7 @@
 import { Server, Socket, Namespace } from 'socket.io'
 import { RabbitMQBroker } from '@daveloper/broker'
 import { userAuth } from '../auth'
+import { TCalendarCommandUnion } from '@daveloper/interfaces'
 
 export function registerWebClient(
     io: Server,
@@ -11,33 +12,40 @@ export function registerWebClient(
 
     io.on('connection', (socket: Socket) => {
         const userId = socket.data.userId as string
-        console.log(
-            `🔗 [bff-socket] WebClient connected to socket=${socket.id} as userId=${userId}`
-        )
+        console.log(`🔗 [bff-socket] WebClient connected to socket=${socket.id} as userId=${userId}`)
         socket.join(userId)
 
-        // ask projection for snapshot
-        console.log(`➡️ [bff-socket] requesting snapshot for user=${userId}`)
-        projectionNs.emit('request_snapshot', { userId })
+        // Ask for projection collections on connect
+        projectionNs.emit('request_orders_snapshot', { userId })
+        projectionNs.emit('request_calendars_snapshot', { userId })
 
-        /*
-         * Commands go point-to-point
-         */
-        socket.on('command', async (raw, ack) => {
-            console.log('⬅️ [bff-socket] recieving command from client:', raw)
+        // Orders
+        socket.on('order_command', async (raw, ack) => {
+            // Ensure userId in payload
             raw.payload.userId = userId;
-
             try {
                 await broker.send('commands.orders', raw)
-                console.log('✅ [bff-broker] command published', raw)
                 ack?.({ status: 'ok' })
             } catch (e: any) {
-                console.error('❌ [bff-broker] command publish failed', e)
                 ack?.({ status: 'error', error: e.message })
             }
         })
 
-        socket.on('disconnect', reason =>
+        // Calendars
+        socket.on('calendar_command', async (raw: TCalendarCommandUnion, ack) => {
+            // Ensure calendarId == userId (MVP convention)
+            if (raw?.payload && 'calendarId' in raw.payload) {
+                (raw as any).payload.calendarId = userId
+            }
+            try {
+                await broker.send('commands.calendars', raw)
+                ack?.({ status: 'ok' })
+            } catch (e: any) {
+                ack?.({ status: 'error', error: e.message })
+            }
+        })
+
+        socket.on('disconnect', (reason) =>
             console.warn(`⚠️ [bff-socket] client disconnected: ${reason}`)
         )
     })

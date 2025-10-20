@@ -13,7 +13,7 @@ export function ShipButton({ orderId, disabled }: Props) {
 
     const ship = () => {
         const correlationId = uuid();
-        socket.emit('command', {
+        socket.emit('order_command', {
             type: 'ShipOrder',
             correlationId,
             payload: {

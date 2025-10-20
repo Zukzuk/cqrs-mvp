@@ -3,7 +3,7 @@
   "description" : "Description",
   "documentation" : { },
   "id" : 1,
-  "lastModifiedDate" : "2025-10-17T10:07:01Z",
+  "lastModifiedDate" : "2025-10-18T12:59:09Z",
   "model" : {
     "properties" : {
       "structurizr.groupSeparator" : "::"
@@ -670,7 +670,7 @@
   "views" : {
     "configuration" : {
       "branding" : { },
-      "lastSavedView" : "containers-shop",
+      "lastSavedView" : "containers-observability",
       "styles" : {
         "elements" : [ {
           "background" : "#4169e1",
@@ -808,8 +808,8 @@
       },
       "elements" : [ {
         "id" : "1",
-        "x" : 574,
-        "y" : 722
+        "x" : 575,
+        "y" : 720
       }, {
         "id" : "8",
         "x" : 1274,
@@ -867,39 +867,39 @@
       }, {
         "id" : "3",
         "x" : 2505,
-        "y" : 526
+        "y" : 527
       }, {
         "id" : "7",
         "x" : 2510,
-        "y" : 1001
+        "y" : 1002
       }, {
         "id" : "12",
         "x" : 898,
-        "y" : 1136
+        "y" : 1137
       }, {
         "id" : "13",
         "x" : 228,
-        "y" : 711
+        "y" : 712
       }, {
         "id" : "14",
-        "x" : 238,
-        "y" : 221
+        "x" : 250,
+        "y" : 196
       }, {
         "id" : "16",
         "x" : 913,
-        "y" : 706
+        "y" : 707
       }, {
         "id" : "17",
         "x" : 928,
-        "y" : 216
+        "y" : 217
       }, {
         "id" : "19",
         "x" : 220,
-        "y" : 1176
+        "y" : 1177
       }, {
         "id" : "20",
         "x" : 1670,
-        "y" : 1386
+        "y" : 1387
       } ],
       "externalSoftwareSystemBoundariesVisible" : false,
       "key" : "containers-observability",
@@ -1035,8 +1035,8 @@
         "y" : 590
       }, {
         "id" : "11",
-        "x" : 199,
-        "y" : 151
+        "x" : 200,
+        "y" : 150
       }, {
         "id" : "20",
         "x" : 449,

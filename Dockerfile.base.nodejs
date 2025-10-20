@@ -1,4 +1,4 @@
-# --- build image ---
+# --- build stage ---
 FROM node:22-alpine AS build
 WORKDIR /usr/src
 COPY package.json package-lock.json tsconfig*.json .env ./
@@ -24,8 +24,17 @@ WORKDIR /usr/src
 COPY package.json package-lock.json tsconfig*.json .env ./
 COPY --from=build /usr/local/bin/wait-for-it /usr/local/bin/wait-for-it
 
+COPY --from=build /usr/src/observability/opentelemetry/package.json ./observability/opentelemetry/package.json
+COPY --from=build /usr/src/observability/opentelemetry/dist ./observability/opentelemetry/dist
+
+COPY --from=build /usr/src/shared/interfaces/package.json ./shared/interfaces/package.json
+COPY --from=build /usr/src/shared/interfaces/dist ./shared/interfaces/dist
+
 COPY --from=build /usr/src/shared/broker/package.json ./shared/broker/package.json
 COPY --from=build /usr/src/shared/broker/dist ./shared/broker/dist
+
+COPY --from=build /usr/src/shared/cqrs/package.json ./shared/cqrs/package.json
+COPY --from=build /usr/src/shared/cqrs/dist ./shared/cqrs/dist
 
 COPY --from=build /usr/src/shared/denormalizers/package.json ./shared/denormalizers/package.json
 COPY --from=build /usr/src/shared/denormalizers/dist ./shared/denormalizers/dist
@@ -33,11 +42,3 @@ COPY --from=build /usr/src/shared/denormalizers/dist ./shared/denormalizers/dist
 COPY --from=build /usr/src/shared/eventstore/package.json ./shared/eventstore/package.json
 COPY --from=build /usr/src/shared/eventstore/dist ./shared/eventstore/dist
 
-COPY --from=build /usr/src/shared/interfaces/package.json ./shared/interfaces/package.json
-COPY --from=build /usr/src/shared/interfaces/dist ./shared/interfaces/dist
-
-COPY --from=build /usr/src/shared/cqrs/package.json ./shared/cqrs/package.json
-COPY --from=build /usr/src/shared/cqrs/dist ./shared/cqrs/dist
-
-COPY --from=build /usr/src/observability/opentelemetry/package.json ./observability/opentelemetry/package.json
-COPY --from=build /usr/src/observability/opentelemetry/dist ./observability/opentelemetry/dist

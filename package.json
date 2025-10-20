@@ -25,6 +25,7 @@
     "viz": "ts-node observability/visualize/src/viz.ts",
     "viz:gen": "ts-node observability/visualize/src/gen.ts",
     "codebase": "node scripts/codebase.js",
-    "clean": "node scripts/clean.js"
+    "clean": "node scripts/clean.js",
+    "outdated": "npm -ws outdated"
   }
 }

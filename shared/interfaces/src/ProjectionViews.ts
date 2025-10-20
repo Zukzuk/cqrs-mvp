@@ -1,6 +1,6 @@
-import { TOrderStatus } from "./Types";
+import { TOrderStatus, TTimeslot } from "./Types";
 
-export interface IShopView {
+export interface ShopOrdersDocument {
     orderId: string;
     userId: string;
     status: TOrderStatus;
@@ -9,4 +9,11 @@ export interface IShopView {
     shippedAt?: string;
     carrier?: string;
     trackingNumber?: string;
+}
+
+export interface CalendarDocument{
+    calendarId: string;
+    userId: string;
+    timeslots: TTimeslot[];
+    updatedAt ?: string;
 }

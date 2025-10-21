@@ -21,6 +21,7 @@ ENV SERVICE_PATH=${SERVICE_PATH}
 
 WORKDIR /usr/share/nginx
 COPY --from=build /usr/local/bin/wait-for-it /usr/local/bin/wait-for-it
+COPY --from=build /usr/src/README.md /usr/src/README.md
 COPY --from=build /usr/src/shared /usr/src/shared
 COPY --from=build /usr/src/node_modules /usr/src/node_modules
 COPY --from=build /usr/src/${SERVICE_PATH}/dist ./html

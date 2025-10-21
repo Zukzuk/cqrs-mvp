@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet, NavLink as RouterNavLink, useLocation } from "react-router-dom";
+import { Outlet, NavLink as RouterNavLink, useLocation, useMatch, useResolvedPath } from "react-router-dom";
 import {
     AppShell,
     Badge,
@@ -13,12 +13,14 @@ import {
 import { IconBox, IconCalendar, IconCreditCard, IconHome, IconSettings } from "@tabler/icons-react";
 import { useSocket } from "../hooks/useSocket";
 
-const USER_ID = "user-123"; // replace with real auth later
+const USER_ID = "user123"; // replace with real auth later
 
 export default function MainLayout() {
     const [opened, setOpened] = useState(false);
     const { connected } = useSocket(USER_ID);
     const location = useLocation();
+    const resolved = useResolvedPath("/");
+    const match = useMatch({ path: resolved.pathname, end: true });
 
     return (
         <AppShell
@@ -44,6 +46,14 @@ export default function MainLayout() {
             {/* Left main menu */}
             <AppShell.Navbar p="xs">
                 <Stack gap={2}>
+                    <NavLink
+                        component={RouterNavLink}
+                        to="/"
+                        label="Home"
+                        leftSection={<IconBox size={16} />}
+                        active={!!match}
+                        variant="light"
+                    />
                     <NavLink
                         component={RouterNavLink}
                         to="/orders"

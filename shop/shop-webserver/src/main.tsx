@@ -11,11 +11,13 @@ import CalendarPage from "./pages/CalendarPage";
 import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
 import "@mantine/notifications/styles.css";
+import HomePage from "./pages/HomePage";
 
 const router = createBrowserRouter([
     {
         element: <MainLayout />,
         children: [
+            { path: "/", element: <HomePage /> },
             { path: "orders", element: <OrdersPage /> },
             { path: "calendar", element: <CalendarPage /> },
         ],

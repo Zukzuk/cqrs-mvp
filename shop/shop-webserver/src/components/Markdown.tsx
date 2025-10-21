@@ -12,42 +12,67 @@ import type { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 
+/** Helper to flatten React children to text */
+function toText(node: React.ReactNode): string {
+    if (node == null || typeof node === "boolean") return "";
+    if (typeof node === "string" || typeof node === "number") return String(node);
+    if (Array.isArray(node)) return node.map(toText).join("");
+    if (React.isValidElement(node)) return toText(node.props.children);
+    return "";
+}
+
 export default function Markdown({ content }: { content: string }) {
     const theme = useMantineTheme();
     const { colorScheme } = useMantineColorScheme();
+
     const border = colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[3];
     const zebra = colorScheme === "dark" ? theme.colors.dark[6] : theme.colors.gray[0];
 
-    // --- Renderers ---
-    // Links: filter props to avoid TS conflicts with Mantine Anchor
+    // --- Custom renderers ---
+
+    // Inline code (react-markdown v9 only uses this for inline)
+    const CodeRenderer: Components["code"] = ({ children, ...props }) => (
+        <MantineCode {...props}>{children}</MantineCode>
+    );
+
+    // Fenced code blocks (<pre><code>...</code></pre>)
+    const PreRenderer: Components["pre"] = ({ children, ...props }) => {
+        const childArray = React.Children.toArray(children);
+        const first = childArray[0] as React.ReactNode;
+
+        // get className from inner <code> for syntax highlighting
+        let className = "";
+        if (React.isValidElement(first) && typeof first.props.className === "string") {
+            className = first.props.className;
+        }
+
+        // flatten to text & trim final newline
+        const raw = toText(first);
+        const trimmed = raw.replace(/\n$/, "");
+
+        return (
+            <ScrollArea.Autosize mah={420}>
+                <pre
+                    {...props}
+                    style={{
+                        padding: theme.spacing.md,
+                        border: `1px solid ${border}`,
+                        borderRadius: theme.radius.md,
+                        margin: `${theme.spacing.sm} 0`,
+                        overflow: "auto",
+                    }}
+                >
+                    <code className={className}>{trimmed}</code>
+                </pre>
+            </ScrollArea.Autosize>
+        );
+    };
+
+    // Links
     const LinkRenderer: Components["a"] = ({ href, title, children }) => (
         <MantineAnchor href={href ?? "#"} title={title ?? undefined} target="_blank" rel="noreferrer">
             {children}
         </MantineAnchor>
-    );
-
-    // Inline code (since `inline` is no longer provided, `code` is for inline)
-    const CodeRenderer: Components["code"] = ({ className, children, ...props }) => (
-        <MantineCode {...props}>{children}</MantineCode>
-    );
-
-    // Fenced code blocks – handled in `pre`
-    const PreRenderer: Components["pre"] = ({ children, ...props }) => (
-        
-        <ScrollArea.Autosize mah={420}>
-            <pre
-                {...props}
-                style={{
-                    padding: theme.spacing.md,
-                    border: `1px solid ${border}`,
-                    borderRadius: theme.radius.md,
-                    margin: `${theme.spacing.sm} 0`,
-                    overflow: "auto",
-                }}
-            >
-                {children}
-            </pre>
-        </ScrollArea.Autosize>
     );
 
     // Tables
@@ -93,8 +118,8 @@ export default function Markdown({ content }: { content: string }) {
 
     const components: Components = {
         a: LinkRenderer,
-        code: CodeRenderer,
-        pre: PreRenderer,
+        code: CodeRenderer, // inline code
+        pre: PreRenderer,   // fenced code
         table: TableRenderer,
         th: ThRenderer,
         td: TdRenderer,

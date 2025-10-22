@@ -4,62 +4,39 @@ import { v4 as uuidv4 } from "uuid";
 import { useOrdersProjection } from "./useOrdersProjection";
 import { sendOrdersCommand } from "./useOrdersCommands";
 import { OrdersCommands } from "./OrdersCommands";
-import type { ShopOrdersDocument } from "@daveloper/interfaces";
-import { useUpsertRows, type BaseRow } from "./useUpsertRows";
+import type { ShopOrdersDocument, TOrderCommandUnion } from "@daveloper/interfaces";
+import { useRows } from "./useRows";
 
 const USER_ID = "user123";
 
-type Row = Pick<
-    ShopOrdersDocument,
-    "orderId" | "userId" | "status" | "total" | "carrier" | "trackingNumber" | "shippedAt" | "correlationId"
-> & BaseRow;
+export type BaseRow = {
+    orderId?: string | number | null;
+    correlationId?: string | null;
+    status?: string | null;
+    pending?: boolean;
+    updatedAt?: number;
+};
+
+export type OrderRow =
+    // always present (you provide them)
+    BaseRow
+    & Pick<ShopOrdersDocument, "orderId" | "status" | "correlationId">
+    // may or may not be present depending on the command/snapshot
+    & Partial<Pick<ShopOrdersDocument, "userId" | "total" | "carrier" | "trackingNumber" | "shippedAt">>;
+
 
 export default function OrderPage() {
     const { orders: projectedOrders } = useOrdersProjection(USER_ID);
-    const { rows, upsert, applyProjection } = useUpsertRows<Row>();
+    const { rows, upsert, replaceSnapshot } = useRows<OrderRow>();
 
-    // Feed projection into the hook
-    useEffect(() => {
-        if (projectedOrders?.length) {
-            // mark incoming as non-pending; hook merges by correlationId/orderId
-            applyProjection(projectedOrders as Row[]);
-        }
-    }, [projectedOrders, applyProjection]);
-
-    const createOrder = async () => {
-        const orderId = Date.now().toString();
-        const payload = { orderId, userId: USER_ID, total: 1 };
-        const correlationId = uuidv4();
-
-        upsert({ ...payload, correlationId, status: "PENDING" }, { pending: true });
-
-        const cmd = OrdersCommands.createOrder(payload);
-        try {
-            await sendOrdersCommand(USER_ID, { ...cmd, correlationId });
-        } catch (err) {
-            console.error("CreateOrder failed:", err);
-            upsert({ ...payload, correlationId, status: "FAILED" }, { pending: false });
-        }
-    };
-
-    const shipOrder = async (o: ShopOrdersDocument) => {
-        if (!o.orderId) return;
-        const { orderId, userId, correlationId } = o;
-        const payload = {
-            orderId,
-            carrier: "DHL",
-            trackingNumber: `TRACK-${orderId}`.slice(0, 20),
-            shippedAt: new Date().toISOString(),
-        };
-
-        upsert({ ...payload, userId, correlationId, status: "PENDING" }, { pending: true });
-
-        const cmd = OrdersCommands.shipOrder(payload);
+    // Common handler for commands
+    const handle = async (cmd: TOrderCommandUnion, correlationId: ShopOrdersDocument["correlationId"], status: ShopOrdersDocument["status"]) => {
+        upsert({ ...cmd.payload, correlationId, status }, { pending: true });
         try {
             await sendOrdersCommand(USER_ID, { ...cmd, correlationId });
         } catch (err) {
             console.error("ShipOrder failed:", err);
-            upsert({ ...payload, userId, correlationId, status: "FAILED" }, { pending: false });
+            upsert({ ...cmd.payload, correlationId, status: "FAILED" }, { pending: false });
         }
     };
 
@@ -70,13 +47,11 @@ export default function OrderPage() {
                 const aNoTs = !a.shippedAt;
                 const bNoTs = !b.shippedAt;
                 if (aNoTs !== bNoTs) return aNoTs ? -1 : 1; // no timestamp on top
-
                 // both have timestamps → newest first
                 if (!aNoTs && !bNoTs) {
                     const byShip = String(b.shippedAt!).localeCompare(String(a.shippedAt!));
                     if (byShip !== 0) return byShip;
                 }
-
                 // both missing shippedAt → fall back to updatedAt desc, then orderId asc
                 const byUpdated = (b.updatedAt ?? 0) - (a.updatedAt ?? 0);
                 if (byUpdated !== 0) return byUpdated;
@@ -85,6 +60,37 @@ export default function OrderPage() {
             }),
         [rows]
     );
+
+    // Feed projection into the hook
+    useEffect(() => {
+        if (projectedOrders?.length) {
+            replaceSnapshot(projectedOrders as OrderRow[]);
+        }
+    }, [projectedOrders, replaceSnapshot]);
+
+    // Handle order command
+    const createOrder = async () => {
+        const orderId = Date.now().toString();
+        const payload = { orderId, userId: USER_ID, total: 1 };
+        const correlationId = uuidv4();
+        const cmd = OrdersCommands.createOrder(payload);
+        handle(cmd, correlationId, "PENDING");
+    };
+
+    // Handle ship command
+    const shipOrder = async (o: OrderRow) => {
+        if (!o.orderId) return;
+        const { orderId, userId, correlationId } = o;
+        const payload = {
+            userId,
+            orderId,
+            carrier: "DHL",
+            trackingNumber: `TRACK-${orderId}`.slice(0, 20),
+            shippedAt: new Date().toISOString(),
+        };
+        const cmd = OrdersCommands.shipOrder(payload);
+        handle(cmd, correlationId, "PENDING");
+    };
 
     const statusColor = (status?: string) => {
         switch (status) {
@@ -141,7 +147,7 @@ export default function OrderPage() {
                                             w={100}
                                             leftSection={isPending ? <Loader c="light" size={9} /> : undefined}
                                         >
-                                            { o.status }
+                                            {o.status}
                                         </Badge>
                                     </Table.Td>
                                     <Table.Td>{o.total ?? "—"}</Table.Td>

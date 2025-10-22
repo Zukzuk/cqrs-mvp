@@ -22,23 +22,27 @@ export default function MainLayout() {
     const { connected } = useBus({ userId: USER_ID });
     const location = useLocation();
 
-
     return (
         <AppShell header={{ height: 56 }} navbar={{ width: 240, breakpoint: "sm", collapsed: { mobile: !opened } }} padding="md">
             <AppShell.Header>
-                <Container size="lg" style={{ height: "100%" }}>
-                    <Group justify="space-between" align="center" style={{ height: "100%" }}>
-                        <Group gap="sm" align="center">
-                            <Burger opened={opened} onClick={() => setOpened((o) => !o)} hiddenFrom="sm" size="sm" />
-                            <Title order={4}>Shop Admin</Title>
-                        </Group>
+                <Group align="center" style={{ height: "100%" }}>
+                    <Group ml="sm" gap="sm" align="center">
+                        <Burger
+                            opened={opened}
+                            onClick={() => setOpened((o) => !o)}
+                            hiddenFrom="sm"
+                            size="sm"
+                        />
+                        <Title order={4}>Shop Admin</Title>
+                    </Group>
+
+                    <Group mr="sm" align="center" style={{ marginLeft: "auto" }}>
                         <ConnectionBadge connected={connected} />
                     </Group>
-                </Container>
+                </Group>
             </AppShell.Header>
 
-
-            <AppShell.Navbar p="xs">
+            <AppShell.Navbar>
                 <SidebarNav currentPath={location.pathname} links={links} />
             </AppShell.Navbar>
 

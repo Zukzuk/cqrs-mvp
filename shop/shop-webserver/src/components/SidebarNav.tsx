@@ -1,4 +1,3 @@
-// components/SidebarNav.tsx
 import { Stack, NavLink } from "@mantine/core";
 import { NavLink as RouterNavLink } from "react-router-dom";
 import type { ElementType } from "react";

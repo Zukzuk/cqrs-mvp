@@ -23,14 +23,14 @@ export function registerShopProjection(
             io.to(view.userId).emit("orders_snapshot", view.orders);
         });
         socket.on("order_update", (order: { userId: string;[k: string]: any }) => {
-            io.to(order.userId).emit("order_update", order);
+            setTimeout(() => io.to(order.userId).emit("order_update", order), 1000);
         });
 
-        socket.on("calendars_snapshot", (p: { userId: string; calendar: any }) => {
-            io.to(p.userId).emit("calendars_snapshot", p.calendar);
+        socket.on("calendars_snapshot", (view: { userId: string; calendar: any }) => {
+            io.to(view.userId).emit("calendars_snapshot", view.calendar);
         });
-        socket.on("calendar_update", (p: { userId: string;[k: string]: any }) => {
-            io.to(p.userId).emit("calendar_update", p);
+        socket.on("calendar_update", (view: { userId: string;[k: string]: any }) => {
+            setTimeout(() => io.to(view.userId).emit("calendar_update", view), 1000);
         });
 
         socket.on("disconnect", () => {

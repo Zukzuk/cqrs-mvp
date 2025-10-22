@@ -16,6 +16,7 @@ function reindexInto<T extends BaseRow>(list: T[], maps: IndexMaps) {
     maps.byOrderId.clear();
     maps.byCorrId.clear();
     list.forEach((r, i) => {
+        if (!r) return;
         if (r.orderId != null) maps.byOrderId.set(String(r.orderId), i);
         if (r.correlationId) maps.byCorrId.set(r.correlationId, i);
     });
@@ -27,6 +28,7 @@ function upsertInto<T extends BaseRow>(
     input: T,
     { pending = false, reuseIndex = null as number | null } = {}
 ) {
+    if (!input) return list;
     const now = Date.now();
     const item: T = { ...input, pending, updatedAt: now };
 
@@ -37,7 +39,7 @@ function upsertInto<T extends BaseRow>(
 
     const next = [...list];
     if (idx >= 0) {
-        const merged = { ...next[idx], ...item, pending } as T;
+        const merged = { ...(next[idx] ?? {}), ...item, pending } as T;
         next[idx] = merged;
         const [rec] = next.splice(idx, 1);
         next.unshift(rec);
@@ -66,7 +68,10 @@ export function useUpsertRows<T extends BaseRow>() {
         (items: T[], opts?: { pending?: boolean }) => {
             setRows((prev) => {
                 let list = prev;
-                for (const it of items) list = upsertInto(list, maps, it, { pending: opts?.pending ?? false });
+                for (const it of items) {
+                    if (!it) continue;
+                    list = upsertInto(list, maps, it, { pending: opts?.pending ?? false });
+                }
                 return list;
             });
         },
@@ -80,6 +85,7 @@ export function useUpsertRows<T extends BaseRow>() {
         setRows((prev) => {
             let list = prev;
             for (const o of incoming) {
+                if (!o) continue;
                 const idxByCorr = o.correlationId ? maps.byCorrId.get(o.correlationId) : undefined;
                 const idxByOrder = o.orderId != null ? maps.byOrderId.get(String(o.orderId)) : undefined;
                 const reuseIndex: number | null =

@@ -66,7 +66,7 @@ export default function OrderPage() {
     // Sorted view (shippedAt desc, then orderId)
     const view = useMemo(
         () =>
-            rows.slice().sort((a, b) => {
+            rows.filter(Boolean).slice().sort((a, b) => {
                 const aNoTs = !a.shippedAt;
                 const bNoTs = !b.shippedAt;
                 if (aNoTs !== bNoTs) return aNoTs ? -1 : 1; // no timestamp on top

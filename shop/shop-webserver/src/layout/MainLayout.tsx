@@ -34,10 +34,11 @@ export default function MainLayout() {
                             size="sm"
                         />
                         <Title order={4}>Shop Admin</Title>
+                        <ConnectionBadge connected={connected} />
                     </Group>
 
                     <Group mr="sm" align="center" style={{ marginLeft: "auto" }}>
-                        <ConnectionBadge connected={connected} />
+                        <span>{USER_ID}</span>
                     </Group>
                 </Group>
             </AppShell.Header>

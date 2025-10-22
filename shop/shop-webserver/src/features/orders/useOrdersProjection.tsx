@@ -9,6 +9,7 @@ export function useOrdersProjection(userId: string) {
     useEffect(() => {
         function onSnapshot(payload: ShopOrdersDocument[]) {
             const cleaned = (Array.isArray(payload) ? payload : [])
+                .filter(Boolean)
                 .map((o: any) => ({ ...o, orderId: String(o.orderId ?? "") }));
             setOrders(cleaned);
         }
@@ -16,7 +17,8 @@ export function useOrdersProjection(userId: string) {
             if (!order || order.userId !== userId) return;
             const normalized = { ...order, orderId: String(order.orderId ?? "") } as ShopOrdersDocument;
             setOrders((prev) => {
-                const rest = prev.filter(o => String(o.orderId) !== normalized.orderId);
+                const safePrev = prev.filter(Boolean);
+                const rest = safePrev.filter(o => String(o.orderId) !== normalized.orderId);
                 return [...rest, normalized];
             });
         }

@@ -1,34 +1,30 @@
 import { useState } from "react";
-import { Outlet, NavLink as RouterNavLink, useLocation, useMatch, useResolvedPath } from "react-router-dom";
-import {
-    AppShell,
-    Badge,
-    Burger,
-    Container,
-    Group,
-    NavLink,
-    Stack,
-    Title,
-} from "@mantine/core";
-import { IconBox, IconCalendar, IconCreditCard, IconHome, IconSettings } from "@tabler/icons-react";
-import { useSocket } from "../hooks/useSocket";
+import { Outlet, useLocation } from "react-router-dom";
+import { AppShell, Burger, Container, Group, Title } from "@mantine/core";
+import { IconBox, IconCalendar, IconHome } from "@tabler/icons-react";
+import { SidebarNav, type SidebarLink } from "../components/SidebarNav";
+import { ConnectionBadge } from "../components/ConnectionBadge";
+import { useBus } from "../hooks/useBus";
+
 
 const USER_ID = "user123"; // replace with real auth later
 
+
+const links: SidebarLink[] = [
+    { to: "/", label: "Home", icon: IconHome, match: (p: string) => p === "/" },
+    { to: "/orders", label: "Orders", icon: IconBox, match: (p: string) => p.startsWith("/orders") },
+    { to: "/calendar", label: "Calendar", icon: IconCalendar, match: (p: string) => p.startsWith("/calendar") },
+];
+
+
 export default function MainLayout() {
     const [opened, setOpened] = useState(false);
-    const { connected } = useSocket(USER_ID);
+    const { connected } = useBus({ userId: USER_ID });
     const location = useLocation();
-    const resolved = useResolvedPath("/");
-    const match = useMatch({ path: resolved.pathname, end: true });
+
 
     return (
-        <AppShell
-            header={{ height: 56 }}
-            navbar={{ width: 240, breakpoint: "sm", collapsed: { mobile: !opened } }}
-            padding="md"
-        >
-            {/* Header with title + connected badge */}
+        <AppShell header={{ height: 56 }} navbar={{ width: 240, breakpoint: "sm", collapsed: { mobile: !opened } }} padding="md">
             <AppShell.Header>
                 <Container size="lg" style={{ height: "100%" }}>
                     <Group justify="space-between" align="center" style={{ height: "100%" }}>
@@ -36,44 +32,17 @@ export default function MainLayout() {
                             <Burger opened={opened} onClick={() => setOpened((o) => !o)} hiddenFrom="sm" size="sm" />
                             <Title order={4}>Shop Admin</Title>
                         </Group>
-                        <Badge variant="light" color={connected ? "green" : "red"}>
-                            {connected ? "Connected" : "Offline"}
-                        </Badge>
+                        <ConnectionBadge connected={connected} />
                     </Group>
                 </Container>
             </AppShell.Header>
 
-            {/* Left main menu */}
+
             <AppShell.Navbar p="xs">
-                <Stack gap={2}>
-                    <NavLink
-                        component={RouterNavLink}
-                        to="/"
-                        label="Home"
-                        leftSection={<IconBox size={16} />}
-                        active={!!match}
-                        variant="light"
-                    />
-                    <NavLink
-                        component={RouterNavLink}
-                        to="/orders"
-                        label="Orders"
-                        leftSection={<IconBox size={16} />}
-                        active={location.pathname.startsWith("/orders")}
-                        variant="light"
-                    />
-                    <NavLink
-                        component={RouterNavLink}
-                        to="/calendar"
-                        label="Calendar"
-                        leftSection={<IconCalendar size={16} />}
-                        active={location.pathname.startsWith("/calendar")}
-                        variant="light"
-                    />
-                </Stack>
+                <SidebarNav currentPath={location.pathname} links={links} />
             </AppShell.Navbar>
 
-            {/* Main container with page content */}
+
             <AppShell.Main>
                 <Container size="lg">
                     <Outlet />

@@ -27,45 +27,6 @@ export class RabbitMQBroker implements IBroker {
   }
 
   /**
-  * Send a raw command or message to a specific queue.
-  */
-  async send<C extends TCommandUnion>(
-    queueName: string,
-    command: C
-  ): Promise<void> {
-    await this.cmdCh.assertQueue(queueName, { durable: true });
-
-    const span = startMsgSpan('amqp send command', 'send', {
-      'messaging.destination.name': queueName,
-      'messaging.message.conversation_id': command.correlationId,
-      'command.type': command.type,
-    });
-
-    try {
-      const headers: Record<string, any> = {};
-      // inject W3C headers into AMQP properties
-      injectAmqpHeaders(headers);
-      // include correlationId for non-OTel consumers
-      headers['correlation-id'] = command.correlationId;
-      headers['produced-ts'] = Date.now();
-      // for E2E tracing, mark the start time
-      busOut.inc({ kind: 'command', type: command.type });
-      // publish with headers
-      this.cmdCh.sendToQueue(
-        queueName,
-        Buffer.from(JSON.stringify(command)),
-        { persistent: true, headers }
-      );
-      // mark success for this command type
-      endSpanOk(span);
-      console.log('📨 [broker-send] send command', command.type, 'queue=', queueName, 'corrId=', command.correlationId);
-    } catch (err) {
-      endSpanErr(span, err);
-      throw err;
-    }
-  }
-
-  /**
    * Publish a domain event to the exchange using the event type as the routing key.
    * Events go to a topic exchange ("domain-events") with routing keys (DomainEvent type).
    */
@@ -98,74 +59,6 @@ export class RabbitMQBroker implements IBroker {
       endSpanErr(span, err);
       throw err;
     }
-  }
-
-  /**
-   * Consume a command queue with a given handler.
-   */
-  async consumeQueue<C extends TCommandUnion>(
-    queueName: string,
-    handler: ICommandHandler<C>
-  ) {
-    await this.cmdCh.assertQueue(queueName, { durable: true });
-    console.log(`🪡 [broker-queue] consuming command queue='${queueName}'`);
-
-    await this.cmdCh.consume(
-      queueName,
-      async (msg: ConsumeMessage | null) => {
-        if (!msg) return;
-        const headers = (msg.properties && msg.properties.headers) || {};
-        // Restore tracing context (traceparent/baggage) from AMQP headers
-        const otelCtx = extractAmqpContext(headers);
-
-        await context.with(otelCtx, async () => {
-          // Start a consumer span right away (before parsing)
-          const span = startMsgSpan('amqp consume command', 'consume', {
-            'messaging.system': 'rabbitmq',
-            'messaging.destination.name': queueName,
-            'messaging.message.conversation_id': headers['correlation-id'],
-          });
-
-          let command: C;
-          try {
-            // parse and cast to our command type
-            command = JSON.parse(msg.content.toString()) as C;
-
-            // Enrich after parsing (safe even after span created)
-            // @ts-ignore – command may carry these fields by convention
-            if ((command as any)?.type) span.setAttribute('command.type', (command as any).type);
-            // @ts-ignore – many of your commands carry correlationId
-            if ((command as any)?.correlationId) {
-              span.setAttribute('messaging.message.conversation_id', (command as any).correlationId);
-            }
-            // If we have a produced timestamp, record the E2E latency
-            const producedTs = Number(headers['produced-ts']);
-            if (!Number.isNaN(producedTs)) busE2E.observe(Date.now() - producedTs);
-            busIn.inc({ kind: 'command', type: (command as any).type, ack: 'true' });
-            console.log('📨 [broker-queue] received command on', queueName, (command as any).type);
-            // now handler expects exactly the command shape C
-            await handler(command);
-            this.cmdCh.ack(msg);
-            endSpanOk(span);
-            console.log('✅ [broker-queue] ACK', queueName);
-          } catch (err) {
-            endSpanErr(span, err);
-            // On parse or handler error, do not requeue
-            this.cmdCh.nack(msg, false, false);
-            // Try to extract command type for metrics/logs
-            const what = (() => {
-              try {
-                const p = JSON.parse(msg.content.toString());
-                return p?.type || 'unknown';
-              } catch { return 'unknown'; }
-            })();
-            // mark failure for this command type
-            busIn.inc({ kind: 'command', type: what, ack: 'false' });
-            console.error('❌ [broker-queue] command handling failed on', queueName, what, err);
-          }
-        });
-      }
-    );
   }
 
   /**
@@ -257,6 +150,113 @@ export class RabbitMQBroker implements IBroker {
       console.log(`🛑 [broker-subscribe] canceling consumer tag=${consumerTag}`);
       await this.subCh.cancel(consumerTag);
     };
+  }
+
+  /**
+  * Send a raw command or message to a specific queue.
+  */
+  async send<C extends TCommandUnion>(
+    queueName: string,
+    command: C
+  ): Promise<void> {
+    await this.cmdCh.assertQueue(queueName, { durable: true });
+
+    const span = startMsgSpan('amqp send command', 'send', {
+      'messaging.destination.name': queueName,
+      'messaging.message.conversation_id': command.correlationId,
+      'command.type': command.type,
+    });
+
+    try {
+      const headers: Record<string, any> = {};
+      // inject W3C headers into AMQP properties
+      injectAmqpHeaders(headers);
+      // include correlationId for non-OTel consumers
+      headers['correlation-id'] = command.correlationId;
+      headers['produced-ts'] = Date.now();
+      // for E2E tracing, mark the start time
+      busOut.inc({ kind: 'command', type: command.type });
+      // publish with headers
+      this.cmdCh.sendToQueue(
+        queueName,
+        Buffer.from(JSON.stringify(command)),
+        { persistent: true, headers }
+      );
+      // mark success for this command type
+      endSpanOk(span);
+      console.log('📨 [broker-send] send command', command.type, 'queue=', queueName, 'corrId=', command.correlationId);
+    } catch (err) {
+      endSpanErr(span, err);
+      throw err;
+    }
+  }
+
+  /**
+   * Consume a command queue with a given handler.
+   */
+  async consumeQueue<C extends TCommandUnion>(
+    queueName: string,
+    handler: ICommandHandler<C>
+  ) {
+    await this.cmdCh.assertQueue(queueName, { durable: true });
+    console.log(`🪡 [broker-queue] consuming command queue='${queueName}'`);
+
+    await this.cmdCh.consume(
+      queueName,
+      async (msg: ConsumeMessage | null) => {
+        if (!msg) return;
+        const headers = (msg.properties && msg.properties.headers) || {};
+        // Restore tracing context (traceparent/baggage) from AMQP headers
+        const otelCtx = extractAmqpContext(headers);
+
+        await context.with(otelCtx, async () => {
+          // Start a consumer span right away (before parsing)
+          const span = startMsgSpan('amqp consume command', 'consume', {
+            'messaging.system': 'rabbitmq',
+            'messaging.destination.name': queueName,
+            'messaging.message.conversation_id': headers['correlation-id'],
+          });
+
+          let command: C;
+          try {
+            // parse and cast to our command type
+            command = JSON.parse(msg.content.toString()) as C;
+
+            // Enrich after parsing (safe even after span created)
+            // @ts-ignore – command may carry these fields by convention
+            if ((command as any)?.type) span.setAttribute('command.type', (command as any).type);
+            // @ts-ignore – many of your commands carry correlationId
+            if ((command as any)?.correlationId) {
+              span.setAttribute('messaging.message.conversation_id', (command as any).correlationId);
+            }
+            // If we have a produced timestamp, record the E2E latency
+            const producedTs = Number(headers['produced-ts']);
+            if (!Number.isNaN(producedTs)) busE2E.observe(Date.now() - producedTs);
+            busIn.inc({ kind: 'command', type: (command as any).type, ack: 'true' });
+            console.log('📨 [broker-queue] received command on', queueName, (command as any).type);
+            // now handler expects exactly the command shape C
+            await handler(command);
+            this.cmdCh.ack(msg);
+            endSpanOk(span);
+            console.log('✅ [broker-queue] ACK', queueName);
+          } catch (err) {
+            endSpanErr(span, err);
+            // On parse or handler error, do not requeue
+            this.cmdCh.nack(msg, false, false);
+            // Try to extract command type for metrics/logs
+            const what = (() => {
+              try {
+                const p = JSON.parse(msg.content.toString());
+                return p?.type || 'unknown';
+              } catch { return 'unknown'; }
+            })();
+            // mark failure for this command type
+            busIn.inc({ kind: 'command', type: what, ack: 'false' });
+            console.error('❌ [broker-queue] command handling failed on', queueName, what, err);
+          }
+        });
+      }
+    );
   }
 
   /**

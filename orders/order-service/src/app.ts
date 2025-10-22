@@ -9,14 +9,14 @@ import { Order } from './aggregate/OrderAggregate';
 import { Dispatcher } from './handlers/Dispatcher';
 
 
-async function main() {    
+async function main() {
   // expose Prometheus /metrics for this container
   startMetricsServer(Number(process.env.OTEL_METRICS_PORT) || 9100);
 
   // setup broker, event store, repository, dispatcher
-  const eventStore = new HttpEventStore(process.env.EVENTSTORE_URL!);
   const broker = new RabbitMQBroker(process.env.BROKER_URL!);
   await broker.init();
+  const eventStore = new HttpEventStore(process.env.EVENTSTORE_URL!);
   const repo = new BaseRepository<Order, TOrderEventUnion>(eventStore);
   const dispatcher = new Dispatcher(repo, broker);
 

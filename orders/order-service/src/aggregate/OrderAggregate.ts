@@ -31,13 +31,15 @@ export class Order extends BaseAggregate<TOrderEventUnion> {
   public carrier?: string;
   public trackingNumber?: string;
 
+  private exists = false;
+
   // Commands
 
   createOrder(payload: ICreateOrderCommand['payload'], correlationId: string) {
     this.aggregateAndRaiseEvents({ ...payload, status: 'CREATED' }, correlationId, {
       rules: [
         () => createPayloadValid(payload),
-        () => orderMustNotExist(!!this.id),
+        () => orderMustNotExist(this.exists),
         () => orderMustBeCreatable(this.status),
       ],
       SuccessEvent: OrderCreated,
@@ -49,7 +51,7 @@ export class Order extends BaseAggregate<TOrderEventUnion> {
     this.aggregateAndRaiseEvents({ ...payload, userId: this.userId!, status: 'SHIPPED' }, correlationId, {
       rules: [
         () => shipPayloadValid(payload),
-        () => orderMustExist(!!this.id),
+        () => orderMustExist(this.exists),
         () => orderMustBeShippable(this.status),
       ],
       SuccessEvent: OrderShipped,
@@ -60,7 +62,7 @@ export class Order extends BaseAggregate<TOrderEventUnion> {
   // Event appliers
 
   private onOrderCreated(e: IOrderCreatedEvent) {
-    this.id = String(e.payload.orderId);
+    this.exists = true;
     this.userId = e.payload.userId;
     this.total = e.payload.total;
     this.status = e.payload.status;

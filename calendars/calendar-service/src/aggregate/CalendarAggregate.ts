@@ -99,7 +99,6 @@ export class Calendar extends BaseAggregate<TCalendarEventUnion> {
   // Event appliers
 
   private onCalendarCreated(e: CalendarCreated & { type: 'CalendarCreated' }) {
-    this.id = e.payload.calendarId;
     this.exists = true;
   }
 

@@ -5,13 +5,13 @@ import { Notifications } from "@mantine/notifications";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import MainLayout from "./layout/MainLayout";
-import OrdersPage from "./pages/OrdersPage";
-import CalendarPage from "./pages/CalendarPage";
+import HomePage from "./layout/HomePage";
+import OrdersPage from "./features/orders/OrdersPage";
+import CalendarPage from "./features/calendar/CalendarPage";
 
 import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
 import "@mantine/notifications/styles.css";
-import HomePage from "./pages/HomePage";
 
 const router = createBrowserRouter([
     {

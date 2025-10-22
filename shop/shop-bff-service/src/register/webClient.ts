@@ -8,8 +8,10 @@ export function registerWebClient(
     broker: RabbitMQBroker,
     projectionNs: Namespace
 ) {
+    // Apply user authentication middleware
     io.use(userAuth)
 
+    // Handle WebClient connections
     io.on('connection', (socket: Socket) => {
         const userId = socket.data.userId as string
         console.log(`🔗 [bff-socket] WebClient connected to socket=${socket.id} as userId=${userId}`)

@@ -11,14 +11,18 @@ export function registerShopProjection(projectionNs: Namespace, io: Server) {
             io.to(view.userId).emit('orders_snapshot', view.orders)
         })
         socket.on('order_update', async (order: { userId: string;[k: string]: any }) => {
-            io.to(order.userId).emit('order_update', order)
+            setTimeout(() => {
+                io.to(order.userId).emit('order_update', order)
+            }, 1000)
         })
 
         socket.on('calendars_snapshot', (payload: { userId: string; calendar: any }) => {
             io.to(payload.userId).emit('calendars_snapshot', payload.calendar)
         })
         socket.on('calendar_update', async (payload: { userId: string;[k: string]: any }) => {
-            io.to(payload.userId).emit('calendar_update', payload)
+            setTimeout(() => {
+                io.to(payload.userId).emit('calendar_update', payload)
+            }, 1000)
         })
     })
 }

@@ -1,6 +1,6 @@
 import type { IBroker, ICommand, IDomainEvent } from '@daveloper/interfaces';
 import { AggregateRoot } from './AggregateRoot';
-import { BaseRepository } from './Repository';
+import { BaseRepository } from './BaseRepository';
 
 export abstract class BaseHandler<
     Cmd extends ICommand,

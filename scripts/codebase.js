@@ -60,6 +60,7 @@ const ignoreFiles = new Set([
 ]);
 const includeExts = new Set([
   ".ts",
+  ".tsx",
   ".sh",
   ".yml",
   ".yaml",

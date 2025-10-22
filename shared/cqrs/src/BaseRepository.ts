@@ -4,15 +4,19 @@ import { AggregateRoot } from './AggregateRoot';
 export class BaseRepository<Agg extends AggregateRoot<Evt>, Evt extends IDomainEvent> {
     constructor(private readonly store: IEventStore) { }
 
+    // Loads an aggregate by its id, rehydrating it from stored events
     async load(id: string, factory: () => Agg): Promise<Agg> {
         const agg = factory();
+        // always bind stream id on load so failure events are appendable pre-creation
+        agg.bindId(id);
         const history = await this.store.loadStream(id);
         agg.loadFromHistory(history as unknown as Evt[]);
         return agg;
     }
 
+    // Saves the uncommitted events of an aggregate to the event store
     async save(agg: Agg): Promise<void> {
-        const id = (agg as any).id as string;
+        const id = agg.id;
         if (!id) throw new Error('Aggregate has no id');
         const events = agg.uncommittedEvents as IDomainEvent[];
         if (!events.length) return;

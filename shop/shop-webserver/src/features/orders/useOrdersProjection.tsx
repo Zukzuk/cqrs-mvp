@@ -8,9 +8,7 @@ export function useOrdersProjection(userId: string) {
 
     useEffect(() => {
         function onSnapshot(payload: ShopOrdersDocument[]) {
-            // Defensive: ensure every item has a string orderId and belongs to this user
             const cleaned = (Array.isArray(payload) ? payload : [])
-                .filter((o: any) => o && o.userId === userId)
                 .map((o: any) => ({ ...o, orderId: String(o.orderId ?? "") }));
             setOrders(cleaned);
         }

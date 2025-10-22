@@ -29,6 +29,7 @@ export function registerWebClient(
     let projectionConnCount = 0;
     const isProjectionUp = () => projectionConnCount > 0;
 
+    // Web client namespace handling
     io.on("connection", (socket: Socket) => {
         const userId = socket.data.userId as string;
         console.log(
@@ -100,7 +101,7 @@ export function registerWebClient(
         });
     });
 
-    // ---- Projection namespace handling ----
+    // Projection namespace handling
     projectionNs.on("connection", (socket: Socket) => {
         projectionConnCount++;
         console.log(

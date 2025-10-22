@@ -5,7 +5,7 @@ export function registerShopProjection(projectionNs: Namespace, io: Server) {
     projectionNs.use(serviceAuth)
 
     projectionNs.on('connection', (socket: Socket) => {
-        console.log(`🔗 [bff-socket] ProjectionService connected on socket=${socket.id} as serviceId=${socket.data.serviceId}`)
+        console.log(`🔗 [bff-socket] ProjectionService connected on socket=${socket.id} as serviceId=${socket.data.serviceId}`);
 
         socket.on('orders_snapshot', (view: { userId: string; orders: any[] }) => {
             io.to(view.userId).emit('orders_snapshot', view.orders)

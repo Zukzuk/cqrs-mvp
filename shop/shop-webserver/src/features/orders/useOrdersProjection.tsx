@@ -23,14 +23,19 @@ export function useOrdersProjection(userId: string) {
             });
         }
 
+        // Register event listeners
         socket.on("orders_snapshot", onSnapshot);
         socket.on("order_update", onUpdate);
 
-        socket.emit("orders_get_snapshot", { userId });
+        // Ask for snapshot now and on reconnect
+        const ask = () => socket.emit("orders_get_snapshot", { userId });
+        ask(); // on mount
+        socket.on("connect", ask); // on (re)connect
 
         return () => {
             socket.off("orders_snapshot", onSnapshot);
             socket.off("order_update", onUpdate);
+            socket.off("connect", ask);
         };
     }, [socket, userId]);
 

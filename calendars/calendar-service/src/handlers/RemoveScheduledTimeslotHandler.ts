@@ -1,9 +1,9 @@
 import { BaseHandler, BaseRepository } from '@daveloper/cqrs';
-import { IBroker, IRemoveScheduledTimeslotCommand, TCalendarEventUnion } from '@daveloper/interfaces';
+import { IBroker, IRemoveScheduledTimeslotCommand } from '@daveloper/interfaces';
 import { Calendar } from '../aggregate/CalendarAggregate';
 
-export class RemoveScheduledTimeslotHandler extends BaseHandler<IRemoveScheduledTimeslotCommand, Calendar, TCalendarEventUnion> {
-    constructor(repo: BaseRepository<Calendar, TCalendarEventUnion>, broker: IBroker) {
+export class RemoveScheduledTimeslotHandler extends BaseHandler<IRemoveScheduledTimeslotCommand, Calendar> {
+    constructor(repo: BaseRepository<Calendar>, broker: IBroker) {
         super(repo, broker);
     }
 

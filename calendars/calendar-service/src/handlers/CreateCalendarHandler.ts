@@ -2,8 +2,8 @@ import { BaseHandler, BaseRepository } from '@daveloper/cqrs';
 import { IBroker, ICreateCalendarCommand, TCalendarEventUnion } from '@daveloper/interfaces';
 import { Calendar } from '../aggregate/CalendarAggregate';
 
-export class CreateCalendarHandler extends BaseHandler<ICreateCalendarCommand, Calendar, TCalendarEventUnion> {
-    constructor(repo: BaseRepository<Calendar, TCalendarEventUnion>, broker: IBroker) {
+export class CreateCalendarHandler extends BaseHandler<ICreateCalendarCommand, Calendar> {
+    constructor(repo: BaseRepository<Calendar>, broker: IBroker) {
         super(repo, broker);
     }
 

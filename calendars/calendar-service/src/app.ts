@@ -2,7 +2,7 @@ import express from 'express';
 import http from 'http';
 import { RabbitMQBroker } from '@daveloper/broker';
 import { HttpEventStore } from '@daveloper/eventstore';
-import { TCalendarCommandUnion, TCalendarEventUnion } from '@daveloper/interfaces';
+import { TCalendarCommandUnion } from '@daveloper/interfaces';
 import { Calendar } from './aggregate/CalendarAggregate';
 import { BaseRepository } from '@daveloper/cqrs';
 import { Dispatcher } from './handlers/Dispatcher';
@@ -16,7 +16,7 @@ async function main() {
   const broker = new RabbitMQBroker(process.env.BROKER_URL!);
   await broker.init();
   const eventStore = new HttpEventStore(process.env.EVENTSTORE_URL!);
-  const repo = new BaseRepository<Calendar, TCalendarEventUnion>(eventStore);
+  const repo = new BaseRepository<Calendar>(eventStore);
   const dispatcher = new Dispatcher(repo, broker);
 
   // consume commands

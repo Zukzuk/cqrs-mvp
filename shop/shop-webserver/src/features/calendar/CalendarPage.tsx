@@ -2,9 +2,9 @@ import { useMemo, useState } from "react";
 import { Button, Group, Modal, Stack, Table, Text, TextInput, Title } from "@mantine/core";
 import { DateTimePicker } from "@mantine/dates";
 import { v4 as uuid } from "uuid";
+import { CalendarCommands } from "./CalendarCommands";
 import { useCalendarProjection } from "./useCalendarProjection";
 import { sendCalendarCommand } from "./useCalendarCommands";
-import { CalendarCommands } from "./CalendarCommands";
 
 const USER_ID = "user123"; // replace when auth lands; BFF overwrites calendarId to userId anyway
 

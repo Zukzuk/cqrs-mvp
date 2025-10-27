@@ -17,7 +17,7 @@ async function main() {
   const broker = new RabbitMQBroker(process.env.BROKER_URL!);
   await broker.init();
   const eventStore = new HttpEventStore(process.env.EVENTSTORE_URL!);
-  const repo = new BaseRepository<Order, TOrderEventUnion>(eventStore);
+  const repo = new BaseRepository<Order>(eventStore);
   const dispatcher = new Dispatcher(repo, broker);
 
   // consume commands

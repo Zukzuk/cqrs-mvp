@@ -4,14 +4,13 @@ import { BaseRepository } from './BaseRepository';
 
 export abstract class BaseHandler<
     Cmd extends ICommand,
-    Agg extends AggregateRoot<Evt>,
-    Evt extends IDomainEvent
+    Agg extends AggregateRoot<IDomainEvent>
 > {
-    constructor(protected repo: BaseRepository<Agg, Evt>, protected broker: IBroker) { }
+    constructor(protected repo: BaseRepository<Agg>, protected broker: IBroker) { }
 
     protected async saveAndPublish(agg: Agg) {
         await this.repo.save(agg);
-        for (const ev of agg.uncommittedEvents as Evt[]) {
+        for (const ev of agg.uncommittedEvents as IDomainEvent[]) {
             await this.broker.publish(ev);
         }
         agg.clearEvents();

@@ -9,7 +9,7 @@ export class SnapshotService {
   constructor(private ns: Namespace, private resources: SnapshotResource[]) {}
 
   private connected = new Map<string, number>(); // userId -> refcount
-  private queued = new Set<string>();            // userIds waiting for snapshot
+  private queued = new Set<string>(); // userIds waiting for snapshot
   private projectionUp = false;
 
   // ---- Web client lifecycle ----

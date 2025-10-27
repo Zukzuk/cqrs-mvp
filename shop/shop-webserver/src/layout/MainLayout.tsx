@@ -1,21 +1,12 @@
 import { useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { AppShell, Burger, Container, Group, Title } from "@mantine/core";
-import { IconBox, IconCalendar, IconHome } from "@tabler/icons-react";
-import { SidebarNav, type SidebarLink } from "../components/SidebarNav";
+import { SidebarNav } from "../components/SidebarNav";
 import { ConnectionBadge } from "../components/ConnectionBadge";
 import { useBus } from "../hooks/useBus";
-
+import { links } from "../main";
 
 const USER_ID = "user123"; // replace with real auth later
-
-
-const links: SidebarLink[] = [
-    { to: "/", label: "Home", icon: IconHome, match: (p: string) => p === "/" },
-    { to: "/orders", label: "Orders", icon: IconBox, match: (p: string) => p.startsWith("/orders") },
-    { to: "/calendar", label: "Calendar", icon: IconCalendar, match: (p: string) => p.startsWith("/calendar") },
-];
-
 
 export default function MainLayout() {
     const [opened, setOpened] = useState(false);

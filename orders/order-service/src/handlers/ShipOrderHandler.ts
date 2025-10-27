@@ -1,9 +1,9 @@
 import { BaseHandler, BaseRepository } from '@daveloper/cqrs';
-import type { IBroker, IShipOrderCommand, TOrderEventUnion } from '@daveloper/interfaces';
+import type { IBroker, IShipOrderCommand } from '@daveloper/interfaces';
 import { Order } from '../aggregate/OrderAggregate';
 
-export class ShipOrderHandler extends BaseHandler<IShipOrderCommand, Order, TOrderEventUnion> {
-    constructor(repo: BaseRepository<Order, TOrderEventUnion>, broker: IBroker) {
+export class ShipOrderHandler extends BaseHandler<IShipOrderCommand, Order> {
+    constructor(repo: BaseRepository<Order>, broker: IBroker) {
         super(repo, broker);
     }
 

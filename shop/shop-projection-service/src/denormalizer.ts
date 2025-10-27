@@ -1,5 +1,4 @@
-import { TOrderEventUnion } from '@daveloper/interfaces';
-import { mapOrderCreated, mapOrderShipped } from '@daveloper/denormalizers';
+import { IDomainEvent, TOrderEventUnion } from '@daveloper/interfaces';
 import { trace } from '@daveloper/opentelemetry';
 import { OrderRepository } from './repository';
 import { Socket } from 'socket.io-client';
@@ -16,13 +15,7 @@ export class OrderDenormalizer {
       evt.correlationId
     );
 
-    let view;
-    if (evt.type === 'OrderCreated') {
-      view = mapOrderCreated(evt);
-    } else if (evt.type === 'OrderShipped') {
-      view = mapOrderShipped(evt);
-    }
-
+    const view = projectOrderEvent(evt as IDomainEvent);
     if (!view) return;
 
     console.log(`💾 [projection-denorm] saving order for user=${view.userId}`, view);
@@ -40,6 +33,7 @@ import {
   IScheduledTimeslotRemovedEvent,
 } from '@daveloper/interfaces'
 import { CalendarRepository } from './repository'
+import { projectOrderEvent } from '@daveloper/denormalizers';
 
 export class CalendarDenormalizer {
   constructor(private readonly repo: CalendarRepository, private readonly socket: Socket) { }
@@ -52,7 +46,12 @@ export class CalendarDenormalizer {
     );
     
     if (evt.type === 'CalendarCreated') {
-      await this.repo.upsert({ calendarId: evt.payload.calendarId, userId: evt.payload.calendarId, timeslots: [], updatedAt: new Date().toISOString() })
+      await this.repo.upsert({ 
+        calendarId: evt.payload.calendarId, 
+        userId: evt.payload.calendarId, 
+        timeslots: [], 
+        updatedAt: new Date().toISOString() 
+      })
       this.socket.emit('calendar_update', { userId: evt.payload.calendarId })
       return
     }
@@ -67,7 +66,9 @@ export class CalendarDenormalizer {
         location: e.payload.location,
         description: e.payload.description,
       })
-      this.socket.emit('calendar_update', { userId: e.payload.calendarId, timeslot: { ...e.payload } })
+      this.socket.emit('calendar_update', { 
+        userId: e.payload.calendarId, timeslot: { ...e.payload } 
+      })
       return
     }
 
@@ -79,14 +80,18 @@ export class CalendarDenormalizer {
         start: e.payload.start,
         end: e.payload.end,
       } as any)
-      this.socket.emit('calendar_update', { userId: e.payload.calendarId, timeslot: { timeslotId: e.payload.timeslotId, start: e.payload.start, end: e.payload.end } })
+      this.socket.emit('calendar_update', { 
+        userId: e.payload.calendarId, timeslot: { timeslotId: e.payload.timeslotId, start: e.payload.start, end: e.payload.end } 
+      })
       return
     }
 
     if (evt.type === 'ScheduledTimeslotRemoved') {
       const e = evt as IScheduledTimeslotRemovedEvent
       await this.repo.removeTimeslot(e.payload.calendarId, e.payload.timeslotId)
-      this.socket.emit('calendar_update', { userId: e.payload.calendarId, removeTimeslotId: e.payload.timeslotId })
+      this.socket.emit('calendar_update', { 
+        userId: e.payload.calendarId, removeTimeslotId: e.payload.timeslotId 
+      })
       return
     }
   }

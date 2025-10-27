@@ -1,2 +1,1 @@
-export * from './mapOrderCreated';
-export * from './mapOrderShipped';
+export * from './orderProjector';

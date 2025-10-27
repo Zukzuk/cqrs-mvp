@@ -7,7 +7,7 @@ import { ShipOrderHandler } from './ShipOrderHandler';
 export class Dispatcher {
     private dispatcher: BaseDispatcher<TOrderCommandUnion>;
 
-    constructor(repo: BaseRepository<Order, TOrderEventUnion>, broker: IBroker) {
+    constructor(repo: BaseRepository<Order>, broker: IBroker) {
         const handlers = {
             CreateOrder: new CreateOrderHandler(repo, broker),
             ShipOrder: new ShipOrderHandler(repo, broker),

@@ -3,7 +3,7 @@
   "description" : "Description",
   "documentation" : { },
   "id" : 1,
-  "lastModifiedDate" : "2025-10-22T14:30:07Z",
+  "lastModifiedDate" : "2025-10-27T08:18:27Z",
   "model" : {
     "properties" : {
       "structurizr.groupSeparator" : "::"
@@ -670,7 +670,7 @@
   "views" : {
     "configuration" : {
       "branding" : { },
-      "lastSavedView" : "containers-observability",
+      "lastSavedView" : "containers-shop",
       "styles" : {
         "elements" : [ {
           "background" : "#4169e1",
@@ -948,20 +948,20 @@
       },
       "elements" : [ {
         "id" : "1",
-        "x" : 1940,
-        "y" : 892
+        "x" : 1945,
+        "y" : 860
       }, {
         "id" : "7",
-        "x" : 2675,
-        "y" : 897
+        "x" : 2700,
+        "y" : 860
       }, {
         "id" : "11",
         "x" : 445,
         "y" : 152
       }, {
         "id" : "21",
-        "x" : 571,
-        "y" : 873
+        "x" : 565,
+        "y" : 875
       }, {
         "id" : "22",
         "x" : 1401,
@@ -972,16 +972,16 @@
         "y" : 1383
       }, {
         "id" : "24",
-        "x" : 240,
-        "y" : 1387
+        "x" : 550,
+        "y" : 1385
       }, {
         "id" : "25",
-        "x" : 821,
-        "y" : 1383
+        "x" : 750,
+        "y" : 1900
       }, {
         "id" : "26",
-        "x" : 251,
-        "y" : 1798
+        "x" : 310,
+        "y" : 1795
       } ],
       "externalSoftwareSystemBoundariesVisible" : false,
       "key" : "containers-shop",

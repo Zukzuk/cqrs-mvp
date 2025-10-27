@@ -1,4 +1,4 @@
-import { IBroker, TCalendarCommandUnion, TCalendarEventUnion } from '@daveloper/interfaces';
+import { IBroker, TCalendarCommandUnion } from '@daveloper/interfaces';
 import { BaseDispatcher, HandlerFor, BaseRepository } from '@daveloper/cqrs';
 import { Calendar } from '../aggregate/CalendarAggregate';
 import { CreateCalendarHandler } from './CreateCalendarHandler';
@@ -10,7 +10,7 @@ import { RescheduleTimeslotHandler } from './RescheduleTimeslotHandler';
 export class Dispatcher {
     private dispatcher: BaseDispatcher<TCalendarCommandUnion>;
 
-    constructor(repo: BaseRepository<Calendar, TCalendarEventUnion>, broker: IBroker) {
+    constructor(repo: BaseRepository<Calendar>, broker: IBroker) {
         const handlers = {
             CreateCalendar: new CreateCalendarHandler(repo, broker),
             ScheduleTimeslot: new ScheduleTimeslotHandler(repo, broker),

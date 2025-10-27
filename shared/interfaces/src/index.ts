@@ -10,4 +10,4 @@ export * from './calendar/DomainEvents';
 
 export * from './Broker';
 export * from './EventStore';
-export * from './ProjectionViews';
+export * from './Projections';

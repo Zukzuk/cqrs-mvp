@@ -1,10 +1,10 @@
 import { Collection, FindOneAndUpdateOptions } from 'mongodb';
-import { IDomainEvent, IStoredEvent, ICounterDoc } from '@daveloper/interfaces';
+import { IDomainEvent, IAppendedDomainEvent, TCounterMeta } from '@daveloper/interfaces';
 
 export class MongoEventStore {
     constructor(
-        private events: Collection<IStoredEvent>,
-        private counters: Collection<ICounterDoc>
+        private events: Collection<IAppendedDomainEvent>,
+        private counters: Collection<TCounterMeta>
     ) {
         // simple, stable, non-unique indexes
         void this.events.createIndex({ sequence: 1 }, { name: "events_sequence" });
@@ -34,7 +34,7 @@ export class MongoEventStore {
     }
 
     async appendToStream(streamId: string, events: IDomainEvent[]): Promise<void> {
-        const toInsert: IStoredEvent[] = [];
+        const toInsert: IAppendedDomainEvent[] = [];
         for (const e of events) {
             toInsert.push({
                 ...e,
@@ -46,13 +46,13 @@ export class MongoEventStore {
         await this.events.insertMany(toInsert);
     }
 
-    async loadStream(streamId: string, from?: string): Promise<IStoredEvent[]> {
+    async loadStream(streamId: string, from?: string): Promise<IAppendedDomainEvent[]> {
         const filter: Record<string, any> = { streamId };
         if (from) filter.sequence = { $gt: Number(from) };
         return this.events.find(filter).sort({ sequence: 1 }).toArray();
     }
 
-    async loadAllEvents(from?: string, limit?: number): Promise<IStoredEvent[]> {
+    async loadAllEvents(from?: string, limit?: number): Promise<IAppendedDomainEvent[]> {
         const filter: Record<string, any> = {};
         if (from) {
             const n = Number(from);

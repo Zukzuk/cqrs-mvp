@@ -10,7 +10,7 @@
   "dependencies": {
     "@daveloper/broker": "^1.0.0",
     "@daveloper/interfaces": "^1.0.0",
-    "@daveloper/denormalizers": "^1.0.0",
+    "@daveloper/projections": "^1.0.0",
     "express": "^5.1.0",
     "mongodb": "^6.17.0",
     "socket.io-client": "^4.8.1"

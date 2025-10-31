@@ -1,6 +1,6 @@
 import express from 'express';
 import { MongoClient } from 'mongodb';
-import { IDomainEvent, ICounterDoc, IStoredEvent } from '@daveloper/interfaces';
+import { IDomainEvent, TCounterMeta, IAppendedDomainEvent } from '@daveloper/interfaces';
 import { MongoEventStore } from '@daveloper/eventstore';
 import { startMetricsServer } from '@daveloper/opentelemetry';
 
@@ -15,8 +15,8 @@ async function bootstrap() {
 
     // EventStore setup
     const db = client.db(process.env.MONGO_DB_NAME || 'calendar_eventstore');
-    const eventsColl = db.collection<IStoredEvent>(process.env.MONGO_EVENTS_COLLECTION || 'events');
-    const countersColl = db.collection<ICounterDoc>(process.env.MONGO_COUNTERS_COLLECTION || 'event_counters');
+    const eventsColl = db.collection<IAppendedDomainEvent>(process.env.MONGO_EVENTS_COLLECTION || 'events');
+    const countersColl = db.collection<TCounterMeta>(process.env.MONGO_COUNTERS_COLLECTION || 'event_counters');
     const eventStore = new MongoEventStore(eventsColl, countersColl);
 
     // Express app

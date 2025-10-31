@@ -1,6 +1,8 @@
 import { TCommandUnion, TDomainEventUnion, TDomainEventTypes } from './index';
 
-export interface ICommandHandler<T = any> { (message: T): Promise<void>; }
+export interface ICommandHandler<T = any> { 
+  (message: T): Promise<void>; 
+}
 
 export interface IBroker {
   // Publish any one of the domain events

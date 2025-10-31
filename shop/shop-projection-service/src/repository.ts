@@ -1,11 +1,11 @@
 import { Collection } from 'mongodb';
-import { CalendarDocument, ShopOrdersDocument, TTimeslot } from '@daveloper/interfaces';
+import { TCalendarDocument, TShopOrdersDocument, TTimeslot } from '@daveloper/interfaces';
 
 export class OrderRepository {
-  constructor(private readonly collection: Collection<ShopOrdersDocument>) {}
+  constructor(private readonly collection: Collection<TShopOrdersDocument>) {}
 
   // Upsert an OrderView into the collection
-  async save(view: ShopOrdersDocument): Promise<void> {
+  async save(view: TShopOrdersDocument): Promise<void> {
     await this.collection.updateOne(
       { orderId: view.orderId },
       { $set: view },
@@ -13,15 +13,15 @@ export class OrderRepository {
     );
   }
 
-  async findByUserId(userId: string): Promise<ShopOrdersDocument[]> {
+  async findByUserId(userId: string): Promise<TShopOrdersDocument[]> {
     return this.collection.find({ userId }).toArray();
   }
 }
 
 export class CalendarRepository {
-  constructor(private readonly coll: Collection<CalendarDocument>) {}
+  constructor(private readonly coll: Collection<TCalendarDocument>) {}
 
-  async upsert(doc: CalendarDocument) {
+  async upsert(doc: TCalendarDocument) {
     await this.coll.updateOne({ calendarId: doc.calendarId }, { $set: doc }, { upsert: true })
   }
 

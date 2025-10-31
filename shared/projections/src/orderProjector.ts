@@ -1,6 +1,6 @@
-import { IDomainEvent, IOrderCreatedEvent, IOrderShippedEvent, ShopOrdersDocument } from '@daveloper/interfaces';
+import { IDomainEvent, IOrderCreatedEvent, IOrderShippedEvent, TShopOrdersDocument } from '@daveloper/interfaces';
 
-function mapOrderCreated(evt: IDomainEvent): ShopOrdersDocument | null {
+function mapOrderCreated(evt: IDomainEvent): TShopOrdersDocument | null {
   const { 
     orderId, userId, total, status 
   } = evt.payload as IOrderCreatedEvent["payload"];
@@ -17,7 +17,7 @@ function mapOrderCreated(evt: IDomainEvent): ShopOrdersDocument | null {
   };
 }
 
-function mapOrderShipped(evt: IDomainEvent): ShopOrdersDocument | null {
+function mapOrderShipped(evt: IDomainEvent): TShopOrdersDocument | null {
     const { 
       orderId, userId, shippedAt, carrier, trackingNumber, status 
     } = evt.payload as IOrderShippedEvent["payload"];
@@ -36,7 +36,7 @@ function mapOrderShipped(evt: IDomainEvent): ShopOrdersDocument | null {
     };
 }
 
-export function projectOrderEvent(evt: IDomainEvent): ShopOrdersDocument | null {
+export function projectOrderEvent(evt: IDomainEvent): TShopOrdersDocument | null {
   if (evt.type === 'OrderCreated') return mapOrderCreated(evt);
   if (evt.type === 'OrderShipped') return mapOrderShipped(evt);
   return null;

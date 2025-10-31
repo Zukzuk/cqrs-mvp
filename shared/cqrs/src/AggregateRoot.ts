@@ -31,7 +31,7 @@ export abstract class AggregateRoot<E extends IDomainEvent = IDomainEvent> {
         this._events = [];
     }
 
-    // Retrieves and clears the list of uncommitted domain events
+    // Retrieves the list of uncommitted domain events
     get uncommittedEvents(): E[] { return this._events; }
 
     // Clears the list of uncommitted domain events

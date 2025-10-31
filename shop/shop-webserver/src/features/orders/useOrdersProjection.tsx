@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { getSocket } from "../../socket";
-import type { ShopOrdersDocument } from "@daveloper/interfaces";
+import type { TShopOrdersDocument } from "@daveloper/interfaces";
 
 export function useOrdersProjection(userId: string) {
     const socket = useMemo(() => getSocket(userId), [userId]);
-    const [orders, setOrders] = useState<ShopOrdersDocument[]>([]);
+    const [orders, setOrders] = useState<TShopOrdersDocument[]>([]);
 
     useEffect(() => {
-        function onSnapshot(payload: ShopOrdersDocument[]) {
+        function onSnapshot(payload: TShopOrdersDocument[]) {
             const cleaned = (Array.isArray(payload) ? payload : [])
                 .filter(Boolean)
                 .map((o: any) => ({ ...o, orderId: String(o.orderId ?? "") }));
@@ -15,7 +15,7 @@ export function useOrdersProjection(userId: string) {
         }
         function onUpdate(order: any) {
             if (!order || order.userId !== userId) return;
-            const normalized = { ...order, orderId: String(order.orderId ?? "") } as ShopOrdersDocument;
+            const normalized = { ...order, orderId: String(order.orderId ?? "") } as TShopOrdersDocument;
             setOrders((prev) => {
                 const safePrev = prev.filter(Boolean);
                 const rest = safePrev.filter(o => String(o.orderId) !== normalized.orderId);

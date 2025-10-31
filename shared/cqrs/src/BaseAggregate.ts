@@ -9,7 +9,7 @@ type FailedCtor<P, E extends IDomainEvent> =
     new (payload: P & TViolation, correlationId: string) => E;
 
 /**
- * BaseAggregate adds a tiny, reusable helper to evaluate rules and raise either
+ * BaseAggregate adds a reusable helper to evaluate rules and raise either
  * a SuccessEvent or one-or-more FailedEvents (violation style).
  * It stays generic over the domain event union `E` and does not
  * prescribe any business logic.

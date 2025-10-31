@@ -4,9 +4,9 @@ import { MongoClient } from 'mongodb'
 import { io as Client } from 'socket.io-client'
 import { RabbitMQBroker } from '@daveloper/broker'
 import { startMetricsServer } from '@daveloper/opentelemetry'
-import { CalendarDenormalizer, OrderDenormalizer } from './denormalizer'
+import { TOrderEventUnion, TCalendarEventUnion, TShopOrdersDocument, TCalendarDocument } from '@daveloper/interfaces'
+import { CalendarHandler, OrderHandler } from './handler'
 import { CalendarRepository, OrderRepository } from './repository'
-import { TOrderEventUnion, TCalendarEventUnion, ShopOrdersDocument, CalendarDocument } from '@daveloper/interfaces'
 
 (async () => {
   // Start OpenTelemetry metrics server
@@ -16,8 +16,8 @@ import { TOrderEventUnion, TCalendarEventUnion, ShopOrdersDocument, CalendarDocu
   const mongoClient = new MongoClient(process.env.MONGO_URL!)
   await mongoClient.connect()
   const db = mongoClient.db('shop_projection')
-  const ordersCol = db.collection<ShopOrdersDocument>('orders')
-  const calendarsCol = db.collection<CalendarDocument>('calendars')
+  const ordersCol = db.collection<TShopOrdersDocument>('orders')
+  const calendarsCol = db.collection<TCalendarDocument>('calendars')
   const orderRepo = new OrderRepository(ordersCol)
   const calendarRepo = new CalendarRepository(calendarsCol)
 
@@ -46,13 +46,13 @@ import { TOrderEventUnion, TCalendarEventUnion, ShopOrdersDocument, CalendarDocu
   const broker = new RabbitMQBroker(process.env.BROKER_URL!)
   await broker.init()
 
-  // Setup denormalizers
-  const orderDenorm = new OrderDenormalizer(orderRepo, socket)
-  const calendarDenorm = new CalendarDenormalizer(calendarRepo, socket)
+  // Setup projection handlers  
+  const orderHandler = new OrderHandler(orderRepo, socket)
+  const calendarHandler = new CalendarHandler(calendarRepo, socket)
 
   // Subscribe to order events
   await broker.subscribe<TOrderEventUnion>(
-    async (evt) => orderDenorm.handle(evt),
+    async (evt) => orderHandler.handle(evt),
     {
       queue: 'shop-projection-q', exchange: 'domain-events', durable: true, autoDelete: false,
       routingKeys: ['OrderCreated', 'OrderShipped'],
@@ -61,7 +61,7 @@ import { TOrderEventUnion, TCalendarEventUnion, ShopOrdersDocument, CalendarDocu
 
   // Subscribe to calendar events
   await broker.subscribe<TCalendarEventUnion>(
-    async (evt) => calendarDenorm.handle(evt),
+    async (evt) => calendarHandler.handle(evt),
     {
       queue: 'shop-calendar-projection-q', exchange: 'domain-events', durable: true, autoDelete: false,
       routingKeys: ['CalendarCreated', 'TimeslotScheduled', 'TimeslotRescheduled', 'ScheduledTimeslotRemoved', 'CalendarRemoved'],

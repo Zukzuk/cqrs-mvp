@@ -1,12 +1,7 @@
 import { Collection, MongoClient } from 'mongodb';
 import fetch from 'node-fetch';
-import { ShopOrdersDocument, IStoredEvent } from '@daveloper/interfaces';
-import { projectOrderEvent } from '@daveloper/denormalizers';
-
-interface ProjectionMeta {
-  _id: string;
-  lastSequence: number;
-}
+import { TShopOrdersDocument, IAppendedDomainEvent, TProjectionMeta } from '@daveloper/interfaces';
+import { projectOrderEvent } from '@daveloper/projections';
 
 const MONGO_URL = process.env.MONGO_URL!;
 const EVENTSTORE_URL = process.env.EVENTSTORE_URL!;
@@ -17,23 +12,23 @@ const PROJECTION_META_ID = 'shop-orders';
 // Establish MongoDB connection and get collections
 async function init(): Promise<{
   client: MongoClient;
-  ordersColl: Collection<ShopOrdersDocument>;
-  metaColl: Collection<ProjectionMeta>;
-  metaId: ProjectionMeta | null;
+  ordersColl: Collection<TShopOrdersDocument>;
+  metaColl: Collection<TProjectionMeta>;
+  metaId: TProjectionMeta | null;
 }> {
   console.log('🟡 [shop-projection-seeder] connecting to Mongo…');
   const client = new MongoClient(MONGO_URL);
   await client.connect();
   const db = client.db(DB_NAME);
-  const ordersColl = db.collection<ShopOrdersDocument>('orders');
-  const metaColl = db.collection<ProjectionMeta>('projection_meta');
+  const ordersColl = db.collection<TShopOrdersDocument>('orders');
+  const metaColl = db.collection<TProjectionMeta>('projection_meta');
   // load or initialize cursor for our "shop-orders" projection
   const metaId = await metaColl.findOne({ _id: PROJECTION_META_ID });
   return { client, ordersColl, metaColl, metaId };
 }
 
 // Fetch a batch of events from the event store starting from the given cursor
-async function getBatch(cursor: number): Promise<{ batch: IStoredEvent[] }> {
+async function getBatch(cursor: number): Promise<{ batch: IAppendedDomainEvent[] }> {
   const url = `${EVENTSTORE_URL}/events?from=${cursor}&limit=100`;
   const res = await fetch(url);
 
@@ -43,14 +38,14 @@ async function getBatch(cursor: number): Promise<{ batch: IStoredEvent[] }> {
     throw new Error(`Fetch failed: ${res.status}`);
   }
 
-  const batch = (await res.json()) as IStoredEvent[];
+  const batch = (await res.json()) as IAppendedDomainEvent[];
   return { batch };
 }
 
 // Persist the projected order view to MongoDB
 async function persistOrder(
-  ordersColl: Collection<ShopOrdersDocument>,
-  view: ShopOrdersDocument
+  ordersColl: Collection<TShopOrdersDocument>,
+  view: TShopOrdersDocument
 ): Promise<void> {
   // upsert the projected order view
   await ordersColl.updateOne(
@@ -62,7 +57,7 @@ async function persistOrder(
 
 // Persist the highwatermark cursor to MongoDB
 async function persistHighwatermark(
-  metaColl: Collection<ProjectionMeta>,
+  metaColl: Collection<TProjectionMeta>,
   cursor: number
 ): Promise<void> {
   // persist highwatermark cursor under our explicit projection ID
@@ -91,13 +86,13 @@ async function seed() {
 
     // Process each event in the batch
     for (const evt of batch) {
-      const view = projectOrderEvent(evt);
-      if (!view) {
+      const projection = projectOrderEvent(evt);
+      if (!projection) {
         cursor = evt.sequence;
         continue;
       }
 
-      await persistOrder(ordersColl, view);
+      await persistOrder(ordersColl, projection);
       cursor = evt.sequence;
     }
 

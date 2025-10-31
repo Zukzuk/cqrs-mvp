@@ -36,8 +36,8 @@ COPY --from=build /usr/src/shared/broker/dist ./shared/broker/dist
 COPY --from=build /usr/src/shared/cqrs/package.json ./shared/cqrs/package.json
 COPY --from=build /usr/src/shared/cqrs/dist ./shared/cqrs/dist
 
-COPY --from=build /usr/src/shared/denormalizers/package.json ./shared/denormalizers/package.json
-COPY --from=build /usr/src/shared/denormalizers/dist ./shared/denormalizers/dist
+COPY --from=build /usr/src/shared/projections/package.json ./shared/projections/package.json
+COPY --from=build /usr/src/shared/projections/dist ./shared/projections/dist
 
 COPY --from=build /usr/src/shared/eventstore/package.json ./shared/eventstore/package.json
 COPY --from=build /usr/src/shared/eventstore/dist ./shared/eventstore/dist

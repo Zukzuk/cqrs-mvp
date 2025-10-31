@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import { IDomainEvent, IEventStore, IStoredEvent } from '@daveloper/interfaces';
+import { IDomainEvent, IEventStore, IAppendedDomainEvent } from '@daveloper/interfaces';
 import { trace } from '@daveloper/opentelemetry';
 
 export class HttpEventStore implements IEventStore {
@@ -18,18 +18,18 @@ export class HttpEventStore implements IEventStore {
     if (!res.ok) throw new Error(`Failed to append events: HTTP ${res.status}`);
   }
 
-  async loadStream(streamId: string, from?: string): Promise<IStoredEvent[]> {
+  async loadStream(streamId: string, from?: string): Promise<IAppendedDomainEvent[]> {
     const url = new URL(`${this.baseUrl}/streams/${streamId}/events`);
     if (from) url.searchParams.set('from', from);
 
     const res = await fetch(url.toString());
     if (!res.ok) throw new Error(`Failed to load stream: HTTP ${res.status}`);
 
-    const data = (await res.json()) as IStoredEvent[];
+    const data = (await res.json()) as IAppendedDomainEvent[];
     return data;
   }
 
-  async loadAllEvents(from?: string, limit?: number): Promise<IStoredEvent[]> {
+  async loadAllEvents(from?: string, limit?: number): Promise<IAppendedDomainEvent[]> {
     const url = new URL(`${this.baseUrl}/events`);
     if (from) url.searchParams.set('from', from);
     if (limit) url.searchParams.set('limit', `${limit}`);
@@ -37,7 +37,7 @@ export class HttpEventStore implements IEventStore {
     const res = await fetch(url.toString());
     if (!res.ok) throw new Error(`Failed to load events: HTTP ${res.status}`);
 
-    const data = (await res.json()) as IStoredEvent[];
+    const data = (await res.json()) as IAppendedDomainEvent[];
     return data;
   }
 }

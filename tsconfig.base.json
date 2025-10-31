@@ -6,7 +6,7 @@
       "@daveloper/interfaces": ["shared/interfaces/dist"],
       "@daveloper/eventstore": ["shared/eventstore/dist"],
       "@daveloper/cqrs": ["shared/cqrs/dist"],
-      "@daveloper/denormalizers": ["shared/denormalizers/dist"],
+      "@daveloper/projections": ["shared/projections/dist"],
       "@daveloper/opentelemetry": ["observability/opentelemetry/dist"],
       "@daveloper/opentelemetry/sdk": ["observability/opentelemetry/dist/sdk"]
     },

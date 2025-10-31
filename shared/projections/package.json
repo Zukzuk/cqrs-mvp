@@ -1,7 +1,7 @@
 {
-  "name": "@daveloper/denormalizers",
+  "name": "@daveloper/projections",
   "version": "1.0.0",
-  "description": "SOLID-friendly denormalizers",
+  "description": "SOLID-friendly projections",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

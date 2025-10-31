@@ -1,9 +1,10 @@
 import { IDomainEvent, TOrderEventUnion } from '@daveloper/interfaces';
 import { trace } from '@daveloper/opentelemetry';
-import { OrderRepository } from './repository';
+import { projectOrderEvent } from '@daveloper/projections';
 import { Socket } from 'socket.io-client';
+import { OrderRepository } from './repository';
 
-export class OrderDenormalizer {
+export class OrderHandler {
   constructor(
     private readonly repository: OrderRepository,
     private readonly socket: Socket
@@ -15,14 +16,14 @@ export class OrderDenormalizer {
       evt.correlationId
     );
 
-    const view = projectOrderEvent(evt as IDomainEvent);
-    if (!view) return;
+    const projection = projectOrderEvent(evt as IDomainEvent);
+    if (!projection) return;
 
-    console.log(`💾 [projection-denorm] saving order for user=${view.userId}`, view);
-    await this.repository.save(view);
+    console.log(`💾 [projection-denorm] saving order for user=${projection.userId}`, projection);
+    await this.repository.save(projection);
 
-    console.log('➡️ [projection-socket] sending order_update', view);
-    this.socket.emit('order_update', view);
+    console.log('➡️ [projection-socket] sending order_update', projection);
+    this.socket.emit('order_update', projection);
   }
 }
 
@@ -33,9 +34,8 @@ import {
   IScheduledTimeslotRemovedEvent,
 } from '@daveloper/interfaces'
 import { CalendarRepository } from './repository'
-import { projectOrderEvent } from '@daveloper/denormalizers';
 
-export class CalendarDenormalizer {
+export class CalendarHandler {
   constructor(private readonly repo: CalendarRepository, private readonly socket: Socket) { }
 
   async handle(evt: TCalendarEventUnion) {

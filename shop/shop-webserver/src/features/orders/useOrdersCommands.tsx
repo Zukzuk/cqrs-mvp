@@ -4,7 +4,7 @@ import { getSocket } from "../../socket";
 
 type Ack = (r: { status: "ok" | "error"; error?: string }) => void;
 
-export function sendOrdersCommand(userId: string, cmd: TOrderCommandUnion): Promise<void> {
+export function useOrdersCommands(userId: string, cmd: TOrderCommandUnion): Promise<void> {
     const socket = getSocket(userId);
     const message = { ...cmd } as TOrderCommandUnion;
     return new Promise<void>((resolve, reject) => {

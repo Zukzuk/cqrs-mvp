@@ -3,7 +3,7 @@ import { getSocket } from "../../socket";
 
 type Ack = (r: { status: "ok" | "error"; error?: string }) => void;
 
-export function sendCalendarCommand(userId: string, cmd: TCalendarCommandUnion): Promise<void> {
+export function useCalendarCommand(userId: string, cmd: TCalendarCommandUnion): Promise<void> {
     const socket = getSocket(userId);
     const message = { ...cmd } as TCalendarCommandUnion;
     return new Promise<void>((resolve, reject) => {

@@ -1,5 +1,5 @@
 import { BaseDispatcher, BaseRepository, HandlerFor } from '@daveloper/cqrs';
-import type { IBroker, TOrderCommandUnion, TOrderEventUnion } from '@daveloper/interfaces';
+import type { IBroker, TOrderCommandUnion } from '@daveloper/interfaces';
 import { Order } from '../aggregate/OrderAggregate';
 import { CreateOrderHandler } from './CreateOrderHandler';
 import { ShipOrderHandler } from './ShipOrderHandler';

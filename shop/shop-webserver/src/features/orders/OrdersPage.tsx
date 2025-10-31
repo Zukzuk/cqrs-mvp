@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react";
 import { Badge, Button, Group, Loader, Stack, Table, Text, Title } from "@mantine/core";
 import { v4 as uuidv4 } from "uuid";
 import { useOrdersProjection } from "./useOrdersProjection";
-import { sendOrdersCommand } from "./useOrdersCommands";
+import { useOrdersCommands } from "./useOrdersCommands";
 import { OrdersCommands } from "./OrdersCommands";
 import type { ShopOrdersDocument, TOrderCommandUnion } from "@daveloper/interfaces";
 import { useRows } from "./useRows";
@@ -33,7 +33,7 @@ export default function OrderPage() {
     const handle = async (cmd: TOrderCommandUnion, correlationId: ShopOrdersDocument["correlationId"], status: ShopOrdersDocument["status"]) => {
         upsert({ ...cmd.payload, correlationId, status }, { pending: true });
         try {
-            await sendOrdersCommand(USER_ID, { ...cmd, correlationId });
+            await useOrdersCommands(USER_ID, { ...cmd, correlationId });
         } catch (err) {
             console.error("ShipOrder failed:", err);
             upsert({ ...cmd.payload, correlationId, status: "FAILED" }, { pending: false });
@@ -106,7 +106,7 @@ export default function OrderPage() {
                 return "RoyalBlue";
         }
     };
-
+    
     return (
         <Stack>
             <Group justify="space-between" align="center">

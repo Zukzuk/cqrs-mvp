@@ -3,7 +3,8 @@
   "description" : "Description",
   "documentation" : { },
   "id" : 1,
-  "lastModifiedDate" : "2025-10-27T08:18:27Z",
+  "lastModifiedAgent" : "structurizr-ui",
+  "lastModifiedDate" : "2025-10-30T10:39:18Z",
   "model" : {
     "properties" : {
       "structurizr.groupSeparator" : "::"
@@ -670,7 +671,8 @@
   "views" : {
     "configuration" : {
       "branding" : { },
-      "lastSavedView" : "containers-shop",
+      "lastSavedView" : "containers-order-domain",
+      "metadataSymbols" : "SquareBrackets",
       "styles" : {
         "elements" : [ {
           "background" : "#4169e1",
@@ -724,8 +726,8 @@
         "y" : 977
       }, {
         "id" : "7",
-        "x" : 1684,
-        "y" : 477
+        "x" : 1685,
+        "y" : 475
       }, {
         "id" : "11",
         "x" : 199,
@@ -1023,7 +1025,7 @@
       },
       "elements" : [ {
         "id" : "1",
-        "x" : 729,
+        "x" : 730,
         "y" : 760
       }, {
         "id" : "3",

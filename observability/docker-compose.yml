@@ -46,7 +46,7 @@ services:
     image: prom/prometheus:v2.53.0
     container_name: otel-prometheus
     volumes:
-      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     ports:
       - "${PROMETHEUS_PORT}:9090"
@@ -83,7 +83,7 @@ services:
     depends_on:
       - otel-collector
     volumes:
-      - ./observability/tempo.yaml:/etc/tempo/config.yaml:ro
+      - ./observability/tempo/tempo.yaml:/etc/tempo/config.yaml:ro
       - tempo_data:/var/tempo
     ports:
       - "${TEMPO_HTTP_PORT}:3200"  # UI/Query

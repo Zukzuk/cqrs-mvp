@@ -1,6 +1,5 @@
 import { Server, Socket, Namespace } from "socket.io";
 import { RabbitMQBroker } from "@daveloper/broker";
-import { TCalendarCommandUnion } from "@daveloper/interfaces";
 import { userAuth } from "../auth";
 import { SnapshotService } from "../services/SnapshotService";
 
@@ -24,10 +23,6 @@ export function registerWebClient(
         socket.on("orders_get_snapshot", (payload?: { userId?: string }) => {
             snapshots.onClientRequest(payload?.userId || userId);
         });
-        
-        socket.on("calendars_get_snapshot", (payload?: { userId?: string }) => {
-            snapshots.onClientRequest(payload?.userId || userId);
-        });
 
         // commands passthrough
         socket.on("order_command", async (raw, ack) => {
@@ -36,12 +31,7 @@ export function registerWebClient(
             catch (e: any) { ack?.({ status: "error", error: e.message }); }
         });
 
-        socket.on("calendar_command", async (raw: TCalendarCommandUnion, ack) => {
-            if (raw?.payload && "calendarId" in raw.payload) (raw as any).payload.calendarId = userId;
-            try { await broker.send("commands.calendars", raw); ack?.({ status: "ok" }); }
-            catch (e: any) { ack?.({ status: "error", error: e.message }); }
-        });
-
+        // handle disconnects
         socket.on("disconnect", () => {
             console.warn(`⚠️ [bff] web disconnected userId=${userId}`);
             snapshots.onWebClientDisconnect(userId);

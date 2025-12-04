@@ -6,11 +6,11 @@ import { ConnectionBadge } from "../components/ConnectionBadge";
 import { useBus } from "../hooks/useBus";
 import { links } from "../main";
 
-const USER_ID = "user123"; // replace with real auth later
+type Props = { userId: string };
 
-export default function MainLayout() {
+export default function MainLayout({ userId }: Props) {
     const [opened, setOpened] = useState(false);
-    const { connected } = useBus({ userId: USER_ID });
+    const { connected } = useBus({ userId });
     const location = useLocation();
 
     return (
@@ -29,7 +29,7 @@ export default function MainLayout() {
                     </Group>
 
                     <Group mr="sm" align="center" style={{ marginLeft: "auto" }}>
-                        <span>{USER_ID}</span>
+                        <span>{userId}</span>
                     </Group>
                 </Group>
             </AppShell.Header>
@@ -37,7 +37,6 @@ export default function MainLayout() {
             <AppShell.Navbar>
                 <SidebarNav currentPath={location.pathname} links={links} />
             </AppShell.Navbar>
-
 
             <AppShell.Main>
                 <Container size="lg">

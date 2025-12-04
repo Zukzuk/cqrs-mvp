@@ -1,7 +1,7 @@
 {
   "name": "@daveloper/broker",
   "version": "1.0.0",
-  "description": "SOLID-friendly Broker facade",
+  "description": "A set of Broker facades",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

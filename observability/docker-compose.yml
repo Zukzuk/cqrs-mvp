@@ -25,8 +25,6 @@ services:
       - order-eventstore-service
       - shop-bff-service
       - shop-projection-service
-      - calendar-service
-      - calendar-eventstore-service
     labels:
       structurizr.name: "OTel Collector"
       structurizr.description: "Recieve OTLP and save and/or expose it"
@@ -38,8 +36,6 @@ services:
       structurizr.depends_on.order-eventstore-service: "sdk metrics/traces (otel:4318)"
       structurizr.depends_on.shop-bff-service: "sdk metrics/traces (otel:4318)"
       structurizr.depends_on.shop-projection-service: "sdk metrics/traces (otel:4318)"
-      structurizr.depends_on.calendar-service: "sdk metrics/traces (otel:4318)"
-      structurizr.depends_on.calendar-eventstore-service: "sdk metrics/traces (otel:4318)"
 
   otel-prometheus:
     profiles: ["obs"]
@@ -57,8 +53,6 @@ services:
       - order-eventstore-service
       - shop-bff-service
       - shop-projection-service
-      - calendar-service
-      - calendar-eventstore-service
     labels:
       structurizr.name: "Prometheus"
       structurizr.description: "Scrape data from OTel sdk en RabbitMQ"
@@ -72,8 +66,6 @@ services:
       structurizr.depends_on.order-eventstore-service: "scrape metrics (/metrics:9100)"
       structurizr.depends_on.shop-bff-service: "scrape metrics (/metrics:9100)"
       structurizr.depends_on.shop-projection-service: "scrape metrics (/metrics:9100)"
-      structurizr.depends_on.calendar-service: "scrape metrics (/metrics:9100)"
-      structurizr.depends_on.calendar-eventstore-service: "scrape metrics (/metrics:9100)"
 
   otel-tempo:
     profiles: ["obs"]
@@ -145,18 +137,6 @@ services:
     environment:
       <<: *otel_env
       OTEL_SERVICE_NAME: order-eventstore-service
-
-  calendar-service:
-    profiles: ["obs"]
-    environment:
-      <<: *otel_env
-      OTEL_SERVICE_NAME: calendar-service
-
-  calendar-eventstore-service:
-    profiles: ["obs"]
-    environment:
-      <<: *otel_env
-      OTEL_SERVICE_NAME: calendar-eventstore-service
 
 volumes:
   prometheus_data:

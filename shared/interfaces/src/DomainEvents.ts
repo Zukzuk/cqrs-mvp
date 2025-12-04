@@ -1,4 +1,3 @@
-import { TCalendarEventUnion } from "./calendar/DomainEvents";
 import { TOrderEventUnion } from "./order/DomainEvents";
 
 // Root domain event interface
@@ -10,8 +9,7 @@ export interface IDomainEvent<P = any> {
 
 // Discriminated union of all domain event types for convenience
 export type TDomainEventUnion =
-  TOrderEventUnion
-  | TCalendarEventUnion;
-
+  TOrderEventUnion;
+  
 // Union of all domain event "type" strings for convenience
 export type TDomainEventTypes = TDomainEventUnion['type'];

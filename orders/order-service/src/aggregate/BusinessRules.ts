@@ -1,6 +1,5 @@
 import type { ICreateOrderCommand, IShipOrderCommand, TOrderStatus, TRuleResult, TViolation, TViolationReason } from '@daveloper/interfaces';
 
-// tiny helper, same style as Calendar
 const fail = (reason: TViolationReason, message: string): TViolation => ({ reason, message });
 
 // Payload rules (pure)

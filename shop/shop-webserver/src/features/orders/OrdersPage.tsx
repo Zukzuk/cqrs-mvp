@@ -4,10 +4,8 @@ import { v4 as uuidv4 } from "uuid";
 import { useOrdersProjection } from "./useOrdersProjection";
 import { useOrdersCommands } from "./useOrdersCommands";
 import { OrdersCommands } from "./OrdersCommands";
-import type { ShopOrdersDocument, TOrderCommandUnion } from "@daveloper/interfaces";
+import type { TShopOrdersDocument, TOrderCommandUnion } from "@daveloper/interfaces";
 import { useRows } from "./useRows";
-
-const USER_ID = "user123";
 
 export type BaseRow = {
     orderId?: string | number | null;
@@ -20,20 +18,21 @@ export type BaseRow = {
 export type OrderRow =
     // always present (you provide them)
     BaseRow
-    & Pick<ShopOrdersDocument, "orderId" | "status" | "correlationId">
+    & Pick<TShopOrdersDocument, "orderId" | "status" | "correlationId">
     // may or may not be present depending on the command/snapshot
-    & Partial<Pick<ShopOrdersDocument, "userId" | "total" | "carrier" | "trackingNumber" | "shippedAt">>;
+    & Partial<Pick<TShopOrdersDocument, "userId" | "total" | "carrier" | "trackingNumber" | "shippedAt">>;
 
+type Props = { userId: string };
 
-export default function OrderPage() {
-    const { orders: projectedOrders } = useOrdersProjection(USER_ID);
+export default function OrdersPage({ userId }: Props) {
+    const { orders: projectedOrders } = useOrdersProjection(userId);
     const { rows, upsert, replaceSnapshot } = useRows<OrderRow>();
 
     // Common handler for commands
-    const handle = async (cmd: TOrderCommandUnion, correlationId: ShopOrdersDocument["correlationId"], status: ShopOrdersDocument["status"]) => {
+    const handle = async (cmd: TOrderCommandUnion, correlationId: TShopOrdersDocument["correlationId"], status: TShopOrdersDocument["status"]) => {
         upsert({ ...cmd.payload, correlationId, status }, { pending: true });
         try {
-            await useOrdersCommands(USER_ID, { ...cmd, correlationId });
+            await useOrdersCommands(userId, { ...cmd, correlationId });
         } catch (err) {
             console.error("ShipOrder failed:", err);
             upsert({ ...cmd.payload, correlationId, status: "FAILED" }, { pending: false });
@@ -71,7 +70,7 @@ export default function OrderPage() {
     // Handle order command
     const createOrder = async () => {
         const orderId = Date.now().toString();
-        const payload = { orderId, userId: USER_ID, total: 1 };
+        const payload = { orderId, userId: userId, total: 1 };
         const correlationId = uuidv4();
         const cmd = OrdersCommands.createOrder(payload);
         handle(cmd, correlationId, "PENDING");
@@ -106,7 +105,7 @@ export default function OrderPage() {
                 return "RoyalBlue";
         }
     };
-    
+
     return (
         <Stack>
             <Group justify="space-between" align="center">

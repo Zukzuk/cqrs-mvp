@@ -1,6 +1,6 @@
 # CQRS-ES Shop System (MVP)
 
-A minimal, **hexagonal-architecture** example showcasing **CQRS** (Command Query Responsibility Segregation) and **Event Sourcing** across multiple bounded contexts — _Order_ and _Calendar_ — each with their own event stores and message-based communication. The _Order_ domain also has a related projection - _Shop_.
+A minimal, **hexagonal-architecture** example showcasing **CQRS** (Command Query Responsibility Segregation) and **Event Sourcing** across bounded context(s) — _Order_ — each with their own event stores and message-based communication. The _Order_ domain also has a related projection - _Shop_.
 
 ## 🧰 Development
 
@@ -19,7 +19,7 @@ npm run build
 ```bash
 npm run up
 ```
-> Starts the full stack using Docker Compose (Order, Calendar, Shop, Broker, Observability)
+> Starts the full stack using Docker Compose (Order, Shop, Broker, Observability)
 
 ### Visualize Architecture (C4)
 ```bash
@@ -105,12 +105,6 @@ This separation keeps all domain logic **pure, testable, and technology-agnostic
 - Events: Created, Shipped (+ Failed variants)
 - EventStore: MongoDB-backed, append-only
 
-### 🗓️ Calendar
-- Domain Aggregate: `Calendar`
-- Commands: Create, Schedule, Reschedule, Remove
-- Events: CalendarCreated, TimeslotScheduled, etc.
-- EventStore: MongoDB-backed, append-only
-
 ## 🪞 Projections
 
 ### 🛒 Shop
@@ -138,7 +132,7 @@ This separation keeps all domain logic **pure, testable, and technology-agnostic
 | `npm run clean` | Remove build artifacts |
 | `npm run test` | Run unit tests across workspaces (optional placeholder) |
 
-> Each service (Order, Calendar, Shop, etc.) also supports individual `npm run build` and `npm start` commands within its own workspace.
+> Each service (Order, Shop, etc.) also supports individual `npm run build` and `npm start` commands within its own workspace.
 
 ## 🧭 Extending & Swapping
 

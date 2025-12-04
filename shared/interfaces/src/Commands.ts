@@ -1,4 +1,3 @@
-import { TCalendarCommandUnion } from "./calendar/Commands";
 import { TOrderCommandUnion } from "./order/Commands";
 
 // Root command interface
@@ -11,7 +10,6 @@ export interface ICommand<P = any> {
 // Discriminated union of all command types for convenience
 export type TCommandUnion =
   TOrderCommandUnion
-  | TCalendarCommandUnion
 
 // Union of all domain event "type" strings for convenience
 export type TCommandTypes = TCommandUnion['type'];

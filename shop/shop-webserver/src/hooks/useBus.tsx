@@ -4,6 +4,7 @@ import { getSocket } from "../socket";
 export function useBus({ userId }: { userId: string }) {
     const sock = useMemo(() => getSocket(userId), [userId]);
     const [connected, setConnected] = useState(sock.connected);
+    
     useEffect(() => {
         const onConnect = () => setConnected(true);
         const onDisconnect = () => setConnected(false);
@@ -14,5 +15,6 @@ export function useBus({ userId }: { userId: string }) {
             sock.off("disconnect", onDisconnect);
         };
     }, [sock]);
+    
     return { socket: sock, connected };
 }

@@ -1,0 +1,37 @@
+FROM cqrs-mvp/base:latest
+
+ARG SERVICE_PATH=shop/shop-webserver
+ENV SERVICE_PATH=${SERVICE_PATH}
+WORKDIR /usr/src
+
+# Optional but helpful (npm workspaces + optional deps fixes)
+RUN npm i -g npm@latest
+
+# Copy manifests only (cache-friendly)
+COPY package.json package-lock.json ./
+COPY ${SERVICE_PATH}/package.json ${SERVICE_PATH}/package.json
+# copy other workspace package.json files if they’re used at runtime
+
+# Install workspaces (Linux platform → correct optional deps like @rollup/rollup-linux-arm64-musl)
+# If your lockfile was created on macOS, regenerate it INSIDE the container:
+RUN rm -f package-lock.json && npm install --workspaces
+RUN npm ci \
+  --workspace ${SERVICE_PATH} \
+  --workspace shared \
+  --include-workspace-root=false
+
+# Bring in source for live reload
+COPY . .
+
+# Dev entrypoint: populate node_modules when the named volume masks the image layer, then run Vite
+RUN printf '%s\n' \
+  '#!/bin/sh' \
+  'set -e' \
+  'if [ ! -d /usr/src/node_modules/.cache ]; then' \
+  '  echo "[dev] node_modules empty -> npm ci (workspaces)";' \
+  '  npm ci --workspaces --include-workspace-root=false;' \
+  'fi' \
+  'exec npm run dev --workspace '"$SERVICE_PATH"' -- --host 0.0.0.0 --port 5173' \
+  > /usr/local/bin/dev-entry && chmod +x /usr/local/bin/dev-entry
+
+CMD ["/usr/local/bin/dev-entry"]

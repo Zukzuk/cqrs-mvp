@@ -26,13 +26,7 @@ export function registerShopProjection(
             setTimeout(() => io.to(order.userId).emit("order_update", order), 1000);
         });
 
-        socket.on("calendars_snapshot", (view: { userId: string; calendar: any }) => {
-            io.to(view.userId).emit("calendars_snapshot", view.calendar);
-        });
-        socket.on("calendar_update", (view: { userId: string;[k: string]: any }) => {
-            setTimeout(() => io.to(view.userId).emit("calendar_update", view), 1000);
-        });
-
+        // handle disconnects
         socket.on("disconnect", () => {
             console.warn(`⚠️ [bff] projection disconnected: ${socket.id}`);
             snapshots.onProjectionDisconnect();

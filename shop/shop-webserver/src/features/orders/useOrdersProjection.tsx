@@ -13,6 +13,7 @@ export function useOrdersProjection(userId: string) {
                 .map((o: any) => ({ ...o, orderId: String(o.orderId ?? "") }));
             setOrders(cleaned);
         }
+        
         function onUpdate(order: any) {
             if (!order || order.userId !== userId) return;
             const normalized = { ...order, orderId: String(order.orderId ?? "") } as TShopOrdersDocument;

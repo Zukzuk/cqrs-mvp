@@ -1,15 +1,19 @@
 services:
   shop-webserver-dev:
-    image: cqrs-mvp/base:latest
-    working_dir: /usr/src
-    volumes:
-      - ./:/usr/src
-      - /usr/src/node_modules
+    build:
+      context: .
+      dockerfile: shop/shop-webserver/Dockerfile.dev
+      args:
+        SERVICE_PATH: shop/shop-webserver
     environment:
       - CHOKIDAR_USEPOLLING=true
-      - SHOP_WEB_DEV_PORT=${SHOP_WEB_DEV_PORT:-5173} # pass-through
+      - SHOP_WEB_DEV_PORT=${SHOP_WEB_DEV_PORT:-5173}
     ports:
-      - "${SHOP_WEB_DEV_PORT:-5173}:5173" # host:container
-    command: >
-      sh -lc "npm run dev --workspace shop/shop-webserver -- --host 0.0.0.0 --port 5173"
+      - "${SHOP_WEB_DEV_PORT:-5173}:5173"
+    volumes:
+      - ./:/usr/src
+      - node_modules_shop:/usr/src/node_modules
     profiles: ["webdev"]
+
+volumes:
+  node_modules_shop:

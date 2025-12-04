@@ -34,7 +34,6 @@ import { SnapshotService } from './services/SnapshotService';
   const projectionNs = io.of('/shop_projection');
   const snapshots = new SnapshotService(projectionNs, [
     { name: 'orders', request: (ns, userId) => ns.emit('request_orders_snapshot', { userId }) },
-    { name: 'calendars', request: (ns, userId) => ns.emit('request_calendars_snapshot', { userId }) },
   ]);
 
   // Register projections and web client handlers

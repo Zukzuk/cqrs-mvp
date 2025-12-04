@@ -16,7 +16,6 @@ export type TViolationReason =
     | 'NotFound'
     | 'Removed'
     | 'InvalidTimeRange'
-    | 'OverlapCalendar'
     | 'InvariantViolation'
     | 'InvalidArgument'
     | 'InvalidState'

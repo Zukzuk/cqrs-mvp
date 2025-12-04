@@ -7,26 +7,25 @@
     "observability/*",
     "shared/interfaces",
     "shared/*",
-    "calendars/*",
     "orders/*",
     "shop/*",
     "scripts"
   ],
   "scripts": {
-    "dev": "npm run build:base && docker compose -f docker-compose.yml -f orders/docker-compose.yml -f calendars/docker-compose.yml -f shop/docker-compose.yml -f observability/docker-compose.yml -f shop/docker-compose.dev.yml --profile obs --profile webdev up --build -d",
+    "dev": "npm run build:base && docker compose -f docker-compose.yml -f orders/docker-compose.yml -f shop/docker-compose.yml -f shop/docker-compose.dev.yml -f observability/docker-compose.yml --profile obs --profile webdev up --build -d",
     "build": "npm ci && npm run build --workspaces --if-present",
     "build:shared": "npm ci && npm run build --workspace shared",
     "build:obs": "npm ci && npm run build --workspace observability",
     "build:base": "npm ci && docker build -f Dockerfile.base.nodejs -t cqrs-mvp/base:latest .",
-    "compose:all": "docker compose -f docker-compose.yml -f orders/docker-compose.yml -f calendars/docker-compose.yml -f shop/docker-compose.yml -f observability/docker-compose.yml --profile obs up --build -d",
-    "up": "npm run build:base && npm run compose:all",
-    "down": "docker compose -f docker-compose.yml -f orders/docker-compose.yml -f calendars/docker-compose.yml -f shop/docker-compose.yml -f observability/docker-compose.yml --profile obs down",
+    "up": "npm run build:base && docker compose -f docker-compose.yml -f orders/docker-compose.yml -f shop/docker-compose.yml -f observability/docker-compose.yml --profile obs up --build -d",
+    "down": "docker compose -f docker-compose.yml -f orders/docker-compose.yml -f shop/docker-compose.yml -f observability/docker-compose.yml --profile obs down",
     "tools": "concurrently \"npm run mongoui\" \"npm run viz\"",
     "mongoui": "ts-node observability/mongoui/src/index.ts",
     "viz": "ts-node observability/visualize/src/viz.ts",
     "viz:gen": "ts-node observability/visualize/src/gen.ts",
     "codebase": "node scripts/codebase.js",
     "clean": "node scripts/clean.js",
-    "outdated": "npm -ws outdated"
+    "outdated": "npm -ws outdated",
+    "yml": "docker compose -f docker-compose.yml -f orders/docker-compose.yml -f shop/docker-compose.yml config > scripts/docker-compose.full.yml"
   }
 }

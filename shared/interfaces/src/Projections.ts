@@ -15,10 +15,3 @@ export type TShopOrdersDocument = {
   carrier?: string;
   trackingNumber?: string;
 }
-
-export type TCalendarDocument = {
-  calendarId: string;
-  userId: string;
-  timeslots: TTimeslot[];
-  updatedAt?: string;
-}

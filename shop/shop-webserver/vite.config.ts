@@ -9,9 +9,7 @@ export default defineConfig({
     strictPort: true,
     watch: { usePolling: true },
     hmr: {
-      clientPort: Number(process.env.SHOP_WEB_DEV_PORT) || 5173, // host port (e.g. 3003)
-      host: 'localhost', // matches http://localhost:3003
-      protocol: 'ws',
+      clientPort: Number(process.env.SHOP_WEB_DEV_PORT) || 5173,
     },
     proxy: {
       '/socket.io': {
